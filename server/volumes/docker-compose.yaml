@@ -47,6 +47,9 @@ services:
     container_name: rabbitmq_container
     image: rabbitmq:4.0.5-management-alpine
     restart: always
+    environment:
+      - RABBITMQ_DEFAULT_USER=growvia
+      - RABBITMQ_DEFAULT_PASS=growviapassword
     ports:
       #AMQP protocol port (to access from The app)
       - '5672:5672'
