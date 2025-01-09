@@ -1,0 +1,42 @@
+{
+  "name": "notification",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "nodemon -r tsconfig-paths/register src/app.ts",
+    "build": "tsc --project tsconfig.json && tsc-alias -p tsconfig.json"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "devDependencies": {
+    "@types/amqplib": "^0.10.6",
+    "@types/email-templates": "^10.0.4",
+    "@types/express": "^5.0.0",
+    "@types/nodemailer": "^6.4.17",
+    "@typescript-eslint/eslint-plugin": "^8.19.0",
+    "@typescript-eslint/parser": "^8.19.0",
+    "eslint": "^9.17.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-import": "^2.31.0",
+    "prettier": "^3.4.2",
+    "ts-node": "^10.9.2",
+    "tsc-alias": "^1.8.10",
+    "tsconfig-paths": "^4.2.0"
+  },
+  "dependencies": {
+    "@elastic/elasticsearch": "^8.17.0",
+    "@veckovn/growvia-shared": "^0.0.9",
+    "amqplib": "^0.10.5",
+    "dotenv": "^16.4.7",
+    "ejs": "^3.1.10",
+    "email-templates": "^12.0.1",
+    "express": "^4.21.2",
+    "nodemailer": "^6.9.16",
+    "typescript": "^5.7.2",
+    "typescript-transform-paths": "^3.5.3",
+    "winston": "^3.17.0"
+  }
+}
