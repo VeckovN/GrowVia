@@ -1,5 +1,5 @@
-import { winstonLogger } from "@veckovn/growvia-shared";
 import http from 'http';
+import { winstonLogger, EmailLocalsInterface} from "@veckovn/growvia-shared";
 import { Application } from 'express';
 import { Logger } from "winston";
 import {healthRoute} from "@notification/routes";
@@ -7,6 +7,7 @@ import { checkConnection } from "@notification/elasticsearch";
 import { createConnection } from "@notification/rabbitmqQueues/rabbitmq";
 import { Channel } from "amqplib";
 import { AuthEmailConsumer, OrderEmailConsumer, PaymentEmailConsumer } from "./rabbitmqQueues/emailConsumer";
+import { config } from '@notification/config';
 
 const Server_port = 4001;
 // elasticSearch Url from .dev
@@ -36,12 +37,28 @@ async function publishMessages(channel: Channel): Promise<void>{
     const authEmailExchangeName = 'auth-email-notification';
     const authEmailRoutingKey = 'auth-email-key';
     await channel.assertExchange(authEmailExchangeName, 'direct');
-    const message = JSON.stringify({name:"growvia", service:"notification", context:"Test auth message"})
+    
+    //all props for sending 'verifyEmail' 
+    //Token for getting response on email confirm
+    const emailAuthMessage: EmailLocalsInterface = {
+        template:'verifyEmail',
+        receiverEmail: `${config.TEST_EMAIL}`,  //sender mail
+        resetLink: `${config.CLIENT_URL}/confirm_email_EXAMPLE_NOT_GENERATED`,
+        username: "TestUsername"
+    }
+    const message = JSON.stringify(emailAuthMessage);
     channel.publish(authEmailExchangeName, authEmailRoutingKey, Buffer.from(message));
+
 
     const orderEmailExchangeName = 'order-email-notification';
     const orderEmailRoutingKey = 'order-email-key';
     await channel.assertExchange(orderEmailExchangeName, 'direct');
+    
+    // const emailOrderMessage: EmailLocalsInterface = {
+    //     template:'orderProduct',
+    //     receiverEmail: `${config.TEST_EMAIL}`,
+    // }
+
     const messageOrder = JSON.stringify({name:"growvia", service:"notification", context:"Test order message"})
     channel.publish(orderEmailExchangeName, orderEmailRoutingKey, Buffer.from(messageOrder));
     

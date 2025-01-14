@@ -1,10 +1,10 @@
-import { winstonLogger } from "@veckovn/growvia-shared";
+import { winstonLogger, EmailLocalsInterface } from "@veckovn/growvia-shared";
 import { Logger } from "winston";
 import { Channel, ConsumeMessage } from 'amqplib';
+import { sendEmail } from "@notification/rabbitmqQueues/emailTransport";
 
 const log:Logger = winstonLogger('http://localhost:9200', 'notificationRabbitMQConnection', 'debug');
 
-//passed created channel (from rabbitmq.ts connection )
 async function AuthEmailConsumer(channel: Channel): Promise<void> {
     try{
         const exchangeName = 'auth-email-notification';
@@ -19,8 +19,16 @@ async function AuthEmailConsumer(channel: Channel): Promise<void> {
         //By using msg!, you're essentially telling TypeScript:
         //"I am certain that msg is not null here, so let me access msg.content without complaining.
         channel.consume((await authEmailQueue).queue, async (msg: ConsumeMessage | null)=>{
-            console.log(JSON.parse(msg!.content.toString()));
-            //send emails
+            const {template, receiverEmail, username, verifyLink, resetLink} = JSON.parse(msg!.content.toString());
+            
+            const locals: EmailLocalsInterface = {
+                // appLink: `${config.CLIENT_URL}`, //app link is client URL (app link)
+                username,
+                verifyLink,
+                resetLink
+            };
+            //different auth emails-templates (forgotPassword, resetPassword verifyEmail, verifyEmailConfirm, ) 
+            await sendEmail(template, receiverEmail, locals);
             channel.ack(msg!);
         });
         log.info(`Notification service emailConsumer initialized`);
