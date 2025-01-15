@@ -2,8 +2,9 @@ import { winstonLogger, EmailLocalsInterface } from "@veckovn/growvia-shared";
 import { Logger } from "winston";
 import { Channel, ConsumeMessage } from 'amqplib';
 import { sendEmail } from "@notification/rabbitmqQueues/emailTransport";
+import { config } from '@notification/config';
 
-const log:Logger = winstonLogger('http://localhost:9200', 'notificationRabbitMQConnection', 'debug');
+const log:Logger = winstonLogger(`${config.ELASTICSEARCH_URL}`, 'notificationRabbitMQConnection', 'debug');
 
 async function AuthEmailConsumer(channel: Channel): Promise<void> {
     try{
@@ -15,10 +16,8 @@ async function AuthEmailConsumer(channel: Channel): Promise<void> {
         const authEmailQueue = channel.assertQueue(queueName, {durable: true, autoDelete:false});
         await channel.bindQueue((await authEmailQueue).queue, exchangeName,  routingKey);        
 
-        //Without the !, TypeScript would raise an error because msg might be null, and accessing msg.content could result in a runtime error.
-        //By using msg!, you're essentially telling TypeScript:
-        //"I am certain that msg is not null here, so let me access msg.content without complaining.
         channel.consume((await authEmailQueue).queue, async (msg: ConsumeMessage | null)=>{
+            //msg! garante that msg is not null or undefined
             const {template, receiverEmail, username, verifyLink, resetLink} = JSON.parse(msg!.content.toString());
             
             const locals: EmailLocalsInterface = {
@@ -34,7 +33,8 @@ async function AuthEmailConsumer(channel: Channel): Promise<void> {
         log.info(`Notification service emailConsumer initialized`);
     }
     catch(error){
-        log.log('error', "Notification service AuthEmailConsumer failed: ", error);
+        //log? due to test fixing undefied log
+        log?.log('error', "Notification service AuthEmailConsumer failed: ", error);
     }
 }
 

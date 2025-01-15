@@ -10,8 +10,7 @@ import { AuthEmailConsumer, OrderEmailConsumer, PaymentEmailConsumer } from "./r
 import { config } from '@notification/config';
 
 const Server_port = 4001;
-// elasticSearch Url from .dev
-const log: Logger = winstonLogger('http://localhost:9200', 'notificationService', 'debug');
+const log: Logger = winstonLogger(`${config.ELASTICSEARCH_URL}`, 'notificationService', 'debug');
 
 export function start(app: Application):void {
     startServer(app);
@@ -80,8 +79,4 @@ function startServer(app: Application):void {
     catch (err){
         log.log('error', 'Notification service running error ', err);
     }
-   
-    // app.listen(Server_port, ()=>{
-    //     console.log(`Notification service is running on port: ${Server_port}`);
-    // })
 }

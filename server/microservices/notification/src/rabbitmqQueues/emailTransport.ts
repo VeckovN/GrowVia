@@ -1,8 +1,9 @@
 import { Logger } from "winston";
 import { winstonLogger, EmailLocalsInterface} from "@veckovn/growvia-shared";
 import { sendEmailTemplates } from "@notification/emailTemplates";
- 
-const log:Logger = winstonLogger('http://localhost:9200', 'emailTransport', 'debug');
+import { config } from '@notification/config'; 
+
+const log:Logger = winstonLogger(`${config.ELASTICSEARCH_URL}`, 'emailTransport', 'debug');
 
 async function sendEmail(templateName:string, to:string, locals:EmailLocalsInterface):Promise<void> {
     try{

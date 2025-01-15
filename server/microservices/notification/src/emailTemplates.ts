@@ -6,7 +6,7 @@ import nodemailer, { Transporter } from 'nodemailer';
 import Email from 'email-templates';
 import path from 'path';
 
-const log:Logger = winstonLogger('http://localhost:9200', 'emailTransportTemplate', 'debug');
+const log:Logger = winstonLogger(`${config.ELASTICSEARCH_URL}`, 'emailTransportTemplate', 'debug');
 
 async function sendEmailTemplates(templateName:string, toReceiver:string, locals:EmailLocalsInterface):Promise<void> {
     try{
@@ -32,7 +32,6 @@ async function sendEmailTemplates(templateName:string, toReceiver:string, locals
                 }
             },
             juice: true, //enable using css for email-templates
-            //beacuse in templates the inline css is used
             juiceResources:{
                 preserveImportant:true, //preserve !important in css
                 webResources:{
