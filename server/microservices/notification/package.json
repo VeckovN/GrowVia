@@ -32,7 +32,7 @@
   },
   "dependencies": {
     "@elastic/elasticsearch": "^8.17.0",
-    "@veckovn/growvia-shared": "^0.1.1",
+    "@veckovn/growvia-shared": "^0.1.2",
     "amqplib": "^0.10.5",
     "dotenv": "^16.4.7",
     "ejs": "^3.1.10",
