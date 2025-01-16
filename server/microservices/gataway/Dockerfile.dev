@@ -1,0 +1,19 @@
+#for LOCAL DEVELOPMENT 
+FROM node:23-alpine3.20
+
+#create work directory '/app'
+WORKDIR /app 
+COPY package.json ./ 
+COPY tsconfig.json ./
+#for shared library -> copy .nmprc
+COPY .npmrc ./
+COPY src ./src
+
+RUN ls -a
+#install dependencies (package.json with npm install) (because we don't use node_modules)
+RUN npm install && npm install -g nodemon
+
+#port for notification service
+EXPOSE 4000 
+
+CMD ["npm", "run", "dev"]
