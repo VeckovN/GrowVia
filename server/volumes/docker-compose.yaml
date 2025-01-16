@@ -92,6 +92,31 @@ services:
     depends_on:
       - elasticsearch #start only when elasticSearch running
 
+  notification:
+    container_name: notification_container
+    build:
+      context: ../microservices/notification 
+      dockerfile: Dockerfile.dev
+    restart: always
+    ports: 
+      - 4001:4001
+    env_file: ../microservices/notification/.env
+    environment:
+      - ENABLE_APM=0
+      - NODE_ENV=development
+      - CLIENT_URL=http://localhost:3000 
+      # - ELASTICSEARCH_URL=http://localhost:9200 instead of 'localhost' use 'elasticsearch_container'
+      - ELASTICSEARCH_URL=http://elasticsearch_container:9200
+      - ELASTICSEARCH_APM_SERVER_URL=http//localhost:8200
+      - ELASTICSEARCH_APM_TOKEN=
+      # - RABBITMQ_AMQP_ENDPOINT=amqp://growvia:growviapassword@localhost:5672
+      - RABBITMQ_AMQP_ENDPOINT=amqp://growvia:growviapassword@rabbitmq_container:5672
+      - TEST_EMAIL_NAME = Danika Price
+      - TEST_EMAIL = danika.price93@ethereal.email
+      - TEST_EMAIL_PASSWORD = AS8nZBfGXdDVhGvXh3
+    depends_on: 
+      - elasticsearch 
+
 networks:
   elastic:
     name: elastic
