@@ -92,6 +92,38 @@ services:
     depends_on:
       - elasticsearch #start only when elasticSearch running
 
+  gateway:
+    container_name: gateway_container
+    build:
+      context: ../microservices/gateway 
+      dockerfile: Dockerfile.dev
+    restart: always
+    ports: 
+      - 4000:4000
+    env_file: ../microservices/gateway/.env
+    environment:
+      - ENABLE_APM=0
+      - NODE_ENV=development
+      - CLIENT_URL=http://localhost:3000 
+      # - ELASTICSEARCH_URL=http://localhost:9200
+      - ELASTICSEARCH_URL=http://elasticsearch_container:9200
+      - ELASTICSEARCH_APM_SERVER_URL=http//localhost:8200
+      - ELASTICSEARCH_APM_TOKEN=
+      - RABBITMQ_AMQP_ENDPOINT=amqp://growvia:growviapassword@localhost:5672
+      # - REDIS_HOST=redis://localhost:6379  
+      - REDIS_HOST=redis://redis_container:6379 
+      - GATEWAY_JTW_TOKEN = 294bc0dd5baab813c5f762c3a8bba157  
+      - JWT_TOKEN=0c41cc5c3479d16cb278d5e066b7ff5c
+      - FIRST_SECRET_KEY= 10dc0da8b2dd041b78a828551ca73ca0
+      - SECOND_SECRET_KEY= a27f3f722435720dd5758bbf02e6055c
+      - AUTH_SERVICE_URL= http://localhost:4002
+      - USER_SERVICE_URL= http://localhost:4003
+      - PRODUCT_SERVICE_URL= http://localhost:4004
+      - ORDER_SERVICE_URL= http://localhost:4005
+      - PAYMENT_SERVICE_URL= http://localhost:4006
+    depends_on: 
+      - elasticsearch 
+
   notification:
     container_name: notification_container
     build:
