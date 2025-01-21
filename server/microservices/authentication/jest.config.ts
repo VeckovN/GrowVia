@@ -23,7 +23,7 @@ const jestConfig: Config.InitialOptions = {
     },
     coverageReporters: ['text-summary', 'lcov'],
     moduleNameMapper: {
-        '@gateway/(.*)': ['<rootDir>/src/$1'] //let jest to now about @notification path
+        '@authentication/(.*)': ['<rootDir>/src/$1'] //let jest to now about @notification path
       }
 };
 
