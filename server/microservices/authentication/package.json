@@ -15,7 +15,7 @@
     "@elastic/elasticsearch": "^8.17.0",
     "@veckovn/growvia-shared": "^0.1.2",
     "amqplib": "^0.10.5",
-    "bcryptjs": "^2.4.3",
+    "bcrypt": "^5.1.1",
     "compression": "^1.7.5",
     "cookie-session": "^2.1.0",
     "cors": "^2.8.5",
