@@ -1,5 +1,5 @@
 import { Application, NextFunction, Request ,Response, urlencoded, json } from "express";
-import { winstonLogger} from "@veckovn/growvia-shared";
+import { winstonLogger, ErrorCustomResponseInterface} from "@veckovn/growvia-shared";
 import { Logger } from "winston";
 import { config } from '@authentication/config';
 import helmet from "helmet";
@@ -8,11 +8,15 @@ import compression from "compression";
 import http from 'http';
 import { checkConnection } from "@authentication/elasticsearch";
 import { verify } from "jsonwebtoken";
+import { connectPool } from "@authentication/postgreSQL";
 import { appRoutes } from "@authentication/routes";
+import { createConnection } from "@authentication/rabbitmqQueues/rabbitmq";
+import { Channel } from "amqplib";
+
 
 const Server_port = 4002;
 const log: Logger = winstonLogger(`${config.ELASTICSEARCH_URL}`, 'authenticationService', 'debug');
-
+let authChannel: Channel;
 
 //Move it to the shared-library (gateway service use it as well)
 interface AuthPayloadInterface {
@@ -49,13 +53,29 @@ function startElasticsearch():void{
     checkConnection();
 }
 
+function startPostgreSQL():void{
+    connectPool();
+}
+
+async function startRabbitmqQueue():Promise<void>{
+    //create authChannel
+    authChannel = await createConnection() as Channel;
+}
+
 function errorHandlerMiddleware(app: Application):void{
-    app.use('*', (req:Request, res:Response, next:NextFunction) =>{
-        log.log('error', "That endpoint doesn't exist. ");
-        const fullUrl = `${req.protocol}://${req.get('host')}${req.originalUrl}`;
-        res.status(404).json({message:`The endpoint required doesn't exist: ${fullUrl}`});
+    app.use((error: ErrorCustomResponseInterface, _req: Request, res: Response, next: NextFunction) => {
+        log.log('error', `Authentication Service Error:`, error);
+        res.status(error.statusCode).json({message:error.message});
         next();
-    })
+    });
+    // app.use((error: ErrorCustomResponseInterface, _req: Request, res: Response, next: NextFunction) => {
+    //     log.log('error', `Authentication Service Error:`, error);
+    //     if (error instanceof CustomError) { 
+    //     //CUSTOM ERROR CONTAINES 
+    //         res.status(error.statusCode).json(error.errorObject());
+    //     }
+    //     next();
+    // });
 
     //CREATE INTERFACE FOR CUSTOM ERRORS (Error class that will be extends with other abstract classe ("CustomErro", "BadRequestError") and others)
     //this used for 'custom error' (that we've created)
@@ -67,18 +87,18 @@ function errorHandlerMiddleware(app: Application):void{
 
 async function startHttpAndSocketServer(app:Application):Promise<void> {
     try{
-        log.info("Gateway service has started");
+        log.info("Authentication service has started");
 
         const httpServer: http.Server = new http.Server(app);
         httpServer.listen(Server_port, ()=>{
-            log.info(`Gateway service is running on port: ${Server_port}`)
+            log.info(`Authentication service is running on port: ${Server_port}`)
         })
 
         //Start SocketIO server
         // const socketServer = 
     }
     catch(error){
-        log.log("error", "Gatawey service startServer failed: ", error);
+        log.log("error", "Authentication service startServer failed: ", error);
     }
 }
 
@@ -116,9 +136,10 @@ export function start(app:Application){
     compressRequestMiddleware(app);
     routesMiddleware(app);
     startElasticsearch();
+    startPostgreSQL();
+    startRabbitmqQueue();
     errorHandlerMiddleware(app);
-
-    // startServers(app);
     startHttpAndSocketServer(app);
 }
 
+export { authChannel };
