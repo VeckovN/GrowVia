@@ -15,15 +15,14 @@ const pool:Pool = new Pool({
     database: `${config.POSTGRESQL_NAME}`,
 })
 
-//listen on Error event (Pooling)
 pool.on('error', (err: Error) => {
     log.log("error", "Client PG(PostgreSQL) error: ", err.message);
     process.exit(-1); 
 })
 
-
 const authUserTable = `
     CREATE TABLE IF NOT EXISTS public.auths (
+        id SERIAL UNIQUE,
         username text NOT NULL,
         password text NOT NULL,
         email text NOT NULL UNIQUE,
@@ -39,20 +38,28 @@ const authUserTable = `
     CREATE UNIQUE INDEX idx_email ON public.auths (email);
 
     CREATE INDEX idx_username ON public.auths (username);
-`
-//createdAt timestamp DEFAULT CURRENT_DATE
 
-//cloudinaryProfilePublicId -> public id of uploaded image
-//profilePicture - img url (after uploading)
+    DO $$
+    BEGIN 
+        IF NOT EXISTS (SELECT FROM information_schema.views 
+                    WHERE table_name = 'auths_user_without_password') THEN
+            CREATE VIEW public.auths_user_without_password AS
+                SELECT id, username, email, cloudinaryProfilePublicId, profilePicture, 
+                    verificatioEmailToken, resetPasswordToken, exipresResetPassword, createdAt
+                FROM public.auths;
+        END IF;
+    END $$;
+`
+//Like this, because the CREATE VIEW doesn't support the IF NOT EXISTS clause directly
+//SERIAL UNIQUE -> data type that allowe automatically generate unique intiger numbers
 
 // verificatioEmailToken -> when user create account the token will be stored. 
 //when user verify their email this field will be set on NULL
 //IF we wan't to check is user verified his email we will check does verificatioEmailToken is NULL
 
-export async function connectPool():Promise<void> {
+ async function connectPool():Promise<void> {
     try{
         await pool.connect();
-        //create initial tables
         await pool.query(authUserTable);
         log.info("Authenticatio Service connected to postgreSQL DB");
     }
@@ -61,3 +68,5 @@ export async function connectPool():Promise<void> {
         log.log("error", "Authentication Service postgreSQL connection failed: ", error);
     }
 } 
+
+export {connectPool, pool};
