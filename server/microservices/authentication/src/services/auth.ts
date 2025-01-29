@@ -24,7 +24,7 @@ export async function createUser(userData:AuthUserInterface): Promise<number> {
     } = userData
 
     const SALT_ROUND = 10;
-    const hashedPassoword = await hash(password, SALT_ROUND);
+    const hashedPassoword = await hash(password as string, SALT_ROUND);
     const createdAtDate = new Date();
     
     //On Login function (unCrypt password ->  compare the hashed password stored in the database with the plain text password)
@@ -54,7 +54,11 @@ export async function createUser(userData:AuthUserInterface): Promise<number> {
         const { rows } = await pool.query(query, values);
 
         const createdUser = rows[0];
+        console.log('Curetn User rows[0]: ', rows[0]);
+        const {password, ...userData} = rows[0]; 
+        console.log("User Data ,excluded Password: ", userData);
         const userID:number = createdUser.id ;
+        console.log("\n UserID: ", userID);
 
         //publish Message
         const message: AuthUserMessageInterface = {
@@ -75,7 +79,10 @@ export async function createUser(userData:AuthUserInterface): Promise<number> {
             JSON.stringify(message)
         );
 
+        //RETURN ALL USER DATA (same as login/signup )
+        //Consider to return needed user Data for loggin (after signup The user must be logged in)
         return userID;
+        // return userData;
     }
     catch(error){
         log.log("error", "Authentication service: The user can't be created!");
