@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { AuthUserInterface, AuthEmailVerificationInterface } from '@veckovn/growvia-shared';
+import { AuthUserInterface, AuthEmailVerificationInterface} from '@veckovn/growvia-shared';
 import { createUser, getUserByID, getUserByEmail, getUserByUsername} from '@authentication/services/auth';
 import { v4 as uuidv4 } from 'uuid';
 import crypto from 'crypto';
@@ -7,6 +7,7 @@ import { config } from '@authentication/config';
 import { publishMessage } from "@authentication/rabbitmqQueues/producer";
 import { authChannel } from "@authentication/server";
 import { sign } from 'jsonwebtoken';
+import { compare } from 'bcryptjs';
 
 export async function create(req:Request, res:Response):Promise<void>{
     // const {id, username, email, password, profilePicture} = req.body;
@@ -34,7 +35,7 @@ export async function create(req:Request, res:Response):Promise<void>{
         email: email,
         cloudinaryProfilePublicId: profilePublicId,
         profilePicture: uploadedPictureResult,
-        verificatioEmailToken: verificationToken,
+        verificationEmailToken: verificationToken,
         // resetPasswordToken,
         // exipresResetPassword
     }
@@ -66,6 +67,52 @@ export async function create(req:Request, res:Response):Promise<void>{
     //This will be sent to APIGateway (that will resend it to client)
     res.status(200).json({message: 'User created successfully', userID, token:userToken});
 }
+
+//move this function to shared library
+function verifyEmail(email:string):boolean {
+    // do some checkes (maybe use third party library)
+    const regexExp =
+        /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/gi;
+    return regexExp.test(email);
+}
+
+export async function login(req:Request, res:Response):Promise<void>{
+    const {usernameOrEmail, password} = req.body;     
+
+    //first check does email passed as argument (because can be both "email or username")
+    const isEmailValid = verifyEmail(usernameOrEmail);
+    let user:AuthUserInterface | undefined;
+
+    if(isEmailValid)
+        user = await getUserByEmail(usernameOrEmail);
+    else
+        user = await getUserByUsername(usernameOrEmail);
+    
+    console.log("User data on login: ", user);        
+    if(!user){
+        throw new Error("User not found.");
+    }
+
+
+    console.log("PASSWORD: ", password);
+    console.log("user hashed password: ", user.password);
+
+    //get password from found user
+    const isPasswordValid = await compare(password, user.password!); 
+
+    console.log("IS VALIUD PASS: ", isPasswordValid);
+
+    if(!isPasswordValid)
+        throw new Error("Invalid creadentials. Please try again!");
+
+    //Send message to Notification Service (for OTP Validation) -> Lattely 
+    const userToken = sign({id: user.id, email: user.email, username: user.username}, `${config.JWT_TOKEN}`);
+    // const {password, ...userData} = user;
+    const {password: userPassword, ...userData} = user;
+    //signUp token taht will be send throuhg request and user as cookieSession token
+    res.status(200).json({message:"User succesfully returned", token:userToken, user:userData});
+}
+
 
 export async function userByID(req:Request, res:Response):Promise<void>{
     const user: AuthUserInterface | undefined = await getUserByID(req.body);
