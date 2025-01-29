@@ -9,6 +9,7 @@ import compression from "compression";
 import http from 'http';
 import { checkConnection } from "@gateway/elastisearch";
 import { appRoutes } from "@gateway/routes";
+import { authAxiosInstance } from "@gateway/services/auth.service";
 
 const Server_port = 4000;
 const log: Logger = winstonLogger(`${config.ELASTICSEARCH_URL}`, 'gatewayService', 'debug');
@@ -94,6 +95,16 @@ export function start(app:Application):void {
         credentials: true, //enable to detach the JTW Token to every request comming from the client
         methods:['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH']
     }))
+
+    //When the request comes from the frontend and before the API_Gateway sends(redirect) request to the respective Service 
+    //the token will be add to the headers (jwt token)
+    app.use((req: Request, _res:Response, next:NextFunction) =>{
+        if(req.session?.jwtToken){   //if session exist (The user is logged)
+            //we want to append bearer token to the each AXIOS INSTANCE (Auth, Product, User, Order ...)
+            authAxiosInstance.defaults.headers['Authorization']= `Bearer ${req.session?.jwtToken}`
+        }
+        next();
+    })
 
     compressRequestMiddleware(app);
     routesMiddleware(app);
