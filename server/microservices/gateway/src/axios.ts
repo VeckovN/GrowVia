@@ -1,4 +1,4 @@
-//Axios service
+//Axios service (ApiGateway request something from Microservice)
 import axios from 'axios';
 import { sign } from "jsonwebtoken";
 import { config } from '@gateway/config';
@@ -19,19 +19,18 @@ export function createAxiosInstance(baseUrl:string , service?:string): ReturnTyp
     //and the token will be generated(signed)
 
     if(service){ //If the service doesn't exist it will return error (in auth-middleware) and token wont be generated
-        //id repesent service name,  ('order')
-        //and pass GATEWAY_JWT_TOKEN as Private key for 
+        //id repesent service name,  etc('order' or 'product' ...), signed with GatewayToken
         requestGatewayToken = sign({id:service}, `${config.GATEWAY_JWT_TOKEN}`)
     }
 
-    //add it to the request
     return axios.create({
         baseURL:baseUrl,
         headers: {
             'Content-Type': 'application/json',
             Accept: 'application/json',
-            gatewayToken: requestGatewayToken //it will be checked in auth-middleware
-        }
+            gatewayToken: requestGatewayToken //to verifyGateway Request in Microservices (in routes.ts) 
+        },
+        withCredentials: true
     })
 
 }
