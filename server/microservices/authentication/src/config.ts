@@ -38,6 +38,6 @@ export const config: Config = {
     CLOUDINARY_NAME: process.env.POSTGRESQL_NAME || '',
     CLOUDINARY_API_KEY: process.env.CLOUDINARY_API_KEY || '',
     CLOUDINARY_API_SECRET: process.env.CLOUDINARY_API_SECRET || '',
-    GATEWAY_JWT_TOKEN: process.env.GATEWAY_JTW_TOKEN || '123123',
+    GATEWAY_JWT_TOKEN: process.env.GATEWAY_JWT_TOKEN || '123123',
     JWT_TOKEN: process.env.JWT_TOKEN || '123123',
 };
