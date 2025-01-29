@@ -35,9 +35,29 @@ const authUserTable = `
         PRIMARY KEY (username)
     );
 
-    CREATE UNIQUE INDEX idx_email ON public.auths (email);
+   DO $$
+        BEGIN
+            -- Create index on email if it does not exist
+            IF NOT EXISTS (
+                SELECT 1
+                FROM pg_indexes
+                WHERE schemaname = 'public' AND indexname = 'idx_email'
+            ) THEN
+                CREATE UNIQUE INDEX idx_email ON public.auths (email);
+        END IF;
 
-    CREATE INDEX idx_username ON public.auths (username);
+            -- Create index on username if it does not exist
+        IF NOT EXISTS (
+            SELECT 1
+            FROM pg_indexes
+            WHERE schemaname = 'public' AND indexname = 'idx_username'
+        ) THEN
+            CREATE INDEX idx_username ON public.auths (username);
+        END IF;
+    END $$;
+        
+    -- CREATE UNIQUE INDEX idx_email ON public.auths (email);
+    -- CREATE INDEX idx_username ON public.auths (username);
 
     DO $$
     BEGIN 
