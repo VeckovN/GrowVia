@@ -28,14 +28,36 @@ async function SignIn(body: AuthBodyRequestInterface):Promise<AxiosResponse> {
 }
 
 async function verifyEmail(body: AuthBodyRequestInterface):Promise<AxiosResponse> {
+    //email is passed throught body as well, -> req.body.email
     const res: AxiosResponse = await authAxiosInstance.put('/verify-email', body);
     return res;
 }
+
+async function changePassword(newPassword:string):Promise<AxiosResponse> {
+    //make request with newPassword in body to the Authentication servcice
+    const res: AxiosResponse = await authAxiosInstance.put('/change-password', { newPassword });
+    return res;
+}
+
+async function forgotPassword(email:string):Promise<AxiosResponse> {
+    const res: AxiosResponse = await authAxiosInstance.put('/forgot-password', { email });
+    return res;
+}
+
+async function resetPassword(password:string, repeatedPassword:string, token:string):Promise<AxiosResponse> {
+    //token is passed in url -> req.params. but password and repeatedPassword as body -> req.body
+    const res: AxiosResponse = await authAxiosInstance.put(`/reset-password/${token}`, {password, repeatedPassword});
+    return res;
+}
+
 
 export { 
     authAxiosInstance,
     SignUp,
     SignIn,
-    verifyEmail  
+    verifyEmail,
+    forgotPassword,
+    resetPassword,
+    changePassword
 }
 

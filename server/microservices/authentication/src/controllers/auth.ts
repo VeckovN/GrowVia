@@ -1,13 +1,13 @@
 import { Request, Response } from 'express';
-import { AuthUserInterface, AuthEmailVerificationInterface} from '@veckovn/growvia-shared';
-import { createUser, getUserByID, getUserByEmail, getUserByUsername, updateEmailVerification} from '@authentication/services/auth';
+import { AuthUserInterface, AuthEmailVerificationInterface, EmailLocalsInterface} from '@veckovn/growvia-shared';
+import { createUser, getUserByID, getUserByEmail, getUserByUsername, getUserByPasswordToken, updateEmailVerification, updatePasswordTokenExpiration, updatePassword} from '@authentication/services/auth';
 import { v4 as uuidv4 } from 'uuid';
 import crypto from 'crypto';
 import { config } from '@authentication/config';
 import { publishMessage } from "@authentication/rabbitmqQueues/producer";
 import { authChannel } from "@authentication/server";
 import { sign } from 'jsonwebtoken';
-import { compare } from 'bcryptjs';
+import { compare, hash } from 'bcryptjs';
 
 export async function create(req:Request, res:Response):Promise<void>{
     // const {id, username, email, password, profilePicture} = req.body;
@@ -37,7 +37,7 @@ export async function create(req:Request, res:Response):Promise<void>{
         profilePicture: uploadedPictureResult,
         verificationEmailToken: verificationToken,
         // resetPasswordToken,
-        // exipresResetPassword
+        // expiresResetPassword
     }
 
     const userID: number = await createUser(createUserData);
@@ -127,6 +127,126 @@ export async function verifyEmail(req:Request, res:Response):Promise<void>{
     // res.status(200).json({message:"User has successfully verified the email"})
 }
 
+//send the email for restarting password 
+export async function forgotPassword(req:Request, res:Response):Promise<void>{
+    const { email } = req.body;
+    const user = await getUserByEmail(email);
+    if(!user)
+        throw new Error("Invalid credentials, User doesn't exist");    
+    
+    //generate token for resetLink
+    const resetToken = crypto.randomBytes(32).toString("hex");
+    const resetLinkWithToken = `${config.CLIENT_URL}/reset_password?token=${resetToken}`;
+    //date for expirespasswordLink
+    const date:Date = new Date();
+    date.setHours(date.getHours() + 1); //get 1 hour as expires time 
+    await updatePasswordTokenExpiration(user.id!, resetToken, date);
+    // const isUpdated = await updatePasswordTokenExpiration(user.id!, resetToken, date);
+    // if(!isUpdated)
+    //     throw new Error("Went wrong with updating password token expiration ");
+    
+    //publish message to the queue (notification service consume it)
+    const messageForgotPasswordEmail: EmailLocalsInterface = {
+        receiverEmail: email,
+        username: user.username,
+        resetLink: resetLinkWithToken,
+        template: 'forgotPassword'
+    }
+
+    //Now publish message to Notification Service (Produce message on signup action for verify Email)
+    await publishMessage(
+        authChannel,
+        'auth-email-notification',
+        'auth-email-key',
+        'Frogot password email has been sent to the Notification Service',
+        JSON.stringify(messageForgotPasswordEmail)
+    );
+
+    res.status(200).json({message:"Forgot message successfully sent"});
+}
+
+
+export async function resetPassword(req:Request, res:Response):Promise<void>{
+    //on forgotPassword email the user passing new password (as password and repeatedPassword -> both must match)
+    const { password, repeatedPassword } = req.body;
+    // //token from URL: config.CLIENT_URL}/reset_password?token=${resetToken}
+    const token = req.params.token;
+
+    if(password !== repeatedPassword)
+        throw new Error("Password don't match");
+
+    //When the token expired it becomes null 
+    const user = await getUserByPasswordToken(token);
+    if(!user) //that means token has expired
+        throw new Error("Reset Token has expired");
+
+    const SALT_ROUND = 10;
+    const hashedPassoword = await hash(password as string, SALT_ROUND);
+    await updatePassword(user.id!, hashedPassoword);
+
+    //message
+    const messageResetPasswordSuccessEmail: EmailLocalsInterface = {
+        receiverEmail: user.email,
+        username: user.username,
+        template: 'resetPasswordSuccess'
+    }
+
+    //Now publish message to Notification Service (Produce message on signup action for verify Email)
+    await publishMessage(
+        authChannel,
+        'auth-email-notification',
+        'auth-email-key',
+        'Reset password success email sent to the Notification Service',
+        JSON.stringify(messageResetPasswordSuccessEmail)
+    );
+
+    res.status(200).json({message:"Password successfully sent"});
+}   
+
+//user must be logged in (currentUser is passed in requset)
+export async function changePassword(req:Request, res:Response):Promise<void>{
+    const { newPassword } = req.body;
+    //get currentUser id from req (passed)
+    const userID = req.currentUser?.id;
+
+    //The currentUser is passed to req on every request (defined in server.ts)
+    // if(req.headers.authorization){
+    //     const token = req.headers.authorization.split(" ")[1];
+    //     //then we do token verification
+    //     const payload:AuthPayloadInterface = verify(token, `${config.JWT_TOKEN}`)as AuthPayloadInterface;
+    //     req.currentUser = payload;
+    // }
+
+    if (userID === undefined)
+        throw new Error("User id is missing!");
+
+    //AVOID using ! : DON'T userID!
+    const user = await getUserByID(userID);
+    if(!user)
+      throw new Error("Invalid password")
+
+    const SALT_ROUND = 10;
+    const hashedPassoword = await hash(newPassword as string, SALT_ROUND);
+
+    await updatePassword(userID, hashedPassoword);
+
+    const messageUpdatePasswordSuccessEmail: EmailLocalsInterface = {
+        receiverEmail: user.email,
+        username: user.username,
+        template: 'resetPasswordSuccess' //same email tamplate as confirm forgotten password 
+    }
+
+    //Now publish message to Notification Service (Produce message on signup action for verify Email)
+    await publishMessage(
+        authChannel,
+        'auth-email-notification',
+        'auth-email-key',
+        'Update password success email sent to the Notification Service',
+        JSON.stringify(messageUpdatePasswordSuccessEmail)
+    );
+
+    res.status(200).json({message:"Password successfully updated"});
+}
 
 export async function userByID(req:Request, res:Response):Promise<void>{
     const user: AuthUserInterface | undefined = await getUserByID(req.body);

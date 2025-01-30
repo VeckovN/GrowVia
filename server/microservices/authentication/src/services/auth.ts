@@ -8,6 +8,23 @@ import { authChannel } from "@authentication/server";
 
 const log: Logger = winstonLogger(`${config.ELASTICSEARCH_URL}`, 'authenticationService', 'debug');
 
+//This put in share library or some helpers:
+// function mapAuthUser(row:any): AuthUserInterface {
+//     return {
+//         id: row.id,
+//         username: row.username,
+//         email: row.email,
+//         password: row.password,
+//         cloudinaryProfilePublicId: row.cloudinaryprofilepublicid, // Map to camelCase
+//         profilePicture: row.profilepicture,
+//         verificationEmailToken: row.verificationemailtoken,
+//         resetPasswordToken: row.resetpasswordtoken,
+//         expiresResetPassword: row.expiresresetpassword,
+//         // createdAt: row.createdat, // If needed
+//     };
+// }
+
+
 //signup
 // export async function createUser(userData:AuthUserInterface):Promise<void> {
 // export async function createUser(userData:AuthUserInterface): Promise<AuthUserInterface> {
@@ -20,7 +37,7 @@ export async function createUser(userData:AuthUserInterface): Promise<number> {
         profilePicture,
         verificationEmailToken,
         resetPasswordToken,
-        exipresResetPassword
+        expiresResetPassword
     } = userData
 
     const SALT_ROUND = 10;
@@ -33,7 +50,7 @@ export async function createUser(userData:AuthUserInterface): Promise<number> {
     const query = `
         INSERT INTO public.auths (
             username, password, email, cloudinaryProfilePublicId, profilePicture, 
-            verificationEmailToken, resetPasswordToken, exipresResetPassword, createdAt )
+            verificationEmailToken, resetPasswordToken, expiresResetPassword, createdAt )
         VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9)
         RETURNING *
     `;
@@ -46,7 +63,7 @@ export async function createUser(userData:AuthUserInterface): Promise<number> {
         profilePicture,
         verificationEmailToken,
         resetPasswordToken,
-        exipresResetPassword,
+        expiresResetPassword,
         createdAtDate, 
     ];
 
@@ -107,6 +124,39 @@ export async function updateEmailVerification(userID?:number):Promise<boolean>{
     }
 }
 
+//update password, resetPasswordToken and expiresResetPassword 
+export async function updatePassword(userID: number, password:string):Promise<boolean>{
+    try{
+        const {rowCount} = await pool.query(
+            `UPDATE public.auths 
+             SET password = $1, resetPasswordToken = $2, expiresResetPassword = $3 
+             WHERE id = $4`, 
+             [password, null, null, userID]
+        )
+        return rowCount === 1
+    }
+    catch(error){
+        log.log("error", "Authentication service: The password can't be updated!");
+        throw new Error("Failed to verify email."); 
+    }
+}
+
+// //on sending email the experation token time must be set.
+export async function updatePasswordTokenExpiration(userID: number, resetToken:string, date:Date):Promise<boolean>{
+    try{
+        const {rowCount} = await pool.query(
+            `UPDATE public.auths 
+            SET resetPasswordToken = $1, expiresResetPassword = $2
+            WHERE id = $3`,
+            [resetToken, date, userID]
+        )
+        return rowCount === 1
+    }   
+    catch(error){
+        log.log("error", "Authentication service: The password token expiration can't be updated!");
+        throw new Error("Failed to verify email."); 
+    }
+}
 
 export async function getUserByID(userID:number): Promise<AuthUserInterface | undefined>{
     try{
@@ -120,7 +170,7 @@ export async function getUserByID(userID:number): Promise<AuthUserInterface | un
                 profilepicture as profilePicture,
                 verificationemailtoken as verificationEmailToken,
                 resetpasswordtoken as resetPasswordToken,
-                exipresresetpassword as exipresResetPassword,
+                expiresResetPassword as expiresResetPassword,
                 createdat as createdAt
             FROM public.auths_user_without_password 
             WHERE id = $1 `, 
@@ -129,6 +179,7 @@ export async function getUserByID(userID:number): Promise<AuthUserInterface | un
 
         if (rows.length === 0)
             return undefined
+
 
         //maybe due to 'pg-admin' the props aren't retunred as camelCase
         // Manually map to camelCase if necessary
@@ -139,28 +190,19 @@ export async function getUserByID(userID:number): Promise<AuthUserInterface | un
             profilePicture: rows[0].profilepicture,
             verificationEmailToken: rows[0].verificationemailtoken,
             resetPasswordToken: rows[0].resetpasswordtoken,
-            exipresResetPassword: rows[0].exipresresetpassword,
+            expiresResetPassword: rows[0].expiresResetPassword,
             //Replace this interface with AuthUserDocumentInterface (that contains createtAt)
             // createdAt: rows[0].createdAt
         };
 
-        return mappedAuthUser 
-        // return rows.length > 0 ? (mappedAuthUser as AuthUserInterface) : undefined;
-    }
-    catch(error){
-        log.log("error", "Authentication service can't get the user by id. Error: ", error);
-    }
-}
+        //TRY DEFINED FUNCTION
+        // const mappedAuthUser = mapAuthUser(rows[0]);
+        //AND
+        // return rows.length > 0 ? mappedAuthUser : undefined; 
+        // OR  return rows.length > 0 ? mapAuthUser(rows[0]) : undefined; 
+        return mappedAuthUser; 
 
-export async function getUserVerificationEmailToken(userID: number): Promise<string | undefined>{
-    try{
-    const { rows } = await pool.query(
-        // ` SELECT * FROM public.auths WHERE id = $1 `, [userID]
-        ` SELECT verificationEmailToken FROM public.auths WHERE id = $1 `, [userID]
-        );
-
-        //postgre by default returns props as lowercase if double quote didn't use in selecct like "columnName"  
-        return rows.length > 0 ? (rows[0].verificationemailtoken as string) : undefined;
+        // return rows.length > 0 ? (mappedAuthUser as AuthUserInterface) : undefined;    
     }
     catch(error){
         log.log("error", "Authentication service can't get the user by id. Error: ", error);
@@ -172,10 +214,43 @@ export async function getUserByEmail(email:string): Promise<AuthUserInterface | 
         const { rows } = await pool.query(
         // ` SELECT * FROM public.auths WHERE LOWER(email) = LOWER($1) `, [email]
         // ` SELECT * FROM public.auths_user_without_password WHERE LOWER(email) = LOWER($1) `, [email]
-        ` SELECT * FROM public.auths WHERE LOWER(email) = LOWER($1) `, [email]
+        // ` SELECT * FROM public.auths WHERE LOWER(email) = LOWER($1) `, [email]
+        ` SELECT
+                id,
+                username,
+                email,
+                password,
+                cloudinaryprofilepublicid as cloudinaryProfilePublicId,
+                profilepicture as profilePicture,
+                verificationemailtoken as verificationEmailToken,
+                resetpasswordtoken as resetPasswordToken,
+                expiresResetPassword as expiresResetPassword,
+                createdat as createdAt
+            FROM public.auths
+            WHERE LOWER(email) = LOWER($1) `, 
+            [email]
         );
 
-        return rows.length > 0 ? (rows[0] as AuthUserInterface) : undefined;
+        if (rows.length === 0)
+            return undefined
+
+        const mappedAuthUser: AuthUserInterface = {
+            id:rows[0].id,
+            username: rows[0].username,
+            email: rows[0].email,
+            password: rows[0].password,
+            cloudinaryProfilePublicId: rows[0].cloudinaryprofilepublicId,
+            profilePicture: rows[0].profilepicture,
+            verificationEmailToken: rows[0].verificationemailtoken,
+            resetPasswordToken: rows[0].resetpasswordtoken,
+            expiresResetPassword: rows[0].expiresResetPassword,
+            //Replace this interface with AuthUserDocumentInterface (that contains createtAt)
+            // createdAt: rows[0].createdAt
+        };
+
+        return mappedAuthUser; 
+        
+        // return rows.length > 0 ? (rows[0] as AuthUserInterface) : undefined;
     }
     catch(error){
         log.log("error", "Authentication service can't get the user by id. Error: ", error);
@@ -197,3 +272,62 @@ export async function getUserByUsername(username:string): Promise<AuthUserInterf
     }
 }
 
+
+export async function getUserByPasswordToken(token:string): Promise<AuthUserInterface | undefined>{
+    try{
+        const { rows } = await pool.query(
+        ` SELECT
+                id,
+                username,
+                email,
+                password,
+                cloudinaryprofilepublicid as cloudinaryProfilePublicId,
+                profilepicture as profilePicture,
+                verificationemailtoken as verificationEmailToken,
+                resetpasswordtoken as resetPasswordToken,
+                expiresResetPassword as expiresResetPassword,
+                createdat as createdAt
+            FROM public.auths
+            WHERE resetpasswordtoken = LOWER($1) `, 
+            [token]
+        );
+
+        if (rows.length === 0)
+            return undefined
+
+        const mappedAuthUser: AuthUserInterface = {
+            id:rows[0].id,
+            username: rows[0].username,
+            email: rows[0].email,
+            password: rows[0].password,
+            cloudinaryProfilePublicId: rows[0].cloudinaryprofilepublicId,
+            profilePicture: rows[0].profilepicture,
+            verificationEmailToken: rows[0].verificationemailtoken,
+            resetPasswordToken: rows[0].resetpasswordtoken,
+            expiresResetPassword: rows[0].expiresResetPassword,
+            //Replace this interface with AuthUserDocumentInterface (that contains createtAt)
+            // createdAt: rows[0].createdAt
+        };
+
+        return mappedAuthUser; 
+        // return rows.length > 0 ? (rows[0] as AuthUserInterface) : undefined;
+    }
+    catch(error){
+        log.log("error", "Authentication service can't get the user by id. Error: ", error);
+    }
+}
+
+export async function getUserVerificationEmailToken(userID: number): Promise<string | undefined>{
+    try{
+    const { rows } = await pool.query(
+        // ` SELECT * FROM public.auths WHERE id = $1 `, [userID]
+        ` SELECT verificationEmailToken FROM public.auths WHERE id = $1 `, [userID]
+        );
+
+        //postgre by default returns props as lowercase if double quote didn't use in selecct like "columnName"  
+        return rows.length > 0 ? (rows[0].verificationemailtoken as string) : undefined;
+    }
+    catch(error){
+        log.log("error", "Authentication service can't get the user by id. Error: ", error);
+    }
+}
