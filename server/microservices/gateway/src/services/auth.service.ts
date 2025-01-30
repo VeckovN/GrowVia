@@ -22,8 +22,20 @@ async function SignUp(body: AuthBodyRequestInterface):Promise<AxiosResponse> {
     return res;
 }
 
+async function SignIn(body: AuthBodyRequestInterface):Promise<AxiosResponse> {
+    const res: AxiosResponse = await authAxiosInstance.post('/signin', body);
+    return res;
+}
+
+async function verifyEmail(body: AuthBodyRequestInterface):Promise<AxiosResponse> {
+    const res: AxiosResponse = await authAxiosInstance.put('/verify-email', body);
+    return res;
+}
+
 export { 
     authAxiosInstance,
-    SignUp  
+    SignUp,
+    SignIn,
+    verifyEmail  
 }
 

@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { AuthUserInterface, AuthEmailVerificationInterface} from '@veckovn/growvia-shared';
-import { createUser, getUserByID, getUserByEmail, getUserByUsername} from '@authentication/services/auth';
+import { createUser, getUserByID, getUserByEmail, getUserByUsername, updateEmailVerification} from '@authentication/services/auth';
 import { v4 as uuidv4 } from 'uuid';
 import crypto from 'crypto';
 import { config } from '@authentication/config';
@@ -65,11 +65,11 @@ export async function create(req:Request, res:Response):Promise<void>{
 
     //sing in token and return as part of res.json
     //This will be sent to APIGateway (that will resend it to client)
-    res.status(200).json({message: 'User created successfully', userID, token:userToken});
+    res.status(200).json({message: 'User successfully created', userID, token:userToken});
 }
 
 //move this function to shared library
-function verifyEmail(email:string):boolean {
+function isEmailValid(email:string):boolean {
     // do some checkes (maybe use third party library)
     const regexExp =
         /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/gi;
@@ -80,10 +80,10 @@ export async function login(req:Request, res:Response):Promise<void>{
     const {usernameOrEmail, password} = req.body;     
 
     //first check does email passed as argument (because can be both "email or username")
-    const isEmailValid = verifyEmail(usernameOrEmail);
+    const validEmail = isEmailValid(usernameOrEmail);
     let user:AuthUserInterface | undefined;
 
-    if(isEmailValid)
+    if(validEmail)
         user = await getUserByEmail(usernameOrEmail);
     else
         user = await getUserByUsername(usernameOrEmail);
@@ -93,14 +93,8 @@ export async function login(req:Request, res:Response):Promise<void>{
         throw new Error("User not found.");
     }
 
-
-    console.log("PASSWORD: ", password);
-    console.log("user hashed password: ", user.password);
-
     //get password from found user
     const isPasswordValid = await compare(password, user.password!); 
-
-    console.log("IS VALIUD PASS: ", isPasswordValid);
 
     if(!isPasswordValid)
         throw new Error("Invalid creadentials. Please try again!");
@@ -110,7 +104,27 @@ export async function login(req:Request, res:Response):Promise<void>{
     // const {password, ...userData} = user;
     const {password: userPassword, ...userData} = user;
     //signUp token taht will be send throuhg request and user as cookieSession token
-    res.status(200).json({message:"User succesfully returned", token:userToken, user:userData});
+    res.status(200).json({message:"User succesfully logged in", token:userToken, user:userData});
+}
+
+export async function verifyEmail(req:Request, res:Response):Promise<void>{
+    const {userID} = req.body;
+    const authUser = await getUserByID(userID);
+    if(!authUser)
+        throw new Error("User invalid, you can't verify email");
+    
+    console.log("authUser: ", authUser);
+    if(!authUser.verificationEmailToken)
+        throw new Error("User is already verified!");
+    
+    await updateEmailVerification(userID);
+    const updatedUser:AuthUserInterface = await getUserByID(userID) as AuthUserInterface;
+    console.log("User after email verification: ", updatedUser);  
+    //return updatedUser as result
+    res.status(200).json({message:"User has successfully verified the email", user:updatedUser})
+    
+    //or just return message (and change verification status on the frontend)
+    // res.status(200).json({message:"User has successfully verified the email"})
 }
 
 
