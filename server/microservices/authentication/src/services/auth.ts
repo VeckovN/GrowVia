@@ -109,12 +109,11 @@ export async function createUser(userData:AuthUserInterface): Promise<number> {
     }
 }
 
-
 //validate Email (set verificatioEmailToken to null )
-export async function updateEmailVerification(userID?:number):Promise<boolean>{
+export async function updateEmailVerification(userID:number, token:string | null):Promise<boolean>{
     try{
         const {rowCount} = await pool.query(
-            `UPDATE public.auths SET verificationEmailToken = NULL WHERE id = $1 `, [userID]
+            `UPDATE public.auths SET verificationEmailToken = $2 WHERE id = $1 `, [userID, token]
         )
         return rowCount === 1 //returns true if a rowCount is 1, otherwise false
     }

@@ -117,7 +117,7 @@ export async function verifyEmail(req:Request, res:Response):Promise<void>{
     if(!authUser.verificationEmailToken)
         throw new Error("User is already verified!");
     
-    await updateEmailVerification(userID);
+    await updateEmailVerification(userID, null);
     const updatedUser:AuthUserInterface = await getUserByID(userID) as AuthUserInterface;
     console.log("User after email verification: ", updatedUser);  
     //return updatedUser as result
