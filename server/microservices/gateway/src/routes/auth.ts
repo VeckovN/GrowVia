@@ -1,5 +1,5 @@
 import express, { Router } from 'express';
-import { register, login, userEmailVerification, userChangePassword, userForgotPassword, resetUserPassword} from "@gateway/controllers/auth/signup";
+import { register, login, userEmailVerification, userChangePassword, userForgotPassword, resetUserPassword} from "@gateway/controllers/auth";
 
 const router: Router = express.Router();
 
