@@ -27,9 +27,8 @@ async function SignIn(body: AuthBodyRequestInterface):Promise<AxiosResponse> {
     return res;
 }
 
-async function verifyEmail(body: AuthBodyRequestInterface):Promise<AxiosResponse> {
-    //email is passed throught body as well, -> req.body.email
-    const res: AxiosResponse = await authAxiosInstance.put('/verify-email', body);
+async function verifyEmail(userID: number):Promise<AxiosResponse> {
+    const res: AxiosResponse = await authAxiosInstance.put('/verify-email', { userID });
     return res;
 }
 

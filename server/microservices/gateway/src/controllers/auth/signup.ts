@@ -26,7 +26,8 @@ export async function login(req:Request, res:Response):Promise<void>{
 }
 
 export async function userEmailVerification(req:Request, res:Response):Promise<void>{
-    const response: AxiosResponse = await verifyEmail(req.body);
+    const { userID } = req.body;
+    const response: AxiosResponse = await verifyEmail(userID);
     res.status(200).json({message:response.data.message, user:response.data.user});
 }
 

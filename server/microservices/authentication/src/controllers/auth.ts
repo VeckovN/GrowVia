@@ -127,6 +127,51 @@ export async function verifyEmail(req:Request, res:Response):Promise<void>{
     // res.status(200).json({message:"User has successfully verified the email"})
 }
 
+//user must be logged in (currentUser is passed in requset)
+export async function changePassword(req:Request, res:Response):Promise<void>{
+    const { newPassword } = req.body;
+    //get currentUser id from req (passed)
+    const userID = req.currentUser?.id;
+
+    //The currentUser is passed to req on every request (defined in server.ts)
+    // if(req.headers.authorization){
+    //     const token = req.headers.authorization.split(" ")[1];
+    //     //then we do token verification
+    //     const payload:AuthPayloadInterface = verify(token, `${config.JWT_TOKEN}`)as AuthPayloadInterface;
+    //     req.currentUser = payload;
+    // }
+
+    if (userID === undefined)
+        throw new Error("User id is missing!");
+
+    //AVOID using ! : DON'T userID!
+    const user = await getUserByID(userID);
+    if(!user)
+      throw new Error("Invalid password")
+
+    const SALT_ROUND = 10;
+    const hashedPassoword = await hash(newPassword as string, SALT_ROUND);
+
+    await updatePassword(userID, hashedPassoword);
+
+    const messageUpdatePasswordSuccessEmail: EmailLocalsInterface = {
+        receiverEmail: user.email,
+        username: user.username,
+        template: 'resetPasswordSuccess' //same email tamplate as confirm forgotten password 
+    }
+
+    //Now publish message to Notification Service (Produce message on signup action for verify Email)
+    await publishMessage(
+        authChannel,
+        'auth-email-notification',
+        'auth-email-key',
+        'Update password success email sent to the Notification Service',
+        JSON.stringify(messageUpdatePasswordSuccessEmail)
+    );
+
+    res.status(200).json({message:"Password successfully updated"});
+}
+
 //send the email for restarting password 
 export async function forgotPassword(req:Request, res:Response):Promise<void>{
     const { email } = req.body;
@@ -202,51 +247,6 @@ export async function resetPassword(req:Request, res:Response):Promise<void>{
 
     res.status(200).json({message:"Password successfully sent"});
 }   
-
-//user must be logged in (currentUser is passed in requset)
-export async function changePassword(req:Request, res:Response):Promise<void>{
-    const { newPassword } = req.body;
-    //get currentUser id from req (passed)
-    const userID = req.currentUser?.id;
-
-    //The currentUser is passed to req on every request (defined in server.ts)
-    // if(req.headers.authorization){
-    //     const token = req.headers.authorization.split(" ")[1];
-    //     //then we do token verification
-    //     const payload:AuthPayloadInterface = verify(token, `${config.JWT_TOKEN}`)as AuthPayloadInterface;
-    //     req.currentUser = payload;
-    // }
-
-    if (userID === undefined)
-        throw new Error("User id is missing!");
-
-    //AVOID using ! : DON'T userID!
-    const user = await getUserByID(userID);
-    if(!user)
-      throw new Error("Invalid password")
-
-    const SALT_ROUND = 10;
-    const hashedPassoword = await hash(newPassword as string, SALT_ROUND);
-
-    await updatePassword(userID, hashedPassoword);
-
-    const messageUpdatePasswordSuccessEmail: EmailLocalsInterface = {
-        receiverEmail: user.email,
-        username: user.username,
-        template: 'resetPasswordSuccess' //same email tamplate as confirm forgotten password 
-    }
-
-    //Now publish message to Notification Service (Produce message on signup action for verify Email)
-    await publishMessage(
-        authChannel,
-        'auth-email-notification',
-        'auth-email-key',
-        'Update password success email sent to the Notification Service',
-        JSON.stringify(messageUpdatePasswordSuccessEmail)
-    );
-
-    res.status(200).json({message:"Password successfully updated"});
-}
 
 export async function userByID(req:Request, res:Response):Promise<void>{
     const user: AuthUserInterface | undefined = await getUserByID(req.body);
