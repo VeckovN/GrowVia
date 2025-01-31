@@ -59,6 +59,11 @@ async function resendVerificationEmail():Promise<AxiosResponse> {
     return res;
 }
 
+async function refreshToken():Promise<AxiosResponse> {
+    const res: AxiosResponse = await authAxiosInstance.get(`/refresh-token`);
+    return res;
+}
+
 
 export { 
     authAxiosInstance,
@@ -69,6 +74,7 @@ export {
     resetPassword,
     changePassword,
     getCurrentUser,
-    resendVerificationEmail
+    resendVerificationEmail,
+    refreshToken
 }
 

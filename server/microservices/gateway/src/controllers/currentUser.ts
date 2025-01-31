@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { getCurrentUser, resendVerificationEmail, changePassword} from "@gateway/services/auth.service";
+import { getCurrentUser, resendVerificationEmail, changePassword, refreshToken} from "@gateway/services/auth.service";
 import { AxiosResponse } from "axios";
 
 
@@ -20,3 +20,10 @@ export async function changeAuthUserPassword(req:Request, res:Response):Promise<
     const response: AxiosResponse = await changePassword(newPassword);
     res.status(200).json({message:response.data.message});
 }
+
+export async function refreshUserToken(req:Request, res:Response):Promise<void>{
+    const response: AxiosResponse = await refreshToken();
+    req.session = { jwtToken: response.data.token };
+    res.status(200).json({ message:response.data.message, user:response.data.user});
+}
+

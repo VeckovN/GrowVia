@@ -5,9 +5,10 @@ import { publishMessage } from "@authentication/rabbitmqQueues/producer";
 import { authChannel } from "@authentication/server";
 import { AuthEmailVerificationInterface, EmailLocalsInterface } from "@veckovn/growvia-shared";
 import { getUserByID, updateEmailVerification, updatePassword } from "@authentication/services/auth";
-import { hash } from 'bcryptjs';
 import { config } from '@authentication/config';
+import { hash } from 'bcryptjs';
 import crypto from 'crypto';
+import { sign } from 'jsonwebtoken';
 
 //difference between these and other controllers is the any user(not logged) can request 
 //for signup,signin, forgotPassword or resetPassword .etc, but not for getting (currentUser-> logged) data 
@@ -91,3 +92,12 @@ export async function changePassword(req:Request, res:Response):Promise<void>{
 
     res.status(200).json({message:"Password successfully updated"});
 }
+
+//used to check looged user (by given ID/username ) and resign the token 
+// and return it as loggin controller does
+export async function refreshToken(req:Request, res:Response):Promise<void> {
+    const {id, email, username} = req.currentUser!;
+    const user = await getUserByID(id)
+    const newUserJwtToken = sign({id, email, username}, `${config.JWT_TOKEN}`);
+    res.status(200).json({message:"Refresh token:", token:newUserJwtToken, user});
+}   
