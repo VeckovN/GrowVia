@@ -1,12 +1,13 @@
 //Different controller and routs for current user 
 //it will be in protected route (to get this data user MUST BE LOGGED IN)
+import { Request, Response } from "express";
 import { publishMessage } from "@authentication/rabbitmqQueues/producer";
 import { authChannel } from "@authentication/server";
-import { getUserByID, updateEmailVerification } from "@authentication/services/auth";
-import { AuthEmailVerificationInterface } from "@veckovn/growvia-shared";
-import { Request, Response } from "express";
-import crypto from 'crypto';
+import { AuthEmailVerificationInterface, EmailLocalsInterface } from "@veckovn/growvia-shared";
+import { getUserByID, updateEmailVerification, updatePassword } from "@authentication/services/auth";
+import { hash } from 'bcryptjs';
 import { config } from '@authentication/config';
+import crypto from 'crypto';
 
 //difference between these and other controllers is the any user(not logged) can request 
 //for signup,signin, forgotPassword or resetPassword .etc, but not for getting (currentUser-> logged) data 
@@ -53,4 +54,40 @@ export async function resendVerificationEmail(req:Request, res:Response):Promise
 
     const updatedUser = await getUserByID(id)
     res.status(200).json({message:"The verification email has been sent successfully", user:updatedUser})
+}
+
+//user must be logged in (currentUser is passed in requset)
+export async function changePassword(req:Request, res:Response):Promise<void>{
+    const { newPassword } = req.body;
+    const userID = req.currentUser?.id;
+
+    if (userID === undefined)
+        throw new Error("User id is missing!");
+
+    //AVOID using ! : DON'T userID!
+    const user = await getUserByID(userID);
+    if(!user)
+      throw new Error("Invalid password")
+
+    const SALT_ROUND = 10;
+    const hashedPassoword = await hash(newPassword as string, SALT_ROUND);
+
+    await updatePassword(userID, hashedPassoword);
+
+    const messageUpdatePasswordSuccessEmail: EmailLocalsInterface = {
+        receiverEmail: user.email,
+        username: user.username,
+        template: 'resetPasswordSuccess' //same email tamplate as confirm forgotten password 
+    }
+
+    //Now publish message to Notification Service (Produce message on signup action for verify Email)
+    await publishMessage(
+        authChannel,
+        'auth-email-notification',
+        'auth-email-key',
+        'Update password success email sent to the Notification Service',
+        JSON.stringify(messageUpdatePasswordSuccessEmail)
+    );
+
+    res.status(200).json({message:"Password successfully updated"});
 }

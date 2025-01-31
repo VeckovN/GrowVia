@@ -1,7 +1,7 @@
 //AFTER SENDING REQUEST TO AUTH SERVICE FROM API_GATEWAY
 
 import { Request, Response } from "express";
-import { SignUp, SignIn, verifyEmail, changePassword, forgotPassword, resetPassword} from "@gateway/services/auth.service";
+import { SignUp, SignIn, verifyEmail, forgotPassword, resetPassword} from "@gateway/services/auth.service";
 import { AxiosResponse } from "axios";
 
 // ApiGateway request for Signup (to Authentication Service)
@@ -31,17 +31,13 @@ export async function userEmailVerification(req:Request, res:Response):Promise<v
     res.status(200).json({message:response.data.message, user:response.data.user});
 }
 
-export async function userChangePassword(req:Request, res:Response):Promise<void>{
-    //get only new password (for this request user must be logged in -> req.currentUser will be set on Auth Service )
-    const {newPassword} = req.body;
-    const response: AxiosResponse = await changePassword(newPassword);
-    res.status(200).json({message:response.data.message});
-}
+
 export async function userForgotPassword(req:Request, res:Response):Promise<void>{
     const { email } = req.body;
     const response: AxiosResponse = await forgotPassword(email);
     res.status(200).json({message:response.data.messag});
 }
+
 export async function resetUserPassword(req:Request, res:Response):Promise<void>{
     const { password, repeatedPassword } = req.body;
     const token = req.params.token; //from the url /:token
