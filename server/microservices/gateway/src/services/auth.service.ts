@@ -49,6 +49,16 @@ async function resetPassword(password:string, repeatedPassword:string, token:str
     return res;
 }
 
+async function getCurrentUser():Promise<AxiosResponse> {
+    const res: AxiosResponse = await authAxiosInstance.get(`/current-user`);
+    return res;
+}
+
+async function resendVerificationEmail():Promise<AxiosResponse> {
+    const res: AxiosResponse = await authAxiosInstance.put(`/resend-verification`);
+    return res;
+}
+
 
 export { 
     authAxiosInstance,
@@ -57,6 +67,8 @@ export {
     verifyEmail,
     forgotPassword,
     resetPassword,
-    changePassword
+    changePassword,
+    getCurrentUser,
+    resendVerificationEmail
 }
 
