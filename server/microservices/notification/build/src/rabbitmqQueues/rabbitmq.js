@@ -15,18 +15,19 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.createConnection = createConnection;
 const growvia_shared_1 = require("@veckovn/growvia-shared");
 const amqplib_1 = __importDefault(require("amqplib"));
-const log = (0, growvia_shared_1.winstonLogger)('http://localhost:9200', 'notificationRabbitMQConnection', 'debug');
+const config_1 = require("../config");
+const log = (0, growvia_shared_1.winstonLogger)(`${config_1.config.ELASTICSEARCH_URL}`, 'notificationRabbitMQConnection', 'debug');
 function createConnection() {
     return __awaiter(this, void 0, void 0, function* () {
         try {
-            const connection = yield amqplib_1.default.connect('amqp://growvia:growviapassword@localhost:5672');
+            const connection = yield amqplib_1.default.connect(`${config_1.config.RABBITMQ_AMQP_ENDPOINT}`);
             const channel = yield connection.createChannel();
             log.info('Notification service connected to RabbitMQ successfully');
             return channel;
         }
         catch (error) {
             log.log('error', 'Notification service RabbitMQ connection failed: ', error);
-            return null;
+            return undefined;
         }
     });
 }

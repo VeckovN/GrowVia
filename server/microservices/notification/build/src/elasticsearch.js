@@ -12,9 +12,10 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.checkConnection = checkConnection;
 const growvia_shared_1 = require("@veckovn/growvia-shared");
 const elasticsearch_1 = require("@elastic/elasticsearch");
-const log = (0, growvia_shared_1.winstonLogger)('http://localhost:9200', 'notificationElasticSearch', 'debug');
+const config_1 = require("./config");
+const log = (0, growvia_shared_1.winstonLogger)(`${config_1.config.ELASTICSEARCH_URL}`, 'notificationElasticSearch', 'debug');
 const client = new elasticsearch_1.Client({
-    node: 'http://localhost:9200'
+    node: `${config_1.config.ELASTICSEARCH_URL}`
 });
 function checkConnection() {
     return __awaiter(this, void 0, void 0, function* () {

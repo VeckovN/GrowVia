@@ -18,7 +18,7 @@ const config_1 = require("./config");
 const nodemailer_1 = __importDefault(require("nodemailer"));
 const email_templates_1 = __importDefault(require("email-templates"));
 const path_1 = __importDefault(require("path"));
-const log = (0, growvia_shared_1.winstonLogger)('http://localhost:9200', 'emailTransportTemplate', 'debug');
+const log = (0, growvia_shared_1.winstonLogger)(`${config_1.config.ELASTICSEARCH_URL}`, 'emailTransportTemplate', 'debug');
 function sendEmailTemplates(templateName, toReceiver, locals) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
@@ -43,7 +43,6 @@ function sendEmailTemplates(templateName, toReceiver, locals) {
                     }
                 },
                 juice: true, //enable using css for email-templates
-                //beacuse in templates the inline css is used
                 juiceResources: {
                     preserveImportant: true, //preserve !important in css
                     webResources: {

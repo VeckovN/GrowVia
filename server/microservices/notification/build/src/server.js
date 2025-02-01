@@ -21,8 +21,7 @@ const rabbitmq_1 = require("./rabbitmqQueues/rabbitmq");
 const emailConsumer_1 = require("./rabbitmqQueues/emailConsumer");
 const config_1 = require("./config");
 const Server_port = 4001;
-// elasticSearch Url from .dev
-const log = (0, growvia_shared_1.winstonLogger)('http://localhost:9200', 'notificationService', 'debug');
+const log = (0, growvia_shared_1.winstonLogger)(`${config_1.config.ELASTICSEARCH_URL}`, 'notificationService', 'debug');
 function start(app) {
     startServer(app);
     (0, elasticsearch_1.checkConnection)();
@@ -38,9 +37,22 @@ function startQueues() {
         yield (0, emailConsumer_1.AuthEmailConsumer)(emailChannel);
         yield (0, emailConsumer_1.OrderEmailConsumer)(emailChannel);
         yield (0, emailConsumer_1.PaymentEmailConsumer)(emailChannel);
-        yield publishMessages(emailChannel);
+        // await publishMessages(emailChannel);
     });
 }
+function startServer(app) {
+    try {
+        const server = new http_1.default.Server(app);
+        log.info(`Notification service starting, process ID:${process.pid}`);
+        server.listen(Server_port, () => {
+            log.info(`Notification service is running on port: ${Server_port}`);
+        });
+    }
+    catch (err) {
+        log.log('error', 'Notification service running error ', err);
+    }
+}
+// @ts-ignore (avoid unused function errior)
 function publishMessages(channel) {
     return __awaiter(this, void 0, void 0, function* () {
         //publish some test messages (ofc to exchanger)
@@ -72,20 +84,5 @@ function publishMessages(channel) {
         const messagePayment = JSON.stringify({ name: "growvia", service: "notification", context: "Test payment message" });
         channel.publish(paymentEmailExchangeName, paymentEmailRoutingKey, Buffer.from(messagePayment));
     });
-}
-function startServer(app) {
-    try {
-        const server = new http_1.default.Server(app);
-        log.info(`Notification service starting, process ID:${process.pid}`);
-        server.listen(Server_port, () => {
-            log.info(`Notification service is running on port: ${Server_port}`);
-        });
-    }
-    catch (err) {
-        log.log('error', 'Notification service running error ', err);
-    }
-    // app.listen(Server_port, ()=>{
-    //     console.log(`Notification service is running on port: ${Server_port}`);
-    // })
 }
 //# sourceMappingURL=server.js.map

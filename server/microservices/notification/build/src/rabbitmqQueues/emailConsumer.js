@@ -14,8 +14,8 @@ exports.OrderEmailConsumer = OrderEmailConsumer;
 exports.PaymentEmailConsumer = PaymentEmailConsumer;
 const growvia_shared_1 = require("@veckovn/growvia-shared");
 const emailTransport_1 = require("../rabbitmqQueues/emailTransport");
-const log = (0, growvia_shared_1.winstonLogger)('http://localhost:9200', 'notificationRabbitMQConnection', 'debug');
-//passed created channel (from rabbitmq.ts connection )
+const config_1 = require("../config");
+const log = (0, growvia_shared_1.winstonLogger)(`${config_1.config.ELASTICSEARCH_URL}`, 'notificationRabbitMQConnection', 'debug');
 function AuthEmailConsumer(channel) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
@@ -26,12 +26,8 @@ function AuthEmailConsumer(channel) {
             yield channel.assertExchange(exchangeName, 'direct');
             const authEmailQueue = channel.assertQueue(queueName, { durable: true, autoDelete: false });
             yield channel.bindQueue((yield authEmailQueue).queue, exchangeName, routingKey);
-            //Without the !, TypeScript would raise an error because msg might be null, and accessing msg.content could result in a runtime error.
-            //By using msg!, you're essentially telling TypeScript:
-            //"I am certain that msg is not null here, so let me access msg.content without complaining.
             channel.consume((yield authEmailQueue).queue, (msg) => __awaiter(this, void 0, void 0, function* () {
-                //reseive message object(that contains all necessary props for sending verify email)
-                // const {template, receiverEmail, username, resetLink} = JSON.parse(msg!.content.toString());
+                //msg! garante that msg is not null or undefined
                 const { template, receiverEmail, username, verifyLink, resetLink } = JSON.parse(msg.content.toString());
                 const locals = {
                     // appLink: `${config.CLIENT_URL}`, //app link is client URL (app link)
@@ -39,15 +35,15 @@ function AuthEmailConsumer(channel) {
                     verifyLink,
                     resetLink
                 };
-                //different auth emails () 
-                //send emails
+                //different auth emails-templates (forgotPassword, resetPassword verifyEmail, verifyEmailConfirm, ) 
                 yield (0, emailTransport_1.sendEmail)(template, receiverEmail, locals);
                 channel.ack(msg);
             }));
             log.info(`Notification service emailConsumer initialized`);
         }
         catch (error) {
-            log.log('error', "Notification service AuthEmailConsumer failed: ", error);
+            //log? due to test fixing undefied log
+            log === null || log === void 0 ? void 0 : log.log('error', "Notification service AuthEmailConsumer failed: ", error);
         }
     });
 }

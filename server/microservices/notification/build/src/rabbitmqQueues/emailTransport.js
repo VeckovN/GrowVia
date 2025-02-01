@@ -12,7 +12,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.sendEmail = sendEmail;
 const growvia_shared_1 = require("@veckovn/growvia-shared");
 const emailTemplates_1 = require("../emailTemplates");
-const log = (0, growvia_shared_1.winstonLogger)('http://localhost:9200', 'emailTransport', 'debug');
+const config_1 = require("../config");
+const log = (0, growvia_shared_1.winstonLogger)(`${config_1.config.ELASTICSEARCH_URL}`, 'emailTransport', 'debug');
 function sendEmail(templateName, to, locals) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
