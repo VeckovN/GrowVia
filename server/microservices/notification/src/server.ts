@@ -28,9 +28,24 @@ async function startQueues(): Promise<void>{
     await OrderEmailConsumer(emailChannel);
     await PaymentEmailConsumer(emailChannel);
 
-    await publishMessages(emailChannel);
+    // await publishMessages(emailChannel);
 }
 
+function startServer(app: Application):void {
+    try{
+        const server: http.Server = new http.Server(app);
+        log.info(`Notification service starting, process ID:${process.pid}`);
+        server.listen(Server_port, () =>{
+            log.info(`Notification service is running on port: ${Server_port}`);
+        })
+    }
+    catch (err){
+        log.log('error', 'Notification service running error ', err);
+    }
+}
+
+
+// @ts-ignore (avoid unused function errior)
 async function publishMessages(channel: Channel): Promise<void>{
     //publish some test messages (ofc to exchanger)
     const authEmailExchangeName = 'auth-email-notification';
@@ -66,17 +81,4 @@ async function publishMessages(channel: Channel): Promise<void>{
     await channel.assertExchange(orderEmailExchangeName, 'direct');
     const messagePayment = JSON.stringify({name:"growvia", service:"notification", context:"Test payment message"})
     channel.publish(paymentEmailExchangeName, paymentEmailRoutingKey, Buffer.from(messagePayment));
-}
-
-function startServer(app: Application):void {
-    try{
-        const server: http.Server = new http.Server(app);
-        log.info(`Notification service starting, process ID:${process.pid}`);
-        server.listen(Server_port, () =>{
-            log.info(`Notification service is running on port: ${Server_port}`);
-        })
-    }
-    catch (err){
-        log.log('error', 'Notification service running error ', err);
-    }
 }
