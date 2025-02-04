@@ -1,5 +1,5 @@
 import { Application, json, NextFunction, Request ,Response, urlencoded } from "express";
-import { winstonLogger} from "@veckovn/growvia-shared";
+import { winstonLogger, CustomErrorInterface} from "@veckovn/growvia-shared";
 import { Logger } from "winston";
 import { config } from '@gateway/config';
 import cookieSession from "cookie-session";
@@ -46,11 +46,22 @@ function errorHandlerMiddleware(app: Application):void{
         next();
     })
 
-    //CREATE INTERFACE FOR CUSTOM ERRORS (Error class that will be extends with other abstract classe ("CustomErro", "BadRequestError") and others)
-    //this used for 'custom error' (that we've created)
-    // app.use(() =>{
+    app.use((error: CustomErrorInterface, _req: Request, res: Response, next: NextFunction) => {
+        console.log("error From Middleware: ", error);
+        if(error.statusCode){
+            log.log('error', `Authentication Service Error:`, error);
+            res.status(error.statusCode).json({
+                message:error.message,
+                statusCode: error.statusCode,
+                status: error.status,
+                comingFrom: error.comingFrom
+            });
+        }
 
-    // })
+        //AxiosError
+        next();
+    });
+
 }
 
 async function startServers(app:Application):Promise<void> {
@@ -99,6 +110,7 @@ export function start(app:Application):void {
     //When the request comes from the frontend and before the API_Gateway sends(redirect) request to the respective Service 
     //the token will be add to the headers (jwt token)
     app.use((req: Request, _res:Response, next:NextFunction) =>{
+        console.log("REQ>SESSION : ", req.session);
         if(req.session?.jwtToken){   //if session exist (The user is logged)
             //we want to append bearer token to the each AXIOS INSTANCE (Auth, Product, User, Order ...)
             authAxiosInstance.defaults.headers['Authorization']= `Bearer ${req.session?.jwtToken}`
