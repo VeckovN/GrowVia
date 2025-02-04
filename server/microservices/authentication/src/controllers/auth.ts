@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { AuthUserInterface, AuthEmailVerificationInterface, EmailLocalsInterface} from '@veckovn/growvia-shared';
+import { AuthUserInterface, AuthEmailVerificationInterface, EmailLocalsInterface, isEmailValid, ConflictError, BadRequestError} from '@veckovn/growvia-shared';
 import { createUser, getUserByID, getUserByEmail, getUserByUsername, getUserByPasswordToken, updateEmailVerification, updatePasswordTokenExpiration, updatePassword} from '@authentication/services/auth';
 import { v4 as uuidv4 } from 'uuid';
 import crypto from 'crypto';
@@ -10,12 +10,11 @@ import { sign } from 'jsonwebtoken';
 import { compare, hash } from 'bcryptjs';
 
 export async function create(req:Request, res:Response):Promise<void>{
-    // const {id, username, email, password, profilePicture} = req.body;
     const {username, email, password} = req.body;
 
     const userExists = await getUserByUsername(username);
     if(userExists){
-        throw new Error("User exist, cant be created again")
+        throw ConflictError("User exist, cant be created again", "create/signup function error");
     }
 
     //when we on oue own generate publicID for cloudinary when ever the image is updated the  publicID won't be changed 
@@ -68,14 +67,6 @@ export async function create(req:Request, res:Response):Promise<void>{
     res.status(200).json({message: 'User successfully created', userID, token:userToken});
 }
 
-//move this function to shared library
-function isEmailValid(email:string):boolean {
-    // do some checkes (maybe use third party library)
-    const regexExp =
-        /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/gi;
-    return regexExp.test(email);
-}
-
 export async function login(req:Request, res:Response):Promise<void>{
     const {usernameOrEmail, password} = req.body;     
 
@@ -90,18 +81,17 @@ export async function login(req:Request, res:Response):Promise<void>{
     
     console.log("User data on login: ", user);        
     if(!user){
-        throw new Error("User not found.");
+        throw BadRequestError("User not found.", "Login function error");
     }
 
     //get password from found user
     const isPasswordValid = await compare(password, user.password!); 
 
     if(!isPasswordValid)
-        throw new Error("Invalid creadentials. Please try again!");
+        throw BadRequestError("Invalid creadentials. Please try again!", "Login function error");
 
     //Send message to Notification Service (for OTP Validation) -> Lattely 
     const userToken = sign({id: user.id, email: user.email, username: user.username}, `${config.JWT_TOKEN}`);
-    // const {password, ...userData} = user;
     const {password: userPassword, ...userData} = user;
     //signUp token taht will be send throuhg request and user as cookieSession token
     res.status(200).json({message:"User succesfully logged in", token:userToken, user:userData});
@@ -111,18 +101,17 @@ export async function verifyEmail(req:Request, res:Response):Promise<void>{
     const {userID} = req.body;
     const authUser = await getUserByID(userID);
     if(!authUser)
-        throw new Error("User invalid, you can't verify email");
+        throw BadRequestError("User invalid, you can't verify email", "verifyEmail function error");
     
     console.log("authUser: ", authUser);
     if(!authUser.verificationEmailToken)
-        throw new Error("User is already verified!");
+        throw BadRequestError("User is already verified!", "verifyEmail function error");
+    
     
     await updateEmailVerification(userID, null);
     const updatedUser:AuthUserInterface = await getUserByID(userID) as AuthUserInterface;
     console.log("User after email verification: ", updatedUser);  
-    //return updatedUser as result
     res.status(200).json({message:"User has successfully verified the email", user:updatedUser})
-    
     //or just return message (and change verification status on the frontend)
     // res.status(200).json({message:"User has successfully verified the email"})
 }
@@ -131,8 +120,8 @@ export async function verifyEmail(req:Request, res:Response):Promise<void>{
 export async function forgotPassword(req:Request, res:Response):Promise<void>{
     const { email } = req.body;
     const user = await getUserByEmail(email);
-    if(!user)
-        throw new Error("Invalid credentials, User doesn't exist");    
+    if(!user) 
+        throw BadRequestError("Invalid credentials, User doesn't exist", "forgotPassword function error"); 
     
     //generate token for resetLink
     const resetToken = crypto.randomBytes(32).toString("hex");
@@ -145,7 +134,6 @@ export async function forgotPassword(req:Request, res:Response):Promise<void>{
     // if(!isUpdated)
     //     throw new Error("Went wrong with updating password token expiration ");
     
-    //publish message to the queue (notification service consume it)
     const messageForgotPasswordEmail: EmailLocalsInterface = {
         receiverEmail: email,
         username: user.username,
@@ -153,7 +141,6 @@ export async function forgotPassword(req:Request, res:Response):Promise<void>{
         template: 'forgotPassword'
     }
 
-    //Now publish message to Notification Service (Produce message on signup action for verify Email)
     await publishMessage(
         authChannel,
         'auth-email-notification',
@@ -165,7 +152,6 @@ export async function forgotPassword(req:Request, res:Response):Promise<void>{
     res.status(200).json({message:"Forgot message successfully sent"});
 }
 
-
 export async function resetPassword(req:Request, res:Response):Promise<void>{
     //on forgotPassword email the user passing new password (as password and repeatedPassword -> both must match)
     const { password, repeatedPassword } = req.body;
@@ -173,12 +159,12 @@ export async function resetPassword(req:Request, res:Response):Promise<void>{
     const token = req.params.token;
 
     if(password !== repeatedPassword)
-        throw new Error("Password don't match");
+        throw BadRequestError("Password don't match", "resetPassword function error");
 
     //When the token expired it becomes null 
     const user = await getUserByPasswordToken(token);
     if(!user) //that means token has expired
-        throw new Error("Reset Token has expired");
+        throw BadRequestError("Reset Token has expired", "resetPassword function error");
 
     const SALT_ROUND = 10;
     const hashedPassoword = await hash(password as string, SALT_ROUND);
@@ -188,7 +174,7 @@ export async function resetPassword(req:Request, res:Response):Promise<void>{
     const messageResetPasswordSuccessEmail: EmailLocalsInterface = {
         receiverEmail: user.email,
         username: user.username,
-        template: 'resetPasswordSuccess'
+        template: 'resetPasswordSucceed'
     }
 
     //Now publish message to Notification Service (Produce message on signup action for verify Email)
@@ -208,26 +194,24 @@ export async function userByID(req:Request, res:Response):Promise<void>{
     if(!user){ //undefined
         //This  error that will be caught in server.ts express middleware-> as errorHandlerMiddleware()
         //THE errorHandlerMiddleware RETURN RESPONSIVE(Bad Request or what we pass in ERROR) TO THE API GATEWAY -> API_GATEWAY WILL PASS IT TO THE CLIENT
-        //throw new CustomError("The user doesn't exist", 400);
-        throw new Error("The user doesn't exist"); //this will be displayed on fronted(passed thgouthg apiGateway)
+        throw BadRequestError("The user doesn't exist", "userByID function error"); //this will be displayed on fronted(passed thgouthg apiGateway)
     }   
-
     res.status(200).json({message: 'User data get by ID', user});
 }
+
 export async function userByEmail(req:Request, res:Response):Promise<void>{
     const user:AuthUserInterface | undefined = await getUserByEmail(req.body);
-    if(!user){
-        //throw new CustomError("The user doesn't exist", 400);
-        throw new Error("The user doesn't exist");
-    }
+    if(!user)
+        throw BadRequestError("The user doesn't exist", "userByEmail function error");
+    
     res.status(200).json({message: 'User created successfully', user});
 }
+
 export async function userByUsername(req:Request, res:Response):Promise<void>{
     const user: AuthUserInterface | undefined = await getUserByUsername(req.body);
-    if(!user){
-        //throw new CustomError("The user doesn't exist", 400);
-        throw new Error("The user doesn't exist");
-    }
+    if(!user)
+        throw BadRequestError("The user doesn't exist", "userByUsername function error");
+    
     res.status(200).json({message: 'User created successfully', user});
 }
 

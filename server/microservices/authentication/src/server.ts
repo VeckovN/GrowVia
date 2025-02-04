@@ -1,5 +1,5 @@
 import { Application, NextFunction, Request ,Response, urlencoded, json } from "express";
-import { winstonLogger, ErrorCustomResponseInterface} from "@veckovn/growvia-shared";
+import { winstonLogger, AuthPayloadInterface, CustomErrorInterface } from "@veckovn/growvia-shared";
 import { Logger } from "winston";
 import { config } from '@authentication/config';
 import helmet from "helmet";
@@ -13,26 +13,9 @@ import { appRoutes } from "@authentication/routes";
 import { createConnection } from "@authentication/rabbitmqQueues/rabbitmq";
 import { Channel } from "amqplib";
 
-
 const Server_port = 4002;
 const log: Logger = winstonLogger(`${config.ELASTICSEARCH_URL}`, 'authenticationService', 'debug');
 let authChannel: Channel;
-
-//Move it to the shared-library (gateway service use it as well)
-interface AuthPayloadInterface {
-    id:number,
-    username: string,
-    email: string,
-    iat?: number,
-}
-
-declare global {
-    namespace Express {
-        interface Request {
-            currentUser?: AuthPayloadInterface;
-        }
-    }
-}
 
 function compressRequestMiddleware(app:Application):void {
     app.use(compression());
@@ -63,25 +46,22 @@ async function startRabbitmqQueue():Promise<void>{
 }
 
 function errorHandlerMiddleware(app: Application):void{
-    app.use((error: ErrorCustomResponseInterface, _req: Request, res: Response, next: NextFunction) => {
-        log.log('error', `Authentication Service Error:`, error);
-        res.status(error.statusCode).json({message:error.message});
+    app.use((error: CustomErrorInterface, _req: Request, res: Response, next: NextFunction) => {
+        console.log("error From Middleware: ", error);
+        if(error.statusCode){
+            log.log('error', `Authentication Service Error:`, error);
+            res.status(error.statusCode).json({
+                message:error.message,
+                statusCode: error.statusCode,
+                status: error.status,
+                comingFrom: error.comingFrom
+            });
+        }
+        // else if(isAxiosError(error))
+        
+        //handle axios errors() -> comes from ApiGateway
         next();
     });
-    // app.use((error: ErrorCustomResponseInterface, _req: Request, res: Response, next: NextFunction) => {
-    //     log.log('error', `Authentication Service Error:`, error);
-    //     if (error instanceof CustomError) { 
-    //     //CUSTOM ERROR CONTAINES 
-    //         res.status(error.statusCode).json(error.errorObject());
-    //     }
-    //     next();
-    // });
-
-    //CREATE INTERFACE FOR CUSTOM ERRORS (Error class that will be extends with other abstract classe ("CustomErro", "BadRequestError") and others)
-    //this used for 'custom error' (that we've created)
-    // app.use(() =>{
-
-    // })
 }
 
 
