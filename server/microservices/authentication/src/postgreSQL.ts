@@ -1,3 +1,5 @@
+//By default, PostgreSQL converts all column names to lowercase 
+
 //pg.Client is create client once
 //pg.Pool is initially created empty and will create new clients lazily as they are needed
 import { winstonLogger } from '@veckovn/growvia-shared';
@@ -28,9 +30,9 @@ const authUserTable = `
         email text NOT NULL UNIQUE,
         cloudinaryProfilePublicId text NOT NULL, 
         profilePicture text NOT NULL, 
-        verificatioEmailToken text, 
+        verificationEmailToken text, 
         resetPasswordToken text,
-        exipresResetPassword timestamp,
+        expiresResetPassword timestamp,
         createdAt timestamp DEFAULT CURRENT_TIMESTAMP,
         PRIMARY KEY (username)
     );
@@ -65,7 +67,7 @@ const authUserTable = `
                     WHERE table_name = 'auths_user_without_password') THEN
             CREATE VIEW public.auths_user_without_password AS
                 SELECT id, username, email, cloudinaryProfilePublicId, profilePicture, 
-                    verificatioEmailToken, resetPasswordToken, exipresResetPassword, createdAt
+                    verificationEmailToken, resetPasswordToken, expiresResetPassword, createdAt
                 FROM public.auths;
         END IF;
     END $$;
@@ -73,7 +75,7 @@ const authUserTable = `
 //Like this, because the CREATE VIEW doesn't support the IF NOT EXISTS clause directly
 //SERIAL UNIQUE -> data type that allowe automatically generate unique intiger numbers
 
-// verificatioEmailToken -> when user create account the token will be stored. 
+// verificatioEmailToken -> when user create account the token will be stored 
 //when user verify their email this field will be set on NULL
 //IF we wan't to check is user verified his email we will check does verificatioEmailToken is NULL
 
