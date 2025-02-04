@@ -69,21 +69,26 @@ export async function createUser(userData:AuthUserInterface): Promise<number> {
         console.log("User Data ,excluded Password: ", userData);
         const userID:number = createdUser.id ;
 
-        const message: AuthUserMessageInterface = {
-            id:userID,
-            username,
-            password,
-            email,
-            profilePicture,
-            type:'auth',
+        //don't publish message on seed users 
+        
+        let seed = true; // take it from passed params (userData prop)
+        if(!seed){
+            const message: AuthUserMessageInterface = {
+                id:userID,
+                username,
+                password,
+                email,
+                profilePicture,
+                type:'auth',
+            }
+            await publishMessage(
+                authChannel,
+                'auth-user',
+                'auth-user-key',
+                'User create message send to user',
+                JSON.stringify(message)
+            );
         }
-        await publishMessage(
-            authChannel,
-            'auth-user',
-            'auth-user-key',
-            'User create message send to user',
-            JSON.stringify(message)
-        );
 
         //RETURN ALL USER DATA (same as login/signup )
         //Consider to return needed user Data for loggin (after signup The user must be logged in)

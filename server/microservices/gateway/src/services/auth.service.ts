@@ -64,6 +64,11 @@ async function refreshToken():Promise<AxiosResponse> {
     return res;
 }
 
+async function seedAuthUser(count:string):Promise<AxiosResponse> {
+    const res: AxiosResponse = await authAxiosInstance.put(`/seed/${count}`);
+    return res;
+}
+
 
 export { 
     authAxiosInstance,
@@ -75,6 +80,7 @@ export {
     changePassword,
     getCurrentUser,
     resendVerificationEmail,
-    refreshToken
+    refreshToken,
+    seedAuthUser
 }
 

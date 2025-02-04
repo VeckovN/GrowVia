@@ -1,0 +1,47 @@
+//create user seeds without sending verification message: 
+import { Request, Response } from 'express';
+import { AuthUserInterface, ConflictError } from '@veckovn/growvia-shared';
+import { getUserByUsername, createUser } from '@authentication/services/auth';
+import { uniqueNamesGenerator, names, Config } from 'unique-names-generator';
+import { faker } from '@faker-js/faker';
+import { v4 as uuidv4 } from 'uuid';
+import crypto from 'crypto';
+
+
+export async function seedUsers(req:Request, res:Response):Promise<void>{
+    const { count } = req.params;
+
+    const usernameConfig:Config = {
+        dictionaries: [names], // Only names
+        separator: '', // No separator for a clean username
+        length: 1, // Use only one name
+        style: 'capital', // Capitalize the first letter
+    };
+
+    const generateUniqueUsername = () => {
+        return uniqueNamesGenerator(usernameConfig) + Math.floor(1000 + Math.random() * 9000); // Add a random 4-digit number
+    };
+
+    for(let i = 0; i < parseInt(count); i++){
+
+        const profilePublicId = uuidv4();
+        const verificationToken = crypto.randomBytes(32).toString("hex");
+
+        const createUserData: AuthUserInterface = {
+            username: generateUniqueUsername(),
+            password: 'seedPassword', //same password for everyone
+            email: faker.internet.email(),
+            cloudinaryProfilePublicId: profilePublicId,
+            profilePicture: faker.image.urlPicsumPhotos(),
+            verificationEmailToken: verificationToken,
+        }
+
+        const userExists = await getUserByUsername(createUserData.username!);
+        if(userExists)
+            throw ConflictError("User exist, cant be created again", "create/signup function error");
+        
+        await createUser(createUserData);
+    }
+
+    res.status(200).json({message: 'User seeds successfully created'});
+}
