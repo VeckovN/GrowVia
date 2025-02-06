@@ -1,0 +1,31 @@
+{
+  "compilerOptions": {
+    "target": "ES2015",
+    "lib": ["dom", "ES2015"],
+    "module": "commonjs",
+    "baseUrl": ".",
+    "outDir": "./build",
+    "rootDir": ".",
+    "strict": true,
+    "noImplicitAny": true, //Disallows variables or parameters being assigned any implicitly
+    "noUnusedLocals": true, //trigger error if the defined variable is not used
+    "noUnusedParameters": true, //trigger error if passed function parameters is not used in function
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "sourceMap": true,
+    "alwaysStrict": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "forceConsistentCasingInFileNames": true,
+    "allowSyntheticDefaultImports": true,
+    "pretty": true,
+    "resolveJsonModule": true,
+    "plugins": [
+      { "transform": "typescript-transform-paths" },
+      { "transform": "typescript-transform-paths", "afterDeclarations": true },
+    ],
+    "paths": {
+      "@users/*": ["src/*"]
+    }
+  }
+}
