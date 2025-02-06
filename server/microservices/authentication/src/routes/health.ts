@@ -4,7 +4,7 @@ import {health} from "@authentication/controllers/health";
 const router: Router = express.Router();
 
 const healthRoutes = (): Router => {
-    router.get('/gateway-health', health);
+    router.get('/auth-health', health);
     return router;
 };
 
