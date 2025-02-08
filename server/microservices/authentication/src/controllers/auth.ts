@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { AuthUserInterface, AuthEmailVerificationInterface, EmailLocalsInterface, isEmailValid, ConflictError, BadRequestError} from '@veckovn/growvia-shared';
+import { AuthUserInterface, AuthEmailVerificationInterface, EmailLocalsInterface, isEmailValid, ConflictError, BadRequestError, CustomerDocumentInterface, FarmerDocumentInterface} from '@veckovn/growvia-shared';
 import { createUser, getUserByID, getUserByEmail, getUserByUsername, getUserByPasswordToken, updateEmailVerification, updatePasswordTokenExpiration, updatePassword} from '@authentication/services/auth';
 import { v4 as uuidv4 } from 'uuid';
 import crypto from 'crypto';
@@ -9,8 +9,48 @@ import { authChannel } from "@authentication/server";
 import { sign } from 'jsonwebtoken';
 import { compare, hash } from 'bcryptjs';
 
+//factory function (generate user-specific data based on the type)
+const factoryCreateUserData = (
+    username: string,
+    email: string,
+    userType: string,
+    uploadedPictureResult: string,
+    otherUserData: any
+): CustomerDocumentInterface | FarmerDocumentInterface =>{
+
+    const baseUserData = { 
+        username,
+        email,
+        profilePicture: uploadedPictureResult
+    }
+
+    const userTypeNormalized:string = userType.trim().toLowerCase();
+    
+    if(userTypeNormalized == 'farmer'){
+        return {
+            // userType,
+            userType: 'farmer', //same
+            ...baseUserData,
+            ...otherUserData
+        } as FarmerDocumentInterface
+    }
+    else if(userTypeNormalized == 'customer'){
+        return {
+            userType: 'customer',
+            ...baseUserData,
+            ...otherUserData
+        } as CustomerDocumentInterface
+    }
+    else {
+        throw BadRequestError("Invalid user type.", "Factory create user function error");
+    }
+
+}
+
 export async function create(req:Request, res:Response):Promise<void>{
-    const {username, email, password} = req.body;
+    //otherUserData -> data depends on userType, 
+    //username, email and password are base type(Same for both users type)
+    const {username, email, password, userType, ...othersUsersData} = req.body;
 
     const userExists = await getUserByUsername(username);
     if(userExists){
@@ -28,18 +68,25 @@ export async function create(req:Request, res:Response):Promise<void>{
     //Create random values as our Verification Link
     const verificationToken = crypto.randomBytes(32).toString("hex");
     const verificationLink = `${config.CLIENT_URL}/confirm_email?v_token=${verificationToken}`
-    const createUserData: AuthUserInterface = {
+    // const createUserData: AuthUserInterface = {
+    const userAuthData: AuthUserInterface = {
         username: username,
         password: password,
         email: email,
+        userType: userType,
         cloudinaryProfilePublicId: profilePublicId,
         profilePicture: uploadedPictureResult,
         verificationEmailToken: verificationToken,
         // resetPasswordToken,
         // expiresResetPassword
     }
+    
+    //add profilePicture: uploadedPictureResult -> from cloudinary uploading
 
-    const userID: number = await createUser(createUserData);
+    //!watch on parameter order
+    const userTypeData = factoryCreateUserData(username, email, userType, uploadedPictureResult, othersUsersData);
+
+    const userID: number = await createUser(userAuthData, userTypeData);
     // const user:AuthUserInterface = await createUser(req.body);
 
     //publishMessage

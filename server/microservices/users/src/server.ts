@@ -10,10 +10,10 @@ import { checkConnection } from "@users/elasticsearch";
 import { verify } from "jsonwebtoken";
 import { mongoDBconnection } from "@users/database";
 import { appRoutes } from "@users/routes";
-// import { createConnection } from "@users/rabbitmqQueues/rabbitmq";
-// import { Channel } from "amqplib";
-
-const Server_port = 4002;
+import { createConnection } from "@users/rabbitmqQueues/rabbitmq";
+import { Channel } from "amqplib";
+import { customerDirectConsumer } from "@users/rabbitmqQueues/userConsumer";
+const Server_port = 4003;
 const log: Logger = winstonLogger(`${config.ELASTICSEARCH_URL}`, 'usersService', 'debug');
 
 function compressRequestMiddleware(app:Application):void {
@@ -41,9 +41,8 @@ function startMongoDB():void{
 
 async function startRabbitmqQueue():Promise<void>{
     //create userChannel (consuming/listening):
-    // const userChannel:Channel = await createConnection() as Channel;
-    //AuthenticationService - on create user 
-    // await cosumeUsersDirectMessage(userChannel); //for consuming create data on Authentication service)
+    const userChannel:Channel = await createConnection() as Channel;
+    await customerDirectConsumer(userChannel); //for consuming create data on Authentication service)
     //OrderService - on creating order and others.
     //ProductService -
 } 

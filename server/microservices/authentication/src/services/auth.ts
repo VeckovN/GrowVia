@@ -1,36 +1,25 @@
 import { Logger } from "winston";
-import { winstonLogger, AuthUserInterface, AuthUserMessageInterface} from "@veckovn/growvia-shared";
+import { winstonLogger, BadRequestError, AuthUserInterface, AuthUserTypeMessageInterface, CustomerDocumentInterface, FarmerDocumentInterface} from "@veckovn/growvia-shared";
 import { config } from '@authentication/config';
 import { hash } from "bcryptjs";
 import { pool } from '@authentication/postgreSQL'; //instance of pool connect not poolConnect method (because its already connected)
 import { publishMessage } from "@authentication/rabbitmqQueues/producer";
 import { authChannel } from "@authentication/server";
+import { mapAuthUser, getExchangeNameAndRoutingKey } from "@authentication/helper";
 
 const log: Logger = winstonLogger(`${config.ELASTICSEARCH_URL}`, 'authenticationService', 'debug');
 
-function mapAuthUser(row:any): AuthUserInterface {
-    return {
-        id: row.id,
-        username: row.username,
-        email: row.email,
-        password: row.password,
-        ...(row.password && { password: row.password }), //inlcude it if exists in the row
-        cloudinaryProfilePublicId: row.cloudinaryprofilepublicid, // Map to camelCase
-        profilePicture: row.profilepicture,
-        verificationEmailToken: row.verificationemailtoken,
-        resetPasswordToken: row.resetpasswordtoken,
-        expiresResetPassword: row.expiresresetpassword,
-        // createdAt: row.createdat, // If needed
-    };
-}
-
 //signup
 // export async function createUser(userData:AuthUserInterface): Promise<AuthUserInterface> {
-export async function createUser(userData:AuthUserInterface): Promise<number> {
+export async function createUser(
+    userData:AuthUserInterface, 
+    userTypeData: CustomerDocumentInterface | FarmerDocumentInterface
+): Promise<number> {
     const {
         username,
         password,
         email,
+        userType,
         cloudinaryProfilePublicId,
         profilePicture,
         verificationEmailToken,
@@ -44,9 +33,9 @@ export async function createUser(userData:AuthUserInterface): Promise<number> {
     
     const query = `
         INSERT INTO public.auths (
-            username, password, email, cloudinaryProfilePublicId, profilePicture, 
+            username, password, email, userType, cloudinaryProfilePublicId, profilePicture, 
             verificationEmailToken, resetPasswordToken, expiresResetPassword, createdAt )
-        VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9)
+        VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
         RETURNING *
     `;
 
@@ -54,6 +43,7 @@ export async function createUser(userData:AuthUserInterface): Promise<number> {
         username, 
         hashedPassoword,
         email,
+        userType,
         cloudinaryProfilePublicId,
         profilePicture,
         verificationEmailToken,
@@ -64,34 +54,30 @@ export async function createUser(userData:AuthUserInterface): Promise<number> {
 
     try {
         const { rows } = await pool.query(query, values);
-        const createdUser = rows[0];
         const {password, ...userData} = rows[0]; 
         console.log("User Data ,excluded Password: ", userData);
+        console.log("\n User Specific Data: ", userTypeData);
+        const createdUser = rows[0];
         const userID:number = createdUser.id ;
 
-        //don't publish message on seed users 
-        
-        let seed = true; // take it from passed params (userData prop)
-        if(!seed){
-            const message: AuthUserMessageInterface = {
-                id:userID,
-                username,
-                password,
-                email,
-                profilePicture,
-                type:'auth',
-            }
-            await publishMessage(
-                authChannel,
-                'auth-user',
-                'auth-user-key',
-                'User create message send to user',
-                JSON.stringify(message)
-            );
+        const messagePayload: AuthUserTypeMessageInterface = {
+            type:'authCreate',
+            data:userTypeData,
         }
 
-        //RETURN ALL USER DATA (same as login/signup )
-        //Consider to return needed user Data for loggin (after signup The user must be logged in)
+        if(!userType)
+            throw BadRequestError("Invalid user type", "get ExchangeName and Routing key function error ")
+
+        const {exchangeName, routingKey} = getExchangeNameAndRoutingKey(userType);
+
+        await publishMessage(
+            authChannel,
+            exchangeName,
+            routingKey,
+            'User create message send to user',
+            JSON.stringify(messagePayload)
+        );
+
         return userID;
         // return userData;
     }
@@ -99,7 +85,8 @@ export async function createUser(userData:AuthUserInterface): Promise<number> {
         log.log("error", "Authentication service: The user can't be created!");
         //must thrown error because function will return 'undefined'
         //It's better to throw an error from the catch block than to let the function return undefined
-        throw new Error("Failed to create user."); 
+        // throw new Error("Failed to create user.", error); 
+        throw BadRequestError(`Failed to create user: ${error} `, "auth service create user fucntiojn error");
     }
 }
 
