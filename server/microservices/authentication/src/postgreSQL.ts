@@ -28,6 +28,7 @@ const authUserTable = `
         username text NOT NULL,
         password text NOT NULL,
         email text NOT NULL UNIQUE,
+        userType text NOT NULL,
         cloudinaryProfilePublicId text NOT NULL, 
         profilePicture text NOT NULL, 
         verificationEmailToken text, 
