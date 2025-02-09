@@ -1,5 +1,5 @@
 import { Logger } from "winston";
-import { winstonLogger, BadRequestError, AuthUserInterface, CustomerDocumentInterface, FarmerDocumentInterface} from "@veckovn/growvia-shared";
+import { winstonLogger, BadRequestError, AuthUserInterface, AuthUserTypeMessageInterface, CustomerDocumentInterface, FarmerDocumentInterface} from "@veckovn/growvia-shared";
 import { config } from '@authentication/config';
 import { hash } from "bcryptjs";
 import { pool } from '@authentication/postgreSQL'; //instance of pool connect not poolConnect method (because its already connected)
@@ -8,12 +8,6 @@ import { authChannel } from "@authentication/server";
 import { mapAuthUser, getExchangeNameAndRoutingKey } from "@authentication/helper";
 
 const log: Logger = winstonLogger(`${config.ELASTICSEARCH_URL}`, 'authenticationService', 'debug');
-
-export interface AuthUserTypeMessageInterface {
-    type: string;
-    userType: 'customer' | 'farmer';
-    data: CustomerDocumentInterface | FarmerDocumentInterface;
-}
 
 //signup
 // export async function createUser(userData:AuthUserInterface): Promise<AuthUserInterface> {
