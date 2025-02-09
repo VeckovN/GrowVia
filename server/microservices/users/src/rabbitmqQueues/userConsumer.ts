@@ -1,4 +1,4 @@
-import { CustomerDocumentInterface, winstonLogger} from "@veckovn/growvia-shared";
+import { winstonLogger } from "@veckovn/growvia-shared";
 import { Logger } from "winston";
 import { Channel, ConsumeMessage } from 'amqplib';
 import { config } from '@users/config';
@@ -34,19 +34,19 @@ const customerDirectConsumer = async (channel:Channel):Promise<void> => {
             if(!msg) return;
             try{
                 //msg! garante that msg is not null or undefined
-                const {type, data} = JSON.parse(msg!.content.toString());
+                const {type, userType, data} = JSON.parse(msg!.content.toString());
                 
-                if(type == 'authCreate'){
-                    
+                if(type == 'authCreate'){            
                     log.info("User Service Data recieved from authentcication");
                     console.log("\n Create Auth Data: ", data);
 
-                    if(data.userType == 'customer'){
+                    if(userType == 'customer'){
                         console.log("Create customer user BEFORE");
-                        await createCustomer(data as CustomerDocumentInterface); //from Service
+                        //exclude userType from data:
+                        await createCustomer(data); //from Service
                         console.log("Create customer user AFTER");
                     }
-                    else if(data.userType == 'farmer'){
+                    else if(userType == 'farmer'){
                         //await createFarmer(data);
                     }
                 }

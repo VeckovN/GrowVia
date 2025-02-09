@@ -11,9 +11,9 @@ import { compare, hash } from 'bcryptjs';
 
 //factory function (generate user-specific data based on the type)
 const factoryCreateUserData = (
+    userType: string,
     username: string,
     email: string,
-    userType: string,
     uploadedPictureResult: string,
     otherUserData: any
 ): CustomerDocumentInterface | FarmerDocumentInterface =>{
@@ -23,20 +23,15 @@ const factoryCreateUserData = (
         email,
         profilePicture: uploadedPictureResult
     }
-
-    const userTypeNormalized:string = userType.trim().toLowerCase();
     
-    if(userTypeNormalized == 'farmer'){
+    if(userType == 'farmer'){
         return {
-            // userType,
-            userType: 'farmer', //same
             ...baseUserData,
             ...otherUserData
         } as FarmerDocumentInterface
     }
-    else if(userTypeNormalized == 'customer'){
+    else if(userType == 'customer'){
         return {
-            userType: 'customer',
             ...baseUserData,
             ...otherUserData
         } as CustomerDocumentInterface
@@ -84,7 +79,7 @@ export async function create(req:Request, res:Response):Promise<void>{
     //add profilePicture: uploadedPictureResult -> from cloudinary uploading
 
     //!watch on parameter order
-    const userTypeData = factoryCreateUserData(username, email, userType, uploadedPictureResult, othersUsersData);
+    const userTypeData = factoryCreateUserData(userType, username, email, uploadedPictureResult, othersUsersData);
 
     const userID: number = await createUser(userAuthData, userTypeData);
     // const user:AuthUserInterface = await createUser(req.body);
