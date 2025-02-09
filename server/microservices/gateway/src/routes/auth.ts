@@ -11,7 +11,7 @@ const authRoutes = (): Router => {
     router.put('/auth/verify-email', userEmailVerification);
     router.put('/auth/forgot-password',  userForgotPassword);
     router.put('/auth/reset-password/:token', resetUserPassword);
-    router.put('/auth/seed/:count', seedUser); 
+    router.put('/auth/seed/:type/:count', seedUser); 
     return router;
 };
 

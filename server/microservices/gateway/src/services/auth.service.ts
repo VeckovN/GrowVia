@@ -64,8 +64,8 @@ async function refreshToken():Promise<AxiosResponse> {
     return res;
 }
 
-async function seedAuthUser(count:string):Promise<AxiosResponse> {
-    const res: AxiosResponse = await authAxiosInstance.put(`/seed/${count}`);
+async function seedAuthUser(type:string, count:string):Promise<AxiosResponse> {
+    const res: AxiosResponse = await authAxiosInstance.put(`/seed/${type}/${count}`);
     return res;
 }
 
