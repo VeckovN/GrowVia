@@ -12,7 +12,7 @@ import { mongoDBconnection } from "@users/database";
 import { appRoutes } from "@users/routes";
 import { createConnection } from "@users/rabbitmqQueues/rabbitmq";
 import { Channel } from "amqplib";
-import { customerDirectConsumer } from "@users/rabbitmqQueues/userConsumer";
+import { customerDirectConsumer, farmerDirectConsumer } from "@users/rabbitmqQueues/userConsumer";
 const Server_port = 4003;
 const log: Logger = winstonLogger(`${config.ELASTICSEARCH_URL}`, 'usersService', 'debug');
 
@@ -43,6 +43,7 @@ async function startRabbitmqQueue():Promise<void>{
     //create userChannel (consuming/listening):
     const userChannel:Channel = await createConnection() as Channel;
     await customerDirectConsumer(userChannel); //for consuming create data on Authentication service)
+    await farmerDirectConsumer(userChannel);
     //OrderService - on creating order and others.
     //ProductService -
 } 
