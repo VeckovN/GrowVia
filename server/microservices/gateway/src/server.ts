@@ -10,6 +10,7 @@ import http from 'http';
 import { checkConnection } from "@gateway/elastisearch";
 import { appRoutes } from "@gateway/routes";
 import { authAxiosInstance } from "@gateway/services/auth.service";
+import { usersAxiosInstance } from "@gateway/services/user.service";
 
 const Server_port = 4000;
 const log: Logger = winstonLogger(`${config.ELASTICSEARCH_URL}`, 'gatewayService', 'debug');
@@ -114,6 +115,7 @@ export function start(app:Application):void {
         if(req.session?.jwtToken){   //if session exist (The user is logged)
             //we want to append bearer token to the each AXIOS INSTANCE (Auth, Product, User, Order ...)
             authAxiosInstance.defaults.headers['Authorization']= `Bearer ${req.session?.jwtToken}`
+            usersAxiosInstance.defaults.headers['Authorization']= `Bearer ${req.session?.jwtToken}`
         }
         next();
     })

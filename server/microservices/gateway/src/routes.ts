@@ -2,6 +2,7 @@ import { Application } from "express";
 import { healthRoutes } from "@gateway/routes/health";
 import { authRoutes } from "@gateway/routes/auth";
 import { currentUserRoutes } from "@gateway/routes/currentUser";
+import { customerRoutes } from "@gateway/routes/users/customer";
 import { verifyUser } from "./authMiddleware";
 
 const BASE_PATH = '/api/gateway/v1';
@@ -14,6 +15,11 @@ export function appRoutes(app:Application): void {
 
     //with authenticationMiddleware (authentications checking) Protected routes
     app.use(BASE_PATH, verifyUser, currentUserRoutes());
+    //users
+    app.use(BASE_PATH, verifyUser, customerRoutes());
+    // app.use(BASE_PATH, verifyUser, farmersRoutes());
+    
+
 }
 
 

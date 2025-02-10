@@ -19,7 +19,7 @@ export function customerRoutes():Router {
     router.post('/wishlist', addProductToWishlist);
     // router.delete('/wishlist', removeProductToWishlist);
     router.delete('/:customerID/wishlist/:productID', removeProductToWishlist); //customer/1231/wishlist/321
-    router.post('/savedlsit', addFarmerToSavedList);
+    router.post('/savedlist', addFarmerToSavedList);
     router.delete('/:customerID/savedlist/:farmerID', removeFarmerToSavedList);
     // router.delete('');
     router.post('/add/order-history', addOrderToHistory);
