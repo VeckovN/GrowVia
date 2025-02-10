@@ -3,6 +3,7 @@ import { Logger } from "winston";
 import { Channel, ConsumeMessage } from 'amqplib';
 import { config } from '@users/config';
 import { createCustomer } from "@users/services/customer";
+import { createFarmer } from "@users/services/farmers";
 
 const log:Logger = winstonLogger(`${config.ELASTICSEARCH_URL}`, 'usersRabbitMQConsumer', 'debug');
 
@@ -34,21 +35,13 @@ const customerDirectConsumer = async (channel:Channel):Promise<void> => {
             if(!msg) return;
             try{
                 //msg! garante that msg is not null or undefined
-                const {type, userType, data} = JSON.parse(msg!.content.toString());
+                const {type, data} = JSON.parse(msg!.content.toString());
                 
                 if(type == 'authCreate'){            
-                    log.info("User Service Data recieved from authentcication");
                     console.log("\n Create Auth Data: ", data);
-
-                    if(userType == 'customer'){
-                        console.log("Create customer user BEFORE");
-                        //exclude userType from data:
-                        await createCustomer(data); //from Service
-                        console.log("Create customer user AFTER");
-                    }
-                    else if(userType == 'farmer'){
-                        //await createFarmer(data);
-                    }
+                    await createCustomer(data); //from Service
+                    console.log("Create customer user AFTER");
+                    log.info("User Service Data recieved from Authentication service");
                 }
 
                 channel.ack(msg!); //Ack after successful processing 
@@ -66,11 +59,60 @@ const customerDirectConsumer = async (channel:Channel):Promise<void> => {
     }
 }
 
+const farmerDirectConsumer = async (channel:Channel):Promise<void> => {
+    ///consume from Authentication (on signup)
+    try{
+        const exchangeName = 'auth-user-farmer';
+        const queueName = 'auth-user-farmer-queue';
+        const routingKey = 'auth-user-farmer-key'
+
+        //Asserts an exchange into existence (set direct) --- set durable to true(makes queue survive)
+        await channel.assertExchange(exchangeName, 'direct', {durable:true});
+    
+        const authUserQueue = channel.assertQueue(queueName, {
+            durable: true,
+            arguments: {
+                "x-message-ttl": 60000, // Messages expire after 60 seconds if not consumed
+                "x-dead-letter-exchange": exchangeName, // Requeue messages instead of DLQ
+                "x-dead-letter-routing-key": routingKey, // Send back to same queue
+            }
+        
+        });
+        await channel.bindQueue((await authUserQueue).queue, exchangeName,  routingKey);        
+        
+        channel.consume((await authUserQueue).queue, async (msg: ConsumeMessage | null)=>{
+            if(!msg) return;
+            try{
+                //msg! garante that msg is not null or undefined
+                const {type, data} = JSON.parse(msg!.content.toString());
+                
+                if(type == 'authCreate'){            
+                    console.log("\n Create Auth Data: ", data);
+                    await createFarmer(data);
+                    console.log("Create farmer user AFTER");
+                    log.info("User Service Data recieved from Authentication service");
+                }
+
+                channel.ack(msg!); //Ack after successful processing 
+            }
+            catch(error){
+                log.log("error", "User Service error processing message:", error);
+                channel.nack(msg, false, true) //Requeue message instead of moving to DLQ
+            }   
+        });
+        log.info(`Users service customer consumer initialized`);
+    }
+    catch(error){
+        //log? due to test fixing undefied log
+        log?.log('error', "Users service farmerDirectConsumer failed: ", error);
+    }
+}
+
 // const farmerDirectConsumer = async (channel:Channel):Promise<void> =>{
 //     //consume from Authentication -> on signup(create farmer with additional info 
 //     //consume from Order -> on create order, accept order, cancel order (when customer do)
 // }
 export {
-    customerDirectConsumer
-    // farmerDirectConsumer
+    customerDirectConsumer,
+    farmerDirectConsumer
 }
