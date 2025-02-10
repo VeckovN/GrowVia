@@ -56,8 +56,8 @@ export async function createUser(
 
     try {
         const { rows } = await pool.query(query, values);
-        const {password, ...userData} = rows[0]; 
-        console.log("User Data ,excluded Password: ", userData);
+        // const {password, ...userData} = rows[0]; 
+        // console.log("User Data ,excluded Password: ", userData);
         console.log("\n User Specific Data: ", userTypeData);
         const createdUser = rows[0];
         const userID:number = createdUser.id ;
@@ -67,13 +67,8 @@ export async function createUser(
 
         const messagePayload: AuthUserTypeMessageInterface = {
             type:'authCreate',
-            userType: userType,
             data: userTypeData
         }
-
-        if(!userType)
-            throw BadRequestError("Invalid user type", "get ExchangeName and Routing key function error ")
-
         const {exchangeName, routingKey} = getExchangeNameAndRoutingKey(userType);
 
         await publishMessage(
