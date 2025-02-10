@@ -1,7 +1,7 @@
 import { createAxiosInstance } from "@gateway/axios";
 import { config } from '@gateway/config';
 import { AxiosResponse } from "axios";
-import { CustomerDocumentInterface } from "@veckovn/growvia-shared"
+import { CustomerDocumentInterface, FarmerDocumentInterface } from "@veckovn/growvia-shared"
 
 const usersAxiosInstance = createAxiosInstance(`${config.USER_SERVICE_URL}/api/v1/users`, 'user');
 
@@ -49,8 +49,21 @@ async function updateCustomerOrderHistory(customerID: string, orderID: string):P
 }
 
 
-
 // Farmer
+async function getFarmerDetailsByUsername(username: string):Promise<AxiosResponse> {
+    const res: AxiosResponse = await usersAxiosInstance.get(`/farmer/username/${username}`);
+    return res;
+}
+
+async function getFarmerDetailsByEmail(email: string):Promise<AxiosResponse> {
+    const res: AxiosResponse = await usersAxiosInstance.get(`/farmer/email/${email}`);
+    return res;
+}
+
+async function updateFarmerData(farmerID: string, newData: FarmerDocumentInterface):Promise<AxiosResponse> {
+    const res: AxiosResponse = await usersAxiosInstance.put(`/farmer/id/${farmerID}`, newData);
+    return res;
+}
 
 
 export {
@@ -62,5 +75,8 @@ export {
     removeProductFromWishlist,
     addFarmerToSavedList,
     removeFarmerFromSavedList,
-    updateCustomerOrderHistory
+    updateCustomerOrderHistory,
+    getFarmerDetailsByUsername,
+    getFarmerDetailsByEmail,
+    updateFarmerData
 }
