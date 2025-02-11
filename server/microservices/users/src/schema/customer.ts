@@ -2,7 +2,7 @@ import mongoose, { Schema } from 'mongoose';
 import { UserLocation } from "@veckovn/growvia-shared" 
 
 //subSchema for address props
-const AddressSchema = new Schema<UserLocation>(
+const LocationSchema = new Schema<UserLocation>(
     {
         country: { type: String, required: true, trim: true, minlength: 2, maxlength: 50 },
         city: { type: String, required: true, trim: true, minlength: 2, maxlength: 50 },
@@ -15,20 +15,20 @@ const CustomerSchema: Schema = new Schema(
         username: { 
             type: String, 
             require:true,
-            index:true,  //create index based on username
+            index:true, 
             minlength: 3, 
             maxlength: 20, 
             trim: true,
-            match: /^[a-zA-Z0-9_-]+$/, // Allows letters, numbers, underscores, and hyphens
+            match: /^[a-zA-Z0-9_-]+$/ // Allows letters, numbers, underscores, and hyphens
         }, 
         email: { 
             type: String, 
             required: true, 
-            index: true,  //create index based on email
+            index: true,  
             unique: true, 
             trim: true, 
             lowercase: true, 
-            match: /^[^\s@]+@[^\s@]+\.[^\s@]+$/, // Email format validation
+            match: /^[^\s@]+@[^\s@]+\.[^\s@]+$/
         }, 
         fullName: { 
             type: String, 
@@ -39,8 +39,8 @@ const CustomerSchema: Schema = new Schema(
             maxlength: 50,
             match: /^[a-zA-Z\s]+$/
         },
-        address: { 
-            type:AddressSchema, 
+        location: { 
+            type:LocationSchema, 
             require:true
         },
         profilePicture: { 
@@ -82,6 +82,3 @@ const CustomerSchema: Schema = new Schema(
 // });
 
 export { CustomerSchema }
-// //Modal name'Customer' -> for example for ref this name should be pass
-// const CustomerModel: Model<CustomerDocumentInterface> =  mongoose.model<CustomerDocumentInterface>("Customer", CustomerSchema, "Customer");
-// export { CustomerModel }

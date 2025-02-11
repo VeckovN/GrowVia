@@ -29,7 +29,7 @@ const updateCustomerDataByID = async(customerID: string, customerData:CustomerDo
                 username: customerData.username, 
                 email: customerData.email, 
                 fullName: customerData.fullName, 
-                address: customerData.address, 
+                location: customerData.location, 
                 profilePicture: customerData.profilePicture,
                 purchasedProducts: customerData.purchasedProducts,
                 wishlist: customerData.wishlist, 

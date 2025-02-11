@@ -2,7 +2,7 @@ import { Schema } from 'mongoose';
 import { FarmLocation } from '@veckovn/growvia-shared'; //update the interface props in library
 
 //subSchema for address props
-const AddressSchema = new Schema<FarmLocation>(
+const LocationSchema = new Schema<FarmLocation>(
     {
         country: { type: String, required: true, trim: true, minlength: 2, maxlength: 50 },
         city: { type: String, required: true, trim: true, minlength: 2, maxlength: 50 },
@@ -17,7 +17,7 @@ const FarmerSchema: Schema = new Schema(
         username: { 
             type: String, 
             require:true,
-            index:true,  //create index based on username
+            index:true,  
             minlength: 3, 
             maxlength: 20, 
             trim: true,
@@ -26,11 +26,11 @@ const FarmerSchema: Schema = new Schema(
         email: { 
             type: String, 
             required: true, 
-            index: true,  //create index based on email
+            index: true,  
             unique: true, 
             trim: true, 
             lowercase: true, 
-            match: /^[^\s@]+@[^\s@]+\.[^\s@]+$/, // Email format validation
+            match: /^[^\s@]+@[^\s@]+\.[^\s@]+$/
         }, 
         fullName: { 
             type: String, 
@@ -41,16 +41,24 @@ const FarmerSchema: Schema = new Schema(
             maxlength: 50,
             match: /^[a-zA-Z\s]+$/
         },
-        address: { 
-            type:AddressSchema, 
+        farmName: {
+            type: String,
+            required: true,
+            trim: true,
+            minlength: 3,
+            maxlength: 50,
+            match: /^[a-zA-Z\s,.'\-&]+$/
+        }, 
+        location: { 
+            type:LocationSchema, 
             require:true
         },
         profilePicture: { 
             type: String,
             default: "",
             trim: true,
-            match: /^https?:\/\/.+\.(jpg|jpeg|png|gif)$/, // Only allow valid image URLs
-        }, //cr
+            //match: /^https?:\/\/.+\.(jpg|jpeg|png|gif)$/, // Only allow valid image URLs
+        }, 
         description: {
             type: String,
             trim: true,
