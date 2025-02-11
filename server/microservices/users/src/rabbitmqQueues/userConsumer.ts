@@ -3,7 +3,7 @@ import { Logger } from "winston";
 import { Channel, ConsumeMessage } from 'amqplib';
 import { config } from '@users/config';
 import { createCustomer } from "@users/services/customer";
-import { createFarmer } from "@users/services/farmers";
+import { createFarmer } from "@users/services/farmer";
 
 const log:Logger = winstonLogger(`${config.ELASTICSEARCH_URL}`, 'usersRabbitMQConsumer', 'debug');
 

@@ -1,6 +1,6 @@
 import { Request, Response } from "express"
 import { FarmerDocumentInterface } from "@veckovn/growvia-shared";
-import { getFarmerByUsername, getFarmerByEmail, updateFarmerDataByID } from "@users/services/farmers";
+import { getFarmerByUsername, getFarmerByEmail, updateFarmerDataByID } from "@users/services/farmer";
 
 const getFarmerDetailsByUsername = async (req:Request, res:Response):Promise<void> => {
     const username = req.params.username;
