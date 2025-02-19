@@ -50,18 +50,15 @@ const CustomerSchema: Schema = new Schema(
             // match: /^https?:\/\/.+\.(jpg|jpeg|png|gif)$/, // Only allow valid image URLs
         }, //create index based on fullName
 
-        // 'Product' Reference to Another Products MongoDB  
         //Product DB is the mongoDB as well , so the product Id is same type
-        purchasedProducts: [{type: mongoose.Schema.Types.ObjectId, ref: 'Product'}],
-        wishlist: [{type: mongoose.Schema.Types.ObjectId, ref: 'Product'}], //array of products type (From Product Interface) string[Product]
-        
-        // 'Farmers' Reference to Farmers -> same MongoDB
+        purchasedProducts: [{ type: mongoose.Schema.Types.ObjectId }],
+        wishlist: [{ type: mongoose.Schema.Types.ObjectId }], //array of products type (From Product Interface) string[Product]
+        // 'Farmers' Reference to Farmers -> same MongoDB Intance
         savedFarmers: [{ type: mongoose.Schema.Types.ObjectId, ref: "Farmer" }],
-        
         //Reference to Orders (PostgreSQL, using UUID)
         orderHistory: [{  // PostgreSQL order IDs stored as UUID strings
             type: String,
-            validate: { //with validator 
+            validate: { 
                 validator: (v: string) => /^[0-9a-fA-F-]{36}$/.test(v), // UUID format validation
                 message: "Invalid UUID format for order ID."
             } 
