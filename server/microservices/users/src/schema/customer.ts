@@ -1,7 +1,6 @@
 import mongoose, { Schema } from 'mongoose';
 import { UserLocation } from "@veckovn/growvia-shared" 
 
-//subSchema for address props
 const LocationSchema = new Schema<UserLocation>(
     {
         country: { type: String, required: true, trim: true, minlength: 2, maxlength: 50 },
@@ -33,7 +32,6 @@ const CustomerSchema: Schema = new Schema(
         fullName: { 
             type: String, 
             required: true, 
-            //index: true, 
             trim: true,
             minlength: 3,
             maxlength: 50,
@@ -48,24 +46,23 @@ const CustomerSchema: Schema = new Schema(
             default: "",
             trim: true,
             // match: /^https?:\/\/.+\.(jpg|jpeg|png|gif)$/, // Only allow valid image URLs
-        }, //create index based on fullName
+        }, 
 
+        // 'Product' Reference to Another Products MongoDB  
         //Product DB is the mongoDB as well , so the product Id is same type
-        purchasedProducts: [{ type: mongoose.Schema.Types.ObjectId }],
-        wishlist: [{ type: mongoose.Schema.Types.ObjectId }], //array of products type (From Product Interface) string[Product]
-        // 'Farmers' Reference to Farmers -> same MongoDB Intance
-        savedFarmers: [{ type: mongoose.Schema.Types.ObjectId, ref: "Farmer" }],
-        //Reference to Orders (PostgreSQL, using UUID)
+        purchasedProducts: [{type: mongoose.Schema.Types.ObjectId, ref: 'Product'}],
+        wishlist: [{type: mongoose.Schema.Types.ObjectId, ref: 'Product'}], //array of products type (From Product Interface) string[Product]
+        savedFarmers: [{ type: mongoose.Schema.Types.ObjectId, ref: "Farmer" }], // 'Farmers' Reference to Farmers -> same MongoDB
         orderHistory: [{  // PostgreSQL order IDs stored as UUID strings
             type: String,
-            validate: { 
+            validate: {
                 validator: (v: string) => /^[0-9a-fA-F-]{36}$/.test(v), // UUID format validation
                 message: "Invalid UUID format for order ID."
             } 
         }], 
     },
     //{ versionKey: false}, // intially mongoDB returns __v as property, with this versionKey shouldn't be returned
-    { timestamps: true } //Automatically adds createdAt & updatedAt
+    { timestamps: true } 
 )
 
 
