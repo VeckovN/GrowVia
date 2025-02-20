@@ -13,6 +13,6 @@ RUN ls -a
 #install dependencies (package.json with npm install) (because we don't use node_modules)
 RUN npm install && npm install -g nodemon
 
-EXPOSE 4003 
+EXPOSE 4004 
 
 CMD ["npm", "run", "dev"]
