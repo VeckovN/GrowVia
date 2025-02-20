@@ -2,9 +2,7 @@ import { ProductDocumentInterface  } from "@veckovn/growvia-shared";
 import { getDataIndex, addDataToIndex, updateDataIndex, deleteDataIndex } from "@product/elasticsearch";
 import { ProductModel } from "@product/model/product";
 
-
 const createProduct = async(product:ProductDocumentInterface):Promise<ProductDocumentInterface> =>{
-    //id as productID 
     const createdDocument = await ProductModel.create(product);
     //the new created document will be returned
 
@@ -14,10 +12,8 @@ const createProduct = async(product:ProductDocumentInterface):Promise<ProductDoc
         //if the products is created, the toJSON (that transform _id to id) will be added to every object 
         const data =  createdDocument.toJSON?.() as ProductDocumentInterface; //Convert Mongoose Obj(_doc) to the JSON Object 
         console.log("createdDocument JSON: ", data);
-        const productID = data._id; // createdProduct._id or data._id  (same value)
-        // addDataToIndex('product', `${createdProduct._id}`, data); 
+        const productID = createdDocument._id;
         await addDataToIndex('products', `${productID}`, data);  
-
         //Produce message to the User Service (for adding new product) if is implemented in USER SERVICE
     }
 
@@ -44,11 +40,9 @@ const updateProduct = async(productID: string, product:ProductDocumentInterface)
         },
         { new:true }
     ).exec() as ProductDocumentInterface;
-    //the new created document will be returned
 
     if(updatedDocument){
-        //get JSON format 
-        const data = updatedDocument.toJSON?.() as ProductDocumentInterface;
+        const data = updatedDocument.toJSON?.() as ProductDocumentInterface; //get JSON forma
         await updateDataIndex('products', `${updatedDocument._id}`, data);
     }
 
@@ -59,7 +53,6 @@ const deleteProduct = async(productID: string):Promise<void> =>{
 // const deleteProduct = async(productID: string, farmerID: string):Promise<void> =>{
     await ProductModel.deleteOne({ _id:productID }).exec();
     //produce message to farmer (based on farmeriD)
-
     await deleteDataIndex('products', productID);
 }
 
