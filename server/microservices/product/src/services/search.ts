@@ -1,9 +1,7 @@
 import { client } from "@product/elasticsearch";
-import { SearchResponse, SearchHit } from "@elastic/elasticsearch/lib/api/types";
+import { SearchResponse } from "@elastic/elasticsearch/lib/api/types";
+import { SearchResultInterface } from "@veckovn/growvia-shared";
 
-interface SearchResultInterface{
-    hits: SearchHit[]
-}
 
 //Search feature for finding Farmers Products
 const productsSerachByFarmerID = async(farmerID: string): Promise<SearchResultInterface> => {
