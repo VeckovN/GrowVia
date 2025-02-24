@@ -10,6 +10,16 @@ async function getProductByID(productID: string):Promise<AxiosResponse> {
     return res;
 }
 
+async function getProductsByCategory(category: string):Promise<AxiosResponse> {
+    const res: AxiosResponse = await productAxiosInstance.get(`/category/${category}`);
+    return res;
+}
+
+async function getFarmerProductsByID(productID: string):Promise<AxiosResponse> {
+    const res: AxiosResponse = await productAxiosInstance.get(`/farmer/${productID}`);
+    return res;
+}
+
 async function createProduct(product: ProductCreateInterface):Promise<AxiosResponse> {
     const res: AxiosResponse = await productAxiosInstance.post(`/create`, product);
     return res;
@@ -29,7 +39,9 @@ async function deleteProduct(productID:string, farmerID:string):Promise<AxiosRes
 export {
     productAxiosInstance,
     getProductByID,
+    getFarmerProductsByID,
     createProduct,
     updateProduct,
-    deleteProduct
+    deleteProduct,
+    getProductsByCategory
 }

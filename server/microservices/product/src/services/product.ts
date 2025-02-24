@@ -1,6 +1,7 @@
 import { ProductDocumentInterface  } from "@veckovn/growvia-shared";
 import { getDataIndex, addDataToIndex, updateDataIndex, deleteDataIndex } from "@product/elasticsearch";
 import { ProductModel } from "@product/model/product";
+import { productsSerachByFarmerID, productsSerachByCategory } from "@product/services/search";
 
 const createProduct = async(product:ProductDocumentInterface):Promise<ProductDocumentInterface> =>{
     const createdDocument = await ProductModel.create(product);
@@ -64,11 +65,31 @@ const getProductById = async(productID: string): Promise<ProductDocumentInterfac
 }
 
 // //using search feature to get Farmers products
-// const getFarmersProducts = async(farmerID) => { }
+// const getFarmersProducts = async(farmerID): Promise<ProductDocumentInterface> => { 
+const getFarmersProducts  = async(farmerID: string): Promise<ProductDocumentInterface[]> => {
+    const productsHits = await productsSerachByFarmerID(farmerID);
+    const productsResult: ProductDocumentInterface[] = [];
+    for(const product of productsHits.hits){
+        productsResult.push(product._source as ProductDocumentInterface);
+    }
+
+    return productsResult;
+}
+
+const getProductsByCategory  = async(category: string): Promise<ProductDocumentInterface[]> => {
+    const productsHits = await productsSerachByCategory(category);
+    const productsResult: ProductDocumentInterface[] = [];
+    for(const product of productsHits.hits){
+        productsResult.push(product._source as ProductDocumentInterface);
+    }
+    return productsResult;
+}
 
 export {
     createProduct,
     updateProduct,
     deleteProduct,
     getProductById,
+    getFarmersProducts,
+    getProductsByCategory
 }

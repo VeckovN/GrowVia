@@ -1,6 +1,6 @@
-import { ProductDocumentInterface } from '@veckovn/growvia-shared';
+import { ProductDocumentInterface, ProductCreateInterface } from '@veckovn/growvia-shared';
 import { Request, Response } from 'express';
-import { createProduct, deleteProduct, updateProduct, getProductById } from '@product/services/product';
+import { createProduct, deleteProduct, updateProduct, getProductById, getFarmersProducts, getProductsByCategory } from '@product/services/product';
 
 const productCreate = async (req: Request, res: Response): Promise<void> => {
     //validate zod schema
@@ -8,7 +8,7 @@ const productCreate = async (req: Request, res: Response): Promise<void> => {
     //upload images to cloudinary
 
     //only logged user can create product
-    const product: ProductDocumentInterface = {
+    const product: ProductCreateInterface = {
         //consider to put username, email of farmer
         farmerID: req.body.farmerID,
         name: req.body.name,
@@ -16,9 +16,9 @@ const productCreate = async (req: Request, res: Response): Promise<void> => {
         images: req.body.images, //for test
         description: req.body.description,
         shortDescription: req.body.shortDescription,
-        categories: req.body.shortDescriptiion,
-        subCategories: req.body.shortDescriptiion,
-        price: req.body.shortDescriptiion,
+        categories: req.body.categories,
+        subCategories: req.body.subCategories,
+        price: req.body.price,
         stock: req.body.stock,
         unit: req.body.unit,
         tags: req.body.tags
@@ -35,10 +35,18 @@ const productByID = async (req: Request, res: Response): Promise<void> => {
 }
 
 // //get all products by FarmerID
-// const getProductsByFarmerID = async (req: Request, res: Response): Promise<void> => {
-// }
+const farmersProductsByID = async (req: Request, res: Response): Promise<void> => {
+    const products: ProductDocumentInterface[] = await getFarmersProducts(req.params.productID);
+    res.status(200).json({ message: "Get farmer products by id", products });
+}
+
+const productsByCategory = async (req: Request, res: Response): Promise<void> => {
+    const products: ProductDocumentInterface[] = await getProductsByCategory(req.params.category);
+    res.status(200).json({ message: "Get products by category", products });
+}
 
 // const getProductsByCategory = async (req: Request, res: Response): Promise<void> => {
+//     //take 5
 // }
 
 // const validatUrl = (value: string): boolean  =>{
@@ -60,7 +68,6 @@ const productUpdate = async (req: Request, res: Response): Promise<void> => {
     //     });
     // }
 
-  
     //only logged user can create product
     const product: ProductDocumentInterface = {
         name: req.body.name,
@@ -81,7 +88,6 @@ const productUpdate = async (req: Request, res: Response): Promise<void> => {
 }
 
 const productDelete = async (req: Request, res: Response): Promise<void> => {    
-    // const { productID, farmerID } = req.params;
     const productID = req.params.productID;
     await deleteProduct(productID);
     res.status(200).json({ message: 'Product deleted successfully.' });
@@ -91,5 +97,7 @@ export {
     productCreate,
     productByID,
     productUpdate,
-    productDelete
+    productDelete,
+    farmersProductsByID,
+    productsByCategory
 }
