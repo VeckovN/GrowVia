@@ -20,6 +20,22 @@ async function getFarmerProductsByID(productID: string):Promise<AxiosResponse> {
     return res;
 }
 
+async function searchProducts(query: string, from:string, size: string, type:string, minPrice?:number, maxPrice?:number ):Promise<AxiosResponse> {
+    // const res: AxiosResponse = await productAxiosInstance.get(`/search/${from}/${size}/${type}?query=${query}?minPrice=${minPrice}?maxPrice=${maxPrice}`);
+    //better practice to use 'params' that is related to 'req.query' instead of passing it directly to URL
+    const res: AxiosResponse = await productAxiosInstance.get(`/search/${from}/${size}/${type}`, {
+        params: {
+            query, minPrice, maxPrice
+        }
+    });
+    return res;
+}
+
+async function searchSimilarProducts(productID: string):Promise<AxiosResponse> {
+    const res: AxiosResponse = await productAxiosInstance.get(`search/similar/${productID}`);
+    return res;
+}
+
 async function createProduct(product: ProductCreateInterface):Promise<AxiosResponse> {
     const res: AxiosResponse = await productAxiosInstance.post(`/create`, product);
     return res;
@@ -43,5 +59,7 @@ export {
     createProduct,
     updateProduct,
     deleteProduct,
-    getProductsByCategory
+    getProductsByCategory,
+    searchProducts,
+    searchSimilarProducts
 }

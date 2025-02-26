@@ -1,6 +1,15 @@
 import { ProductDocumentInterface, ProductCreateInterface } from '@veckovn/growvia-shared';
 import { Request, Response } from 'express';
 import { createProduct, deleteProduct, updateProduct, getProductById, getFarmersProducts, getProductsByCategory } from '@product/services/product';
+import { getMoreSimilarProducts, productsSearch } from '@product/services/search';
+import { sortBy } from 'lodash';
+
+interface PaginatePropsInterface {
+    size: number; //count of returned items
+    from: string; //page number (from ) -> 0 is first page
+    type: string;//sortBy (order return), or other examples "popular", "latest", "discounted", "recommended
+} 
+
 
 const productCreate = async (req: Request, res: Response): Promise<void> => {
     //validate zod schema
@@ -45,9 +54,50 @@ const productsByCategory = async (req: Request, res: Response): Promise<void> =>
     res.status(200).json({ message: "Get products by category", products });
 }
 
+
+const searchProducts = async (req: Request, res: Response): Promise<void> => {
+    const { from, size, type } = req.params; //fron the URL -> /products/:from/:size/:type
+    ///Flexible filtering: with this req.query is also in URl but after '?' sign  (? query=''? minPrice=''? maxPrice='')
+    ///products/:from/:size/:type?query=''?minPrice=''?maxPrice=''
+    const { query, minPrice, maxPrice } = req.query; 
+    console.log("req params: ", req.params);
+    console.log("\n req Query: ", req.query);
+    
+    let productsResult: ProductDocumentInterface[] = [];
+    const paginate:PaginatePropsInterface = { from, size: parseInt(`${size}`), type }
+    const productsHits = await productsSearch(`${query}`, paginate, parseInt(`${minPrice}`), parseInt(`${maxPrice}`));
+    for(const product of productsHits.hits){
+        productsResult.push(product._source as ProductDocumentInterface);
+    }
+
+    
+    //if the user is on the bottom of the page type will be 'backward'
+    //Backward pagination (type: 'backward'): Older reviews are loaded when scrolling up, so you sort them ascendingly to maintain chronological order.
+    if(type === 'backward'){
+        productsResult = sortBy(productsResult, ['createdAt']) //in our case the 'createdAt'
+    }
+    // else {
+    //     // Descending: newest first
+    //     productsResult = sortBy(productsResult, ['createdAt']).reverse();
+    // }
+
+    res.status(200).json({ message: "Search products", products: productsResult });
+}
+
 // const getProductsByCategory = async (req: Request, res: Response): Promise<void> => {
 //     //take 5
 // }
+
+const getMoreProductsLikeThis = async(req: Request, res: Response): Promise<void> => {
+
+    let productsResult: ProductDocumentInterface[] = [];
+    const productsHits = await getMoreSimilarProducts(req.params.productID);
+    for(const product of productsHits.hits){
+        productsResult.push(product._source as ProductDocumentInterface);
+    }
+
+    res.status(200).json({ message: "Get product by id", products:productsResult });
+}
 
 // const validatUrl = (value: string): boolean  =>{
 //     const dataUrlRegex =
@@ -99,5 +149,7 @@ export {
     productUpdate,
     productDelete,
     farmersProductsByID,
-    productsByCategory
+    productsByCategory,
+    searchProducts,
+    getMoreProductsLikeThis
 }
