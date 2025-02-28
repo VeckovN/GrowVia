@@ -12,7 +12,7 @@ const productRoutes = (): Router => {
     router.get('/product/category/:category', checkUserAuth, getByCategory);
     router.get('/product/farmer/:farmerID', checkUserAuth, getFarmerProducts);
     router.get('/product/search/:from/:size/:type', checkUserAuth, products);
-    router.get('/product/similar/:productID', checkUserAuth, similarProducts);
+    router.get('/product/search/similar/:productID', checkUserAuth, similarProducts);
     router.put('/product/:productID', checkUserAuth, update);
     router.delete('/product/:productID/:farmerID', checkUserAuth, deleteByID);
     return router;

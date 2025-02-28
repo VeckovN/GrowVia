@@ -31,7 +31,7 @@ async function searchProducts(query: string, from:string, size: string, type:str
 }
 
 async function searchSimilarProducts(productID: string):Promise<AxiosResponse> {
-    const res: AxiosResponse = await productAxiosInstance.get(`search/similar/${productID}`);
+    const res: AxiosResponse = await productAxiosInstance.get(`/search/similar/${productID}`);
     return res;
 }
 
