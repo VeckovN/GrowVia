@@ -3,7 +3,7 @@ import {
     productCreate, 
     productByID, 
     productsByCategory, 
-    farmersProductsByID, 
+    farmerProductsByID, 
     productUpdate, 
     productDelete, 
     searchProducts,
@@ -18,7 +18,7 @@ export const productRoutes = (): Router => {
     router.get('/search/:from/:size/:type', searchProducts);  
     router.get('/search/similar/:productID', getMoreProductsLikeThis); 
     router.get('/category/:category', productsByCategory); 
-    router.get('/farmer/:productID', farmersProductsByID); 
+    router.get('/farmer/:farmerID', farmerProductsByID); 
     // router.get('/farmer/:farmerID', getProductsByFarmerID); 
     router.put('/:productID', productUpdate); //data to body 
     router.delete('/:productID/:farmerID', productDelete); 

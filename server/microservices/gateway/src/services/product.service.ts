@@ -15,8 +15,8 @@ async function getProductsByCategory(category: string):Promise<AxiosResponse> {
     return res;
 }
 
-async function getFarmerProductsByID(productID: string):Promise<AxiosResponse> {
-    const res: AxiosResponse = await productAxiosInstance.get(`/farmer/${productID}`);
+async function getFarmerProductsByID(farmerID: string):Promise<AxiosResponse> {
+    const res: AxiosResponse = await productAxiosInstance.get(`/farmer/${farmerID}`);
     return res;
 }
 

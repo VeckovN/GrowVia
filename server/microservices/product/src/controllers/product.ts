@@ -1,6 +1,6 @@
 import { ProductDocumentInterface, ProductCreateInterface } from '@veckovn/growvia-shared';
 import { Request, Response } from 'express';
-import { createProduct, deleteProduct, updateProduct, getProductById, getFarmersProducts, getProductsByCategory } from '@product/services/product';
+import { createProduct, deleteProduct, updateProduct, getProductById, getFarmerProducts, getProductsByCategory } from '@product/services/product';
 import { getMoreSimilarProducts, productsSearch } from '@product/services/search';
 import { sortBy } from 'lodash';
 
@@ -44,8 +44,8 @@ const productByID = async (req: Request, res: Response): Promise<void> => {
 }
 
 // //get all products by FarmerID
-const farmersProductsByID = async (req: Request, res: Response): Promise<void> => {
-    const products: ProductDocumentInterface[] = await getFarmersProducts(req.params.productID);
+const farmerProductsByID = async (req: Request, res: Response): Promise<void> => {
+    const products: ProductDocumentInterface[] = await getFarmerProducts(req.params.farmerID);
     res.status(200).json({ message: "Get farmer products by id", products });
 }
 
@@ -61,7 +61,7 @@ const searchProducts = async (req: Request, res: Response): Promise<void> => {
     ///products/:from/:size/:type?query=''?minPrice=''?maxPrice=''
     const { query, minPrice, maxPrice } = req.query; 
     console.log("req params: ", req.params);
-    console.log("\n req Query: ", req.query);
+    console.log("\n req Query: ", req.query); 
     
     let productsResult: ProductDocumentInterface[] = [];
     const paginate:PaginatePropsInterface = { from, size: parseInt(`${size}`), type }
@@ -148,7 +148,7 @@ export {
     productByID,
     productUpdate,
     productDelete,
-    farmersProductsByID,
+    farmerProductsByID,
     productsByCategory,
     searchProducts,
     getMoreProductsLikeThis

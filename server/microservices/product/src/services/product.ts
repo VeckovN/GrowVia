@@ -66,7 +66,7 @@ const getProductById = async(productID: string): Promise<ProductDocumentInterfac
 
 // //using search feature to get Farmers products
 // const getFarmersProducts = async(farmerID): Promise<ProductDocumentInterface> => { 
-const getFarmersProducts  = async(farmerID: string): Promise<ProductDocumentInterface[]> => {
+const getFarmerProducts = async(farmerID: string): Promise<ProductDocumentInterface[]> => {
     const productsHits = await productsSerachByFarmerID(farmerID);
     const productsResult: ProductDocumentInterface[] = [];
     for(const product of productsHits.hits){
@@ -76,7 +76,7 @@ const getFarmersProducts  = async(farmerID: string): Promise<ProductDocumentInte
     return productsResult;
 }
 
-const getProductsByCategory  = async(category: string): Promise<ProductDocumentInterface[]> => {
+const getProductsByCategory = async(category: string): Promise<ProductDocumentInterface[]> => {
     const productsHits = await productsSerachByCategory(category);
     const productsResult: ProductDocumentInterface[] = [];
     for(const product of productsHits.hits){
@@ -90,6 +90,6 @@ export {
     updateProduct,
     deleteProduct,
     getProductById,
-    getFarmersProducts,
+    getFarmerProducts,
     getProductsByCategory
 }

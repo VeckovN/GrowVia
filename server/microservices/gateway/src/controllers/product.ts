@@ -17,10 +17,11 @@ export async function getByCategory(req:Request, res:Response):Promise<void> {
     res.status(200).json({ message:response.data.message, products:response.data.products});
 }
 
-export async function getProductsByID(req:Request, res:Response):Promise<void> {
-    const response: AxiosResponse = await getFarmerProductsByID(req.params.productID);
+export async function getFarmerProducts(req:Request, res:Response):Promise<void> {
+    const response: AxiosResponse = await getFarmerProductsByID(req.params.farmerID);
     res.status(200).json({ message:response.data.message, products:response.data.products});
 }
+
 
 export async function products(req:Request, res:Response):Promise<void> {
     const { from, size, type } = req.params;
