@@ -11,7 +11,7 @@ const ProductSchema: Schema = new Schema(
         name: { type: String, required: true },
         images: [{ type: String, required: true}],
         description: { type: String, required: true },
-        shortDescriptiion: { type: String, required: true },
+        shortDescription: { type: String, required: true }, //SINTAX FIXED
         categories: { type: String, required: true },
         subCategories: [{ type: String }],
         price: { type: Number, required: true, min:0 },
@@ -22,10 +22,11 @@ const ProductSchema: Schema = new Schema(
     {
         timestamps: true,
         toJSON: {
+            //_doc Mongoose object, rec pure JSON object
             transform(_doc, rec){
                 rec.id = rec._id;
                 delete rec._id;
-                return rec;
+                return rec;  //returning pure JSON object (not _doc)
             }
         }
     },
@@ -39,6 +40,52 @@ ProductSchema.virtual('id').get(function() {
 });
 
 
+//Using zod Validation Schema as pre-validation Before Hitting The DB
+// export const ProductZodSchema = z.object({
+//     farmerID: z.string().min(1, "Farmer ID is required"),
+//     name: z.string().min(3, "Product name must be at least 3 characters"),
+//     images: z.array(z.string().url("Invalid image URL")).min(1, "At least one image is required"),
+//     description: z.string().min(10, "Description must be at least 10 characters"),
+//     shortDescription: z.string().min(5, "Short description must be at least 5 characters"),
+//     categories: z.string().min(1, "Category is required"),
+//     subCategories: z.array(z.string()).optional(),
+//     price: z.number().min(0, "Price must be non-negative"),
+//     stock: z.object({
+//         quantity: z.number().min(0, "Stock quantity must be non-negative"),
+//         unit: z.enum(UNIT_TYPES)
+//     }),
+//     tags: z.array(z.string()).optional(),
+//     createdAt: z.date().optional(),
+// });
+
+
+// Create Product 
+// const newProduct = new ProductModel({
+//     name: "Organic Wheat Flour",
+//     price: 3.5, // Price per kg
+//     stock: 100, // 100 kg available
+//     unit: "kg",
+//     farmer: farmerId, // Reference to the farmer selling it
+//     ...
+//   });
+
+// or with stock obj with 'quantity' and 'unit' props
+// const newProduct = new ProductModel({
+//     name: "Organic Wheat Flour",
+//     price: 3.5, // Price per kg
+//     stock:{
+//         quantity: 100,
+//         unit: 'kg'
+//     }
+//     farmer: farmerId, // Reference to the farmer selling it
+//     ...
+//   });
+
+// Update stock after a purchases
+// When a customer buys 5 kg of wheat:
+
+// await ProductModel.findByIdAndUpdate(productId, { $inc: { stockQuantity: -5 } }
+//This will reduce the stock by 5 kg.
 
 
 export { ProductSchema }
