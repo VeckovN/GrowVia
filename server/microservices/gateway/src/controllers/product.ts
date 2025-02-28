@@ -26,12 +26,6 @@ export async function products(req:Request, res:Response):Promise<void> {
     const { from, size, type } = req.params;
     const { query, minPrice, maxPrice } = req.query; // Query parameters
     //get queries from (this merge all query props to one 'query')
-    // let query = '';
-    // const objList = Object.entries(req.query);
-    // const lastItemIndex = objList.length - 1;
-    // objList.forEach(([key, value], index) => {
-    //   query += `${key}=${value}${index !== lastItemIndex ? '&' : ''}`;
-    // });
     const response: AxiosResponse = await searchProducts(
         `${query}`,
         from,

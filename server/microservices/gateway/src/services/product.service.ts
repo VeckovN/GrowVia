@@ -21,12 +21,11 @@ async function getFarmerProductsByID(productID: string):Promise<AxiosResponse> {
 }
 
 async function searchProducts(query: string, from:string, size: string, type:string, minPrice?:number, maxPrice?:number ):Promise<AxiosResponse> {
-    // const res: AxiosResponse = await productAxiosInstance.get(`/search/${from}/${size}/${type}?query=${query}?minPrice=${minPrice}?maxPrice=${maxPrice}`);
+    // const res: AxiosResponse = await productAxiosInstance.get(`/search/${from}/${size}/${type}?query=${query}&minPrice=${minPrice}&maxPrice=${maxPrice}`);
     //better practice to use 'params' that is related to 'req.query' instead of passing it directly to URL
+    //url looks like: /search/0/10/forward/?query=''&minPrice=''&maxPrice=''
     const res: AxiosResponse = await productAxiosInstance.get(`/search/${from}/${size}/${type}`, {
-        params: {
-            query, minPrice, maxPrice
-        }
+        params: { query, minPrice, maxPrice }
     });
     return res;
 }
