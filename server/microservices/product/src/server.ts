@@ -6,13 +6,14 @@ import helmet from "helmet";
 import cors from 'cors';
 import compression from "compression";
 import http from 'http';
-import { checkConnection } from "@product/elasticsearch";
+import { checkConnection, createIndex} from "@product/elasticsearch";
+import { redisConnect } from "@product/redis";
 import { verify } from "jsonwebtoken";
 import { mongoDBconnection } from "@product/database";
 import { appRoutes } from "@product/routes";
 import { createConnection } from "@product/rabbitmqQueues/rabbitmq";
 import { Channel } from "amqplib";
-const Server_port = 4003;
+const Server_port = 4004;
 const log: Logger = winstonLogger(`${config.ELASTICSEARCH_URL}`, 'ProductService', 'debug');
 
 let productChannel:Channel;
@@ -34,6 +35,11 @@ function routesMiddleware(app:Application):void{
 
 function startElasticsearch():void{
     checkConnection();
+    createIndex('products');
+}
+
+function startRedis():void{
+    redisConnect();
 }
 
 function startMongoDB():void{
@@ -103,6 +109,7 @@ export function start(app:Application){
     compressRequestMiddleware(app);
     routesMiddleware(app);
     startElasticsearch();
+    startRedis();
     startMongoDB();
     startRabbitmqQueue();
     errorHandlerMiddleware(app);

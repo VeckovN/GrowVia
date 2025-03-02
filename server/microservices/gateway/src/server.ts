@@ -8,9 +8,11 @@ import cors from 'cors';
 import compression from "compression";
 import http from 'http';
 import { checkConnection } from "@gateway/elastisearch";
+import { redisConnect } from "@gateway/redis";
 import { appRoutes } from "@gateway/routes";
 import { authAxiosInstance } from "@gateway/services/auth.service";
 import { usersAxiosInstance } from "@gateway/services/user.service";
+import { productAxiosInstance } from "@gateway/services/product.service";
 
 const Server_port = 4000;
 const log: Logger = winstonLogger(`${config.ELASTICSEARCH_URL}`, 'gatewayService', 'debug');
@@ -37,6 +39,9 @@ function startElasticsearch():void{
     checkConnection();
 }
 
+function startRedis():void{
+    redisConnect();
+}
 
 function errorHandlerMiddleware(app: Application):void{
     //this '*' means if the user use some endpoint that doesn't exist
@@ -116,6 +121,7 @@ export function start(app:Application):void {
             //we want to append bearer token to the each AXIOS INSTANCE (Auth, Product, User, Order ...)
             authAxiosInstance.defaults.headers['Authorization']= `Bearer ${req.session?.jwtToken}`
             usersAxiosInstance.defaults.headers['Authorization']= `Bearer ${req.session?.jwtToken}`
+            productAxiosInstance.defaults.headers['Authorization']= `Bearer ${req.session?.jwtToken}`
         }
         next();
     })
@@ -123,7 +129,7 @@ export function start(app:Application):void {
     compressRequestMiddleware(app);
     routesMiddleware(app);
     startElasticsearch();
+    startRedis();
     errorHandlerMiddleware(app);
-
     startServers(app);
 }
