@@ -2,6 +2,7 @@
 
 import { Request, Response } from "express";
 import { SignUp, SignIn, verifyEmail, forgotPassword, resetPassword} from "@gateway/services/auth.service";
+import { setLoggedUser } from "@gateway/redis";
 import { AxiosResponse } from "axios";
 
 // ApiGateway request for Signup (to Authentication Service)
@@ -22,6 +23,8 @@ export async function register(req:Request, res:Response):Promise<void>{
 export async function login(req:Request, res:Response):Promise<void>{
     const response: AxiosResponse = await SignIn(req.body); 
     req.session = { jwtToken: response.data.token };
+    // FOR TESTING put here  the username to 'loggedUser' 
+    await setLoggedUser('loggedUsers', req.body?.usernameOrEmail);
     res.status(200).json({ message:response.data.message, user:response.data.user});
 }
 
@@ -30,7 +33,6 @@ export async function userEmailVerification(req:Request, res:Response):Promise<v
     const response: AxiosResponse = await verifyEmail(userID);
     res.status(200).json({message:response.data.message, user:response.data.user});
 }
-
 
 export async function userForgotPassword(req:Request, res:Response):Promise<void>{
     const { email } = req.body;
@@ -44,4 +46,3 @@ export async function resetUserPassword(req:Request, res:Response):Promise<void>
     const response: AxiosResponse = await resetPassword(password, repeatedPassword, token);
     res.status(200).json({message:response.data.message});
 }
-
