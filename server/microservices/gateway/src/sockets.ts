@@ -1,9 +1,12 @@
-import { winstonLogger} from "@veckovn/growvia-shared";
+import { winstonLogger, BadRequestError} from "@veckovn/growvia-shared";
 import { Logger } from "winston";
 import { config } from '@gateway/config';
 import { Server, Socket } from 'socket.io';
 // import { io, Socket as clientSocket } from 'socket.io-client';
 // import { io } from 'socket.io-client';
+import http from 'http';
+import { createAdapter } from "@socket.io/redis-adapter";
+import { createClient } from "redis";
 import { setSelectedProductCategory, setLoggedUser, removeLoggedUser, getLoggedUsers} from '@gateway/redis';
 
 const log: Logger = winstonLogger(`${config.ELASTICSEARCH_URL}`, 'gatewayService', 'debug');
@@ -22,6 +25,38 @@ const log: Logger = winstonLogger(`${config.ELASTICSEARCH_URL}`, 'gatewayService
 // }
 
 //other service Connections methods
+
+let socketIO: Server;
+
+const initializeSocketIO = async (httpServer: http.Server): Promise<void> => {
+    try{
+        socketIO = new Server(httpServer, {
+            cors:{
+                origin: `${config.CLIENT_URL}`,
+                methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH']
+            }
+        }) 
+
+        //configure redis-adapter (connect to redis)
+        const pubClient = createClient({ url: config.REDIS_HOST})
+        const subClient = pubClient.duplicate();
+        await Promise.all([pubClient.connect(), subClient.connect()]); //wait both to be executed
+        socketIO.adapter(createAdapter(pubClient, subClient));
+
+        log.info("Socket Initialized successfully");
+    }
+    catch(error){
+        log.error("GatewayService socket initializaion error: ", error);
+    }
+}
+
+//singleton
+const getSocketIO = ():Server =>{
+    if(!socketIO){
+        throw BadRequestError("Socket hasn't been initialized yet", "socket getSocketIO function");
+    }
+    return socketIO;
+};
 
 
 const configureSocketEvents = (io: Server):void =>{
@@ -52,4 +87,4 @@ const configureSocketEvents = (io: Server):void =>{
     })
 }
 
-export { configureSocketEvents }
+export { configureSocketEvents, initializeSocketIO, getSocketIO }

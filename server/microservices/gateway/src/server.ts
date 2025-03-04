@@ -7,10 +7,10 @@ import helmet from "helmet";
 import cors from 'cors';
 import compression from "compression";
 import http from 'http';
-import { Server } from 'socket.io';
-import { createAdapter } from "@socket.io/redis-adapter";
-import { createClient } from "redis";
-import { configureSocketEvents } from '@gateway/sockets';
+// import { Server } from 'socket.io';
+// import { createAdapter } from "@socket.io/redis-adapter";
+// import { createClient } from "redis";
+import { initializeSocketIO, getSocketIO, configureSocketEvents } from '@gateway/sockets';
 import { checkConnection } from "@gateway/elastisearch";
 import { redisConnect } from "@gateway/redis";
 import { appRoutes } from "@gateway/routes";
@@ -19,9 +19,7 @@ import { usersAxiosInstance } from "@gateway/services/user.service";
 import { productAxiosInstance } from "@gateway/services/product.service";
 
 const Server_port = 4000;
-let socketIO: Server;
 const log: Logger = winstonLogger(`${config.ELASTICSEARCH_URL}`, 'gatewayService', 'debug');
-
 
 //middleware used to compress request to small size
 function compressRequestMiddleware(app:Application):void {
@@ -84,26 +82,15 @@ async function startServers(app:Application):Promise<void> {
             log.info(`Gateway service is running on port: ${Server_port}`)
         })
 
-        const socketIO: Server  = new Server(httpServer, {
-            cors:{
-                origin: `${config.CLIENT_URL}`,
-                methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH']
-            }
-        }) 
-        //configure redis-adapter (connect to redis)
-        const pubClient = createClient({ url: config.REDIS_HOST})
-        const subClient = pubClient.duplicate();
-        await Promise.all([pubClient.connect(), subClient.connect()]); //wait both to be executed
-        socketIO.adapter(createAdapter(pubClient, subClient));
-
-        configureSocketEvents(socketIO); //event listeners
+        //start Socket server
+        await initializeSocketIO(httpServer);
+        const socketIO = getSocketIO(); 
+        configureSocketEvents(socketIO);
     }
     catch(error){
         log.log("error", "Gatawey service startServer failed: ", error);
     }
 }
-
-
 
 export function start(app:Application):void {
     
@@ -150,6 +137,3 @@ export function start(app:Application):void {
     errorHandlerMiddleware(app);
     startServers(app);
 }
-
-
-export { socketIO }
