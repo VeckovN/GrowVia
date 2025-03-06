@@ -1,40 +1,50 @@
-import { ProductDocumentInterface, ProductCreateInterface } from '@veckovn/growvia-shared';
+import { ProductDocumentInterface, ProductCreateInterface, PaginatePropsInterface, BadRequestError } from '@veckovn/growvia-shared';
 import { Request, Response } from 'express';
 import { createProduct, deleteProduct, updateProduct, getProductById, getFarmerProducts, getProductsByCategory } from '@product/services/product';
 import { getMoreSimilarProducts, productsSearch } from '@product/services/search';
+import { z } from 'zod';
+// import { ProductCreateZodSchema, ProductUpdateZodSchema } from '@product/schema/product';
+import { ProductCreateZodSchema, ProductUpdateZodSchema } from '@product/schema/product';
 import { sortBy } from 'lodash';
 
-interface PaginatePropsInterface {
-    size: number; //count of returned items
-    from: string; //page number (from ) -> 0 is first page
-    type: string;//sortBy (order return), or other examples "popular", "latest", "discounted", "recommended
-} 
-
-
 const productCreate = async (req: Request, res: Response): Promise<void> => {
-    //validate zod schema
-    
-    //upload images to cloudinary
+    try{
+        //validate zod schema
+        ProductCreateZodSchema.parse(req.body);
+        
+        //upload images to cloudinary
 
-    //only logged user can create product
-    const product: ProductCreateInterface = {
-        //consider to put username, email of farmer
-        farmerID: req.body.farmerID,
-        name: req.body.name,
-        // images: `${uploadImg.secure_url}, //already uploaded images
-        images: req.body.images, //for test
-        description: req.body.description,
-        shortDescription: req.body.shortDescription,
-        categories: req.body.categories,
-        subCategories: req.body.subCategories,
-        price: req.body.price,
-        stock: req.body.stock,
-        unit: req.body.unit,
-        tags: req.body.tags
+        //only logged user can create product
+        const product: ProductCreateInterface = {
+            //consider to put username, email of farmer
+            farmerID: req.body.farmerID,
+            name: req.body.name,
+            // images: `${uploadImg.secure_url}, //already uploaded images
+            images: req.body.images, //for test
+            description: req.body.description,
+            shortDescription: req.body.shortDescription,
+            categories: req.body.categories,
+            subCategories: req.body.subCategories,
+            price: req.body.price,
+            stock: req.body.stock,
+            unit: req.body.unit,
+            tags: req.body.tags
+        }
+
+        const createdProduct: ProductDocumentInterface = await createProduct(product);
+        res.status(200).json({ message: 'Product created successfully', product: createdProduct });
     }
-
-    const createdProduct: ProductDocumentInterface = await createProduct(product);
-    res.status(200).json({ message: 'Product created successfully', product: createdProduct });
+    catch (error) {
+        if(error instanceof z.ZodError){  //catch invalid data
+            //thrown error that will be handled in error middleware from server.ts that actually return propriet res.status with message
+            const errorMessages = error.errors.map((err) => ({
+                field: err.path.join('.'),
+                message: err.message,
+            }));
+            
+            throw BadRequestError(`Invalid form data, error: ${JSON.stringify(errorMessages)} `, 'productCustomerZodSchema validation');
+        } 
+    }
 }
 
 
@@ -106,35 +116,49 @@ const getMoreProductsLikeThis = async(req: Request, res: Response): Promise<void
 // }
 
 const productUpdate = async (req: Request, res: Response): Promise<void> => {
-    //validate zod schema
-    
-    // //reUpload image if is in the body request
-    // const images = req.body.images;
-    // let newImages;
-    // if(images){
-    //     images.forEach(el => {
-    //         const imageUrl = validatUrl(el);
-    //         //handle it
-    //     });
-    // }
+    try{
+        //validate zod schema
+        ProductUpdateZodSchema.parse(req.body);
 
-    //only logged user can create product
-    const product: ProductDocumentInterface = {
-        name: req.body.name,
-        // images: `${uploadImg.secure_url}, //already uploaded images
-        images: req.body.images, //for test
-        description: req.body.description,
-        shortDescription: req.body.shortDescription,
-        categories: req.body.categories,
-        subCategories: req.body.subCategories,
-        price: req.body.price,
-        stock: req.body.stock,
-        unit: req.body.unit,
-        tags: req.body.tags
+        // //reUpload image if is in the body request
+        // const images = req.body.images;
+        // let newImages;
+        // if(images){
+        //     images.forEach(el => {
+        //         const imageUrl = validatUrl(el);
+        //         //handle it
+        //     });
+        // }
+
+        //only logged user can create product
+        const product: ProductDocumentInterface = {
+            name: req.body.name,
+            // images: `${uploadImg.secure_url}, //already uploaded images
+            images: req.body.images, //for test
+            description: req.body.description,
+            shortDescription: req.body.shortDescription,
+            categories: req.body.categories,
+            subCategories: req.body.subCategories,
+            price: req.body.price,
+            stock: req.body.stock,
+            unit: req.body.unit,
+            tags: req.body.tags
+        }
+
+        const updatedProduct: ProductDocumentInterface = await updateProduct(req.params.productID, product);
+        res.status(200).json({ message: 'Product updated successfully', product: updatedProduct });
     }
-
-    const updatedProduct: ProductDocumentInterface = await updateProduct(req.params.productID, product);
-    res.status(200).json({ message: 'Product updated successfully', product: updatedProduct });
+    catch (error) {
+        if(error instanceof z.ZodError){  //catch invalid data
+            //thrown error that will be handled in error middleware from server.ts that actually return propriet res.status with message
+            const errorMessages = error.errors.map((err) => ({
+                field: err.path.join('.'),
+                message: err.message,
+            }));
+            
+            throw BadRequestError(`Invalid form data, error: ${JSON.stringify(errorMessages)} `, 'productCustomerZodSchema validation');
+        } 
+    }
 }
 
 const productDelete = async (req: Request, res: Response): Promise<void> => {    
