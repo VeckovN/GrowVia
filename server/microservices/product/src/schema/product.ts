@@ -9,7 +9,7 @@ const ProductCreateZodSchema = z.object({
     images: z.array(z.string().url("Invalid image URL")).min(1, "At least one image is required"),
     description: z.string().min(10, "Description must be at least 10 characters"),
     shortDescription: z.string().min(5, "Short description must be at least 5 characters"),
-    categories: z.string().min(1, "Category is required"),
+    category: z.string().min(1, "Category is required"),
     subCategories: z.array(z.string()).optional(),
     price: z.number().min(0, "Price must be non-negative"),
     stock: z.number().min(0, "Stock must be a positive number"),

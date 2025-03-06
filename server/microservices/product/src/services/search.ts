@@ -33,7 +33,7 @@ const productsSerachByCategory = async(category: string): Promise<SearchResultIn
                 must: [
                     {
                         query_string:{
-                            fields: ['categories'],
+                            fields: ['category'],
                             query: `*${category}*` 
                         }
                     }
@@ -53,7 +53,7 @@ const productsSearch = async(searchQuery:string, paginate:PaginatePropsInterface
     const queries: ElasticQueryInterface[] = [
         {
             query_string: {
-                fields: ['name', 'description', 'shortDescription','categories', 'subCategories', 'tags'], //all fields participating in the filter
+                fields: ['name', 'description', 'shortDescription','category', 'subCategories', 'tags'], //all fields participating in the filter
                 query: `*${searchQuery}*`
             }
         }
@@ -106,7 +106,7 @@ const getMoreSimilarProducts = async(productID: string):Promise<SearchResultInte
         size: 6,
         query: { 
             more_like_this: {
-                fields: ['name', 'description', 'shortDescription','categories', 'subCategories', 'tags'],
+                fields: ['name', 'description', 'shortDescription','category', 'subCategories', 'tags'],
                 like:[
                     {
                         _index: "products",

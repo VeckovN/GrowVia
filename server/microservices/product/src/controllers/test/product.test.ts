@@ -63,7 +63,7 @@ export const mockNewProduct: ProductCreateInterface = {
     ],
     description: "Juicy and sweet fresh strawberries, perfect for desserts and smoothies.",
     shortDescription: "Fresh strawberries, 250g box.",
-    categories: "Fruits",
+    category: "Fruits",
     subCategories: ["Berries", "Seasonal Fruits"],
     price: 5.99,
     stock: 85,
@@ -81,7 +81,7 @@ export const mockProduct: ProductDocumentInterface = {
     ],
     description: "Juicy and sweet fresh strawberries, perfect for desserts and smoothies.",
     shortDescription: "Fresh strawberries, 250g box.",
-    categories: "Fruits",
+    category: "Fruits",
     subCategories: ["Berries", "Seasonal Fruits"],
     price: 5.99,
     stock: 85,
@@ -202,7 +202,7 @@ describe('productsByCategory', () =>{
 
     beforeEach(() =>{
         req = mockRequest({
-           params: { category: mockProduct.categories }
+           params: { category: mockProduct.category }
         });
         res = mockResponse();
     })
@@ -215,7 +215,7 @@ describe('productsByCategory', () =>{
         (getProductsByCategory as jest.Mock).mockResolvedValue(mockProduct);
         await productsByCategory(req, res);
         //verify the service function was called with the correct data
-        expect(getProductsByCategory).toHaveBeenCalledWith(mockProduct.categories); 
+        expect(getProductsByCategory).toHaveBeenCalledWith(mockProduct.category); 
 
         expect(res.status).toHaveBeenCalledWith(200);
         expect(res.json).toHaveBeenCalledWith({
@@ -224,10 +224,10 @@ describe('productsByCategory', () =>{
         });
     });
 
-    it('should return an empty array if no product are found by categories', async () =>{
+    it('should return an empty array if no product are found by category', async () =>{
         (getProductsByCategory as jest.Mock).mockResolvedValue([]);
         await productsByCategory(req, res);
-        expect(getProductsByCategory).toHaveBeenCalledWith(mockProduct.categories);
+        expect(getProductsByCategory).toHaveBeenCalledWith(mockProduct.category);
         
         expect(res.status).toHaveBeenCalledWith(200);
         expect(res.json).toHaveBeenCalledWith({
@@ -244,7 +244,7 @@ describe('productUpdate', () =>{
 
     const mockProductUpdateData: ProductDocumentInterface = {
         name: 'Fresh Strawberries',
-        categories: "Fruits",
+        category: "Fruits",
         description: "Juicy and sweet fresh strawberries, perfect for desserts and smoothies.",
         // price: 5.99,
         // stock: 85,
@@ -263,7 +263,7 @@ describe('productUpdate', () =>{
         ],
         description: "Juicy and sweet fresh strawberries, perfect for desserts and smoothies.",
         shortDescription: "Fresh strawberries, 250g box.",
-        categories: "Fruits",
+        category: "Fruits",
         subCategories: ["Berries", "Seasonal Fruits"],
         // price: 5.99,
         // stock: 85,

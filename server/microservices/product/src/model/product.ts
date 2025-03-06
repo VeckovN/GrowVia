@@ -11,7 +11,7 @@ const ProductSchema: Schema = new Schema(
         images: [{ type: String, required: true}],
         description: { type: String, required: true },
         shortDescription: { type: String, required: true }, //SINTAX FIXED
-        categories: { type: String, required: true },
+        category: { type: String, required: true },
         subCategories: [{ type: String }],
         price: { type: Number, required: true, min:0 },
         stock: { type: Number, required: true, min:0 },

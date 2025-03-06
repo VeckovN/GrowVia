@@ -23,7 +23,7 @@ const productCreate = async (req: Request, res: Response): Promise<void> => {
             images: req.body.images, //for test
             description: req.body.description,
             shortDescription: req.body.shortDescription,
-            categories: req.body.categories,
+            category: req.body.category,
             subCategories: req.body.subCategories,
             price: req.body.price,
             stock: req.body.stock,
@@ -137,7 +137,7 @@ const productUpdate = async (req: Request, res: Response): Promise<void> => {
             images: req.body.images, //for test
             description: req.body.description,
             shortDescription: req.body.shortDescription,
-            categories: req.body.categories,
+            category: req.body.category,
             subCategories: req.body.subCategories,
             price: req.body.price,
             stock: req.body.stock,

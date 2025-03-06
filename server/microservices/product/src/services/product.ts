@@ -31,7 +31,7 @@ const updateProduct = async(productID: string, product:ProductDocumentInterface)
                 images: product.images,
                 description: product.description,
                 shortDescriptiion: product.shortDescription,
-                categories: product.categories,
+                category: product.category,
                 subCategories: product.subCategories,
                 price: product.price,
                 stock: product.stock,
