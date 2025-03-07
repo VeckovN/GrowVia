@@ -1,8 +1,5 @@
 import mongoose, { Schema, Model } from 'mongoose';
-import { ProductDocumentInterface } from '@veckovn/growvia-shared';
-
-//form shared library
-const UNIT_TYPES = ["piece", "kg", "g", "liter", "ml"] as const;
+import { ProductDocumentInterface, UNIT_TYPES } from '@veckovn/growvia-shared';
 
 const ProductSchema: Schema = new Schema(
     {

@@ -1,6 +1,5 @@
+import { UNIT_TYPES } from '@veckovn/growvia-shared';
 import { z } from 'zod';
-
-const UNIT_TYPES = ["piece", "kg", "g", "liter", "ml"] as const;
 
 //Using zod Validation Schema as pre-validation Before Hitting The DB
 const ProductCreateZodSchema = z.object({
