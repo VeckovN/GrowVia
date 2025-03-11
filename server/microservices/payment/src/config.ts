@@ -1,0 +1,25 @@
+
+import dotenv from 'dotenv';
+dotenv.config();
+
+interface Config {
+    NODE_ENV: string | undefined;
+    API_GATEWAY_URL: string | undefined;
+    ELASTICSEARCH_URL: string | undefined;
+    ELASTICSEARCH_APM_SERVER_URL: string | undefined;
+    ELASTICSEARCH_APM_TOKEN: string | undefined;
+    RABBITMQ_AMQP_ENDPOINT: string | undefined;
+    GATEWAY_JWT_TOKEN: string | undefined;
+    JWT_TOKEN: string | undefined;
+}
+
+export const config: Config = {
+    NODE_ENV: process.env.NODE_ENV || '',
+    API_GATEWAY_URL: process.env.API_GATEWAY_URL || '',
+    ELASTICSEARCH_URL: process.env.ELASTICSEARCH_URL || '', 
+    ELASTICSEARCH_APM_SERVER_URL: process.env.ELASTICSEARCH_APM_SERVER_URL || '',
+    ELASTICSEARCH_APM_TOKEN: process.env.ELASTICSEARCH_APM_TOKEN || '',
+    RABBITMQ_AMQP_ENDPOINT: process.env.RABBITMQ_AMQP_ENDPOINT || '',
+    GATEWAY_JWT_TOKEN: process.env.GATEWAY_JWT_TOKEN || '123123',
+    JWT_TOKEN: process.env.JWT_TOKEN || '123123',
+};
