@@ -5,6 +5,7 @@ dotenv.config();
 interface Config {
     NODE_ENV: string | undefined;
     API_GATEWAY_URL: string | undefined;
+    CLIENT_URL: string | undefined;
     ELASTICSEARCH_URL: string | undefined;
     ELASTICSEARCH_APM_SERVER_URL: string | undefined;
     ELASTICSEARCH_APM_TOKEN: string | undefined;
@@ -22,6 +23,7 @@ interface Config {
 export const config: Config = {
     NODE_ENV: process.env.NODE_ENV || '',
     API_GATEWAY_URL: process.env.API_GATEWAY_URL || '',
+    CLIENT_URL: process.env.CLIENT_URL || '',
     ELASTICSEARCH_URL: process.env.ELASTICSEARCH_URL || '', 
     ELASTICSEARCH_APM_SERVER_URL: process.env.ELASTICSEARCH_APM_SERVER_URL || '',
     ELASTICSEARCH_APM_TOKEN: process.env.ELASTICSEARCH_APM_TOKEN || '',
