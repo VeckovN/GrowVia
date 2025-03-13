@@ -10,8 +10,9 @@ import { checkConnection } from '@order/elasticsearch';
 import { verify } from "jsonwebtoken";
 import { connectPool } from "@order/postgreSQL";
 import { appRoutes } from "@order/routes";
-// import { createConnection } from "@order/rabbitmqQueues/rabbitmq";
+import { createConnection } from "@order/rabbitmqQueues/rabbitmq";
 import { Channel } from "amqplib";
+import { placeOrderPaymentDirectConsumer } from "@order/rabbitmqQueues/consumer";
 const Server_port = 4005;
 const log: Logger = winstonLogger(`${config.ELASTICSEARCH_URL}`, 'ProductService', 'debug');
 
@@ -44,8 +45,8 @@ function startPostgreSQL():void{
 async function startRabbitmqQueue():Promise<void>{
     // //create OrderChannel (consuming/listening):
     //create cosuming from payment service:
-    // orderChannel:Channel = await createConnection() as Channel;
-    // await paymentDirectConsumer(orderChannel) 
+    orderChannel = await createConnection() as Channel;
+    await placeOrderPaymentDirectConsumer(orderChannel);
 } 
 
 function errorHandlerMiddleware(app: Application):void{

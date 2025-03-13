@@ -36,16 +36,17 @@ const orderPendingDirectConsumer = async (channel:Channel):Promise<void> => {
                 //msg! garante that msg is not null or undefined
                 const {type, data} = JSON.parse(msg!.content.toString());
                 
-                if(type == 'orderCreated'){  
+                if(type == 'orderPlaced'){  
                     //take Tokenize card data & store intent in Stripe      
-                    console.log("\n Order data: ", data);
+                    console.log("\n Order data received: ", data);
                     // await createCustomer(data); //from Service
                     log.info("Payment Service Data recieved from Order Serivce");
 
                     //Simulating tokenization (for test)
-                    const paymentToken = `token_${Date.now()}`;
                     const MessageType = "paymentTokenized";
-                    const updatedData = { ...data, paymentToken };
+                    const paymentToken = `token_${Date.now()}`;
+                    //override paymentToken props
+                    const updatedData = { ...data, payment_token: paymentToken };
 
                     //Returns Payment Token to Order Service (via consumer)
                     await publishMessage(

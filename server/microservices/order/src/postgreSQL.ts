@@ -30,7 +30,7 @@ const orderTable = `
         farmer_id TEXT NOT NULL,  -- MongoDB ObjectId stored as TEXT (or VARCHAR)
         total_amount DECIMAL(10, 2) NOT NULL,
         payment_status VARCHAR(50) NOT NULL,
-        order_status VARCHAR(50) NOT NULL DEFAULT 'Pending Farmer Approval',
+        order_status VARCHAR(50) NOT NULL DEFAULT 'pending',
         payment_intent_id VARCHAR(255),
         payment_token VARCHAR(255),
         shipping_address TEXT,
