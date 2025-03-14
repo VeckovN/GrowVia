@@ -1,5 +1,5 @@
 // import { OrderCreateZodSchema } from '@order/schema/order.schema';
-import { winstonLogger, BadRequestError, NotFoundError, OrderCreateInterface, OrderDocumentInterface, OrderEmailMessageInterface } from '@veckovn/growvia-shared';
+import { winstonLogger, BadRequestError, NotFoundError, OrderCreateInterface, OrderDocumentInterface, OrderEmailMessageInterface, OrderItemDocumentInterface } from '@veckovn/growvia-shared';
 import { Logger } from "winston";
 import { config } from "@order/config";
 import { pool } from '@order/postgreSQL';
@@ -8,6 +8,30 @@ import { orderChannel } from '@order/server';
 
 const log: Logger = winstonLogger(`${config.ELASTICSEARCH_URL}`, 'orderService', 'debug');
 
+
+// orderStatus { 'pending', 'accepted', 'rejected', 'paymentFailed', 'processing', 'on_the_way', 'delivered' }
+
+
+const getOrderByID = async(orderID: string):Promise<OrderDocumentInterface | null> => {
+    try{
+        const resultOrder = await pool.query(`SELECT * FROM public.orders WHERE order_id = $1 `, [orderID]);
+ 
+        if(resultOrder.rowCount === 0) return null;
+
+        const resultOrderItems = await pool.query(`SELECT * FROM public.order_items WHERE order_id = $1 `, [orderID]);
+        
+        const order: OrderDocumentInterface = {
+            ...resultOrder.rows[0],
+            items: resultOrderItems.rows as OrderItemDocumentInterface[],
+        }
+
+        return order;
+    }
+    catch(error){
+        log.log("error", "Order service: order can't be found");
+        throw BadRequestError(`Failed to found Order by id: ${error} `, "orderService getOrderByID method error");
+    }
+}
 
 //query for createing order
 const placePendingOrder = async(orderData: OrderCreateInterface):Promise<OrderDocumentInterface> => {
@@ -98,6 +122,7 @@ const placePendingOrder = async(orderData: OrderCreateInterface):Promise<OrderDo
             orderUrl: `${config.CLIENT_URL}/order/${order_id}`,
             orderID: order_id,
             invoiceID: orderData.invoice_id,
+            // receiverEmail: orderData.farmer_email, //to the farmer (farmet got the notification)
             receiverEmail: orderData.customer_email,
             farmerUsername: orderData.farmer_username,
             customerUsername: orderData.customer_username,
@@ -160,19 +185,162 @@ const placeOrder = async(orderData: OrderCreateInterface):Promise<void> => {
 
 }
 
+
 //on farmer approve order (status changed to 'accepted' and payment process starting -> produce/consume)
-const farmerApproveOrder = async(): Promise<void> => {
-    // const exchangeName = 'accept-order-payment-customer';
-    // const queueName = 'accept-order-payment-customer-queue';
-    // const routingKey = 'accept-order-payment-customer-key';
+const farmerApproveOrder = async(orderData: OrderDocumentInterface): Promise<void> => {
+    if(!["stripe", "cod"].includes(orderData.payment_method)){
+        throw BadRequestError(`Failed to place Order, invalid payment method passed `, "orderService createOrder method error");
+    }
 
+    //verify orderData 
 
+    //send orderApproved type message to payment service to start capturing
+    if(orderData.payment_method === 'stripe') {
+        
+        await publishMessage(
+            orderChannel,
+            'accept-order-payment-customer',
+            'accept-order-payment-customer-key',
+            'Order approved data sent to the Payment service',
+            JSON.stringify({type: "orderApproved", data: orderData}),
+        );
 
+    }
+    else if(orderData.payment_method === 'cod') //without payment integration just change order status
+    {
+        if(!orderData.order_id)
+            throw NotFoundError("Failed to find the order, orderID doesn't exist", "orderService farmerApproveOrder with cod paymentMethod failed")
+        
+        await changeOrderStatus(orderData.order_id, 'accepted');
+    }
 }
 
-// const farmerCancelOrder = async(): Promise<void> => {
-//     //
-// }
+const farmerRejectOrder = async(orderData: OrderDocumentInterface): Promise<void> => {
+    if(!["stripe", "cod"].includes(orderData.payment_method)){
+        throw BadRequestError(`Failed to place Order, invalid payment method passed `, "orderService createOrder method error");
+    }
+
+    //verify orderData 
+
+
+    if(!orderData.order_id)
+        throw NotFoundError("Failed to find the order, orderID doesn't exist", "orderService farmerApproveOrder with cod paymentMethod failed")
+    
+    await changeOrderStatus(orderData.order_id, 'rejected');
+
+    //send orderData to paymentService to reject(refund) captured money.
+    if(orderData.payment_method === 'stripe') {
+        
+        await publishMessage(
+            orderChannel,
+            'accept-order-payment-customer',
+            'accept-order-payment-customer-key',
+            'Order approved data sent to the Payment service',
+            JSON.stringify({type: "orderRejected", data: orderData}),
+        );
+
+    }
+}   
+
+
+//Once payment is captured and  the order is acceptet farmer's is starting:
+//packagin the product
+//arranging logistics.
+const farmerStartOrderProccess = async(orderData: OrderDocumentInterface): Promise<void> => { 
+    try{    
+        if(!orderData.order_id)
+            throw NotFoundError("Failed to find the order, orderID doesn't exist", "orderService farmerStartOrderProccess with cod paymentMethod failed")
+        //orderData is needed for notification service 
+
+        await changeOrderStatus(orderData.order_id, 'processing');
+
+        //Not email, send a notification (that will be stored in Notification service)
+        // const emailMessage: OrderEmailMessageInterface = {
+        // }
+
+        //order props 
+        const notificationData = {
+            ...orderData 
+        }
+
+        //publish notification (customer)
+        await publishMessage(
+            orderChannel,
+            // 'order-email-notification',
+            // 'order-email-key',
+            'order-notification',
+            'order-key',
+            'Send order processing status notification to notification service',
+            JSON.stringify(notificationData)
+        )
+
+        //SocketIO
+    }
+    catch(error){
+        log.log("error", "Order service: order progressing can't be started");
+        throw BadRequestError(`Failed to start order processing: ${error} `, "orderService farmerStartOrderDeliveryProcess method error");
+    }
+}
+
+//This status means the order has left the warehouse and is on its way to the custome
+//Sending tracking information, //Updating inventory, Notifying the customer.
+const farmerStartOrderDelivery = async(orderData: OrderDocumentInterface):Promise<void> => {
+    try{
+        if(!orderData.order_id)
+            throw NotFoundError("Failed to find the order, orderID doesn't exist", "orderService farmerStartOrderDelivery with cod paymentMethod failed")
+    
+        await changeOrderStatus(orderData.order_id, "onTheWay");
+
+        const emailMessage: OrderEmailMessageInterface = {
+            template: "onTheWayOrder", //email template name 
+            type: "onTheWay", 
+            orderUrl: `${config.CLIENT_URL}/order/${orderData.order_id}`,
+            orderID: parseInt(orderData.order_id),
+            invoiceID: orderData.invoice_id,
+            receiverEmail: orderData.customer_email,
+            farmerUsername: orderData.farmer_username,
+            customerUsername: orderData.customer_username,
+            totalAmount: orderData.total_amount,
+            orderItems: orderData.orderItems
+        }
+
+        await publishMessage(
+            orderChannel,
+            'order-email-notification',
+            'order-email-key',
+            'Send notfication email order is on the way to notification service',
+            JSON.stringify(emailMessage)
+        )
+
+
+        // //publish to product service to decrease products amount that are delivering
+        // await publishMessage(
+        //     orderChannel,
+        //     'decrease-ordered-product',
+        //     'decrease-ordered-product-key',
+        //     'Send order data to decrease amount of ordered products to Product service',
+        //     JSON.stringify({order: orderData})
+        // )
+    }
+    catch(error){
+        log.log("error", "Order service: order delivery can't be started");
+        throw BadRequestError(`Failed to start order delivery: ${error} `, "orderService farmerStartOrderDeliveryProcess method error");
+    }
+}
+
+const farmerFinishOrderDelivery = async(orderData: OrderDocumentInterface):Promise<void> => {
+    try{
+        if(!orderData.order_id)
+            throw NotFoundError("Failed to find the order, orderID doesn't exist", "orderService farmerStartOrderDelivery with cod paymentMethod failed")
+    
+        await changeOrderStatus(orderData.order_id, "delivered");
+    }
+    catch(error){
+        log.log("error", "Order service: order can't be finished/delivered");
+        throw BadRequestError(`Failed to finish order delivery: ${error} `, "orderService farmerStartOrderDeliveryProcess method error");
+    }
+
+}
 
 const changeOrderStatus = async(orderID: string, newStatus: string): Promise<void> => {
     try{
@@ -204,10 +372,16 @@ const changeOrderStatus = async(orderID: string, newStatus: string): Promise<voi
 
 
 export { 
+    getOrderByID,
     placePendingOrder,
     placeOrder,
     farmerApproveOrder,
-    changeOrderStatus
+    changeOrderStatus,
+    farmerRejectOrder,
+    farmerStartOrderProccess,
+    farmerStartOrderDelivery,
+    farmerFinishOrderDelivery
+
     // farmerCancelOrder,
     // changeOrderStatus
 }

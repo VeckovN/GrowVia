@@ -1,9 +1,10 @@
-import { winstonLogger } from "@veckovn/growvia-shared";
+import { winstonLogger, OrderEmailMessageInterface } from "@veckovn/growvia-shared";
 import { Logger } from "winston";
 import { Channel, ConsumeMessage } from 'amqplib';
 import { config } from '@order/config';
-import { placePendingOrder } from '@order/services/order';
-// import { createCustomer } from "@order/services/customer";
+import { publishMessage } from "@order/rabbitmqQueues/producer";
+import { placePendingOrder, changeOrderStatus} from '@order/services/order';
+import { orderChannel } from '@order/server';
 
 const log:Logger = winstonLogger(`${config.ELASTICSEARCH_URL}`, 'orderRabbitMQConsumer', 'debug');
 
@@ -78,7 +79,6 @@ const farmerAcceptOrderPaymentDirectConsumer = async (channel:Channel):Promise<v
         //Asserts an exchange into existence (set direct) --- set durable to true(makes queue survive)
         await channel.assertExchange(exchangeName, 'direct', {durable:true});
         const farmerAcceptQueue = channel.assertQueue(queueName, {durable: true});
-
         // const farmerAcceptQueue = channel.assertQueue(queueName, {
         //     durable: true,
         //     arguments: {
@@ -100,16 +100,62 @@ const farmerAcceptOrderPaymentDirectConsumer = async (channel:Channel):Promise<v
                     console.log("\n Order place Data: ", data);
                     // await createCustomer(data); //from Service
                     //Change order status to "accpeted"
+                    await changeOrderStatus(data.order_id, 'accepted');;
+
                     //publish message to Notification
-                    //
+                    const emailMessage: OrderEmailMessageInterface = {
+                        template: "orderAccepted", //email template -> to the Customer 
+                        type: "place", //panding status
+                        orderUrl: `${config.CLIENT_URL}/order/${data.order_id}`,
+                        orderID: data.order_id,
+                        invoiceID: data.invoice_id,
+                        receiverEmail: data.customer_email, //to the Customer
+                        farmerUsername: data.farmer_username,
+                        customerUsername: data.customer_username,
+                        totalAmount: data.total_amount,
+                        orderItems: data.orderItems
+                    }
+                    await publishMessage(
+                        orderChannel,
+                        'order-email-notification',
+                        'order-email-key',
+                        'Send order email data to notification service',
+                        JSON.stringify(emailMessage)
+                    )
+
                     
-                    log.info("User Service Data recieved from Authentication service");
+                    // log.info("User Service Data recieved from Authentication service");
                 }
 
                 if (type == 'paymentFailed'){
                     //Change order status to "Payment Failed" 
+                    
                     //Cancel the order
+                    //change order to cancel 
                     //publish message to Notification Service (notify both users)
+                }
+
+                //When Farmer reject customer requested order(that is paid with stripe)
+                if (type == 'paymentRejacted'){
+                    const emailMessage: OrderEmailMessageInterface = {
+                        template: "orderRejected", //email template -> to the Customer 
+                        type: "rejected", //panding status
+                        orderUrl: `${config.CLIENT_URL}/order/${data.order_id}`,
+                        orderID: data.order_id,
+                        invoiceID: data.invoice_id,
+                        receiverEmail: data.customer_email, //to the Customer
+                        farmerUsername: data.farmer_username,
+                        customerUsername: data.customer_username,
+                        totalAmount: data.total_amount,
+                        orderItems: data.orderItems
+                    }
+                    await publishMessage(
+                        orderChannel,
+                        'order-email-notification',
+                        'order-email-key',
+                        'Send order reject email to notification service',
+                        JSON.stringify(emailMessage)
+                    )
                 }
 
                 channel.ack(msg!); //Ack after successful processing 
