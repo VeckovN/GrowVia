@@ -9,8 +9,9 @@ import http from 'http';
 import { checkConnection } from "@payment/elasticsearch";
 import { verify } from "jsonwebtoken";
 import { appRoutes } from "@payment/routes";
-// import { createConnection } from "@payment/rabbitmqQueues/rabbitmq";
-// import { Channel } from "amqplib";
+import { orderPaymentDirectConsumer, farmerAccpetAndRejectDirectConsumer} from "@payment/rabbitmqQueues/consumer";
+import { createConnection } from "@payment/rabbitmqQueues/rabbitmq";
+import { Channel } from "amqplib";
 const Server_port = 4006;
 const log: Logger = winstonLogger(`${config.ELASTICSEARCH_URL}`, 'paymentService', 'debug');
 
@@ -36,10 +37,10 @@ function startElasticsearch():void{
 
 async function startRabbitmqQueue():Promise<void>{
     // //create userChannel (consuming/listening):
-    // const paymentChannel:Channel = await createConnection() as Channel;
-   
-    // //OrderService - on creating order and others.
-    // //ProductService -
+    const paymentChannel:Channel = await createConnection() as Channel;
+
+    await orderPaymentDirectConsumer(paymentChannel);
+    await farmerAccpetAndRejectDirectConsumer(paymentChannel);
 } 
 
 function errorHandlerMiddleware(app: Application):void{
