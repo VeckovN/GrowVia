@@ -27,7 +27,11 @@ const orderTable = `
     CREATE TABLE IF NOT EXISTS public.orders (
         order_id UUID DEFAULT uuid_generate_v4(),  -- UUID for unique order ID
         customer_id TEXT NOT NULL,  -- MongoDB ObjectId stored as TEXT (or VARCHAR)
+        customer_username TEXT, 
+        customer_email TEXT,
         farmer_id TEXT NOT NULL,  -- MongoDB ObjectId stored as TEXT (or VARCHAR)
+        farmer_username TEXT,
+        invoice_id TEXT,
         total_amount DECIMAL(10, 2) NOT NULL,
         payment_status VARCHAR(50) NOT NULL,
         order_status VARCHAR(50) NOT NULL DEFAULT 'pending',

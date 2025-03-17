@@ -49,7 +49,7 @@ const placePendingOrder = async(orderData: OrderCreateInterface):Promise<OrderDo
             farmer_id,
             customer_username,
             customer_email,
-            farmer_username
+            farmer_username,
             invoice_id,
             total_amount, 
             payment_status, 
@@ -60,7 +60,7 @@ const placePendingOrder = async(orderData: OrderCreateInterface):Promise<OrderDo
             billing_address, 
             delivery_date, 
             tracking_url, 
-            payment_method,
+            payment_method
         )
         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16) 
         RETURNING order_id;
@@ -72,7 +72,7 @@ const placePendingOrder = async(orderData: OrderCreateInterface):Promise<OrderDo
             orderData.customer_username,
             orderData.customer_email,
             orderData.farmer_username,
-            orderData.invoice_id,
+            orderData.invoice_id || null,
             orderData.total_amount,
             orderData.payment_status,
             orderData.order_status || "pending", 
@@ -156,7 +156,8 @@ const placePendingOrder = async(orderData: OrderCreateInterface):Promise<OrderDo
 
 //place order (until the farmer approve it) -- panding state  
 const placeOrder = async(orderData: OrderCreateInterface):Promise<void> => {
-    
+    console.log(" PlaceORder data: ", orderData);
+
     //handle notPropriete payment_method
     if(!["stripe", "cod"].includes(orderData.payment_method)){
         throw BadRequestError(`Failed to place Order, invalid payment method passed `, "orderService createOrder method error");
@@ -196,11 +197,10 @@ const farmerApproveOrder = async(orderData: OrderDocumentInterface): Promise<voi
 
     //send orderApproved type message to payment service to start capturing
     if(orderData.payment_method === 'stripe') {
-        
         await publishMessage(
             orderChannel,
-            'accept-order-payment-customer',
-            'accept-order-payment-customer-key',
+            'accept-order-payment',
+            'accept-order-payment-key',
             'Order approved data sent to the Payment service',
             JSON.stringify({type: "orderApproved", data: orderData}),
         );
@@ -233,8 +233,8 @@ const farmerRejectOrder = async(orderData: OrderDocumentInterface): Promise<void
         
         await publishMessage(
             orderChannel,
-            'accept-order-payment-customer',
-            'accept-order-payment-customer-key',
+            'accept-order-payment',
+            'accept-order-payment-key',
             'Order approved data sent to the Payment service',
             JSON.stringify({type: "orderRejected", data: orderData}),
         );

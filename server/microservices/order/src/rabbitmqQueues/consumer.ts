@@ -47,13 +47,14 @@ const placeOrderPaymentDirectConsumer = async (channel:Channel):Promise<void> =>
                 //wait on payment token (used to create order -> persist in DB)
                 if(type == 'paymentTokenized') {
                     //put paymentToken in new created order (order_ID)
+                    console.log("Order Service consumer on, type: 'paymentTokenized' ")
                     await placePendingOrder(data);
                     //we can check does data fits the orderDocuement
                     channel.ack(msg!); //Ack after successful processing 
                 }
             }
             catch(error){
-                log.log("error", "User Service error processing message:", error);
+                log.log("error", "Order Service error processing message:", error);
                 channel.nack(msg, false, true) //Requeue message instead of moving to DLQ
             }   
         });
@@ -61,7 +62,7 @@ const placeOrderPaymentDirectConsumer = async (channel:Channel):Promise<void> =>
     }
     catch(error){
         //log? due to test fixing undefied log
-        log?.log('error', "Users service customerDirectConsumer failed: ", error);
+        log?.log('error', "Order service customerDirectConsumer failed: ", error);
     }
 }
 
@@ -72,9 +73,9 @@ const farmerAcceptOrderPaymentDirectConsumer = async (channel:Channel):Promise<v
     try{
         //Consumer is Payment Service on 'order.accepted' 
         //The payment process has started, this listen on payment result of captured payment
-        const exchangeName = 'accept-order-payment-customer';
-        const queueName = 'accept-order-payment-customer-queue';
-        const routingKey = 'accept-order-payment-customer-key'
+        const exchangeName = 'accept-order-payment';
+        const queueName = 'accept-order-payment-queue';
+        const routingKey = 'accept-order-payment-key'
   
         //Asserts an exchange into existence (set direct) --- set durable to true(makes queue survive)
         await channel.assertExchange(exchangeName, 'direct', {durable:true});
@@ -100,7 +101,7 @@ const farmerAcceptOrderPaymentDirectConsumer = async (channel:Channel):Promise<v
                     console.log("\n Order place Data: ", data);
                     // await createCustomer(data); //from Service
                     //Change order status to "accpeted"
-                    await changeOrderStatus(data.order_id, 'accepted');;
+                    await changeOrderStatus(data.order_id, 'accepted');
 
                     //publish message to Notification
                     const emailMessage: OrderEmailMessageInterface = {
@@ -129,14 +130,35 @@ const farmerAcceptOrderPaymentDirectConsumer = async (channel:Channel):Promise<v
 
                 if (type == 'paymentFailed'){
                     //Change order status to "Payment Failed" 
-                    
+                    await changeOrderStatus(data.order_id, 'paymentFailed');
                     //Cancel the order
                     //change order to cancel 
                     //publish message to Notification Service (notify both users)
+                    const emailMessage: OrderEmailMessageInterface = {
+                        template: "orderPaymentFailed", //email template -> to the Customer 
+                        type: "paymentFailed", //panding status
+                        orderUrl: `${config.CLIENT_URL}/order/${data.order_id}`,
+                        orderID: data.order_id,
+                        invoiceID: data.invoice_id,
+                        receiverEmail: data.customer_email, //and farmer as well
+                        farmerUsername: data.farmer_username,
+                        customerUsername: data.customer_username,
+                        totalAmount: data.total_amount,
+                        orderItems: data.orderItems
+                    }
+                    await publishMessage(
+                        orderChannel,
+                        'order-email-notification',
+                        'order-email-key',
+                        'Send order reject email to users to notification service',
+                        JSON.stringify(emailMessage)
+                    )
+
+                    //Socket Emit (notification to both users)
                 }
 
                 //When Farmer reject customer requested order(that is paid with stripe)
-                if (type == 'paymentRejacted'){
+                if (type == 'paymentRejected'){
                     const emailMessage: OrderEmailMessageInterface = {
                         template: "orderRejected", //email template -> to the Customer 
                         type: "rejected", //panding status
@@ -161,7 +183,7 @@ const farmerAcceptOrderPaymentDirectConsumer = async (channel:Channel):Promise<v
                 channel.ack(msg!); //Ack after successful processing 
             }
             catch(error){
-                log.log("error", "User Service error processing message:", error);
+                log.log("error", "Order Service error processing message:", error);
                 channel.nack(msg, false, true) //Requeue message instead of moving to DLQ
             }   
         });
