@@ -5,6 +5,7 @@ import { currentUserRoutes } from "@gateway/routes/currentUser";
 import { customerRoutes } from "@gateway/routes/users/customer";
 import { farmerRoutes } from "./routes/users/farmer";
 import { productRoutes } from "@gateway/routes/product";
+import { orderRoutes } from "@gateway/routes/order";
 import { verifyUser } from "./authMiddleware";
 
 const BASE_PATH = '/api/gateway/v1';
@@ -21,6 +22,7 @@ export function appRoutes(app:Application): void {
     app.use(BASE_PATH, verifyUser, customerRoutes());
     app.use(BASE_PATH, verifyUser, farmerRoutes());
     app.use(BASE_PATH, verifyUser, productRoutes());
+    app.use(BASE_PATH, verifyUser, orderRoutes());
 }
 
 
