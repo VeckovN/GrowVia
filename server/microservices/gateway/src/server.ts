@@ -17,6 +17,7 @@ import { appRoutes } from "@gateway/routes";
 import { authAxiosInstance } from "@gateway/services/auth.service";
 import { usersAxiosInstance } from "@gateway/services/user.service";
 import { productAxiosInstance } from "@gateway/services/product.service";
+import { orderAxiosInstance } from "@gateway/services/order.service";
 
 const Server_port = 4000;
 const log: Logger = winstonLogger(`${config.ELASTICSEARCH_URL}`, 'gatewayService', 'debug');
@@ -58,7 +59,7 @@ function errorHandlerMiddleware(app: Application):void{
     app.use((error: CustomErrorInterface, _req: Request, res: Response, next: NextFunction) => {
         console.log("error From Middleware: ", error);
         if(error.statusCode){
-            log.log('error', `Authentication Service Error:`, error);
+            log.log('error', `Gateway Service Error:`, error);
             res.status(error.statusCode).json({
                 message:error.message,
                 statusCode: error.statusCode,
@@ -126,6 +127,7 @@ export function start(app:Application):void {
             authAxiosInstance.defaults.headers['Authorization']= `Bearer ${req.session?.jwtToken}`
             usersAxiosInstance.defaults.headers['Authorization']= `Bearer ${req.session?.jwtToken}`
             productAxiosInstance.defaults.headers['Authorization']= `Bearer ${req.session?.jwtToken}`
+            orderAxiosInstance.defaults.headers['Authorization']= `Bearer ${req.session?.jwtToken}`
         }
         next();
     })
