@@ -42,14 +42,43 @@ async function OrderEmailConsumer(channel: Channel): Promise<void> {
     try{
         const exchangeName = 'order-email-notification';
         const queueName = 'order-email-queue';
-        const routingKey = 'order-email-key'
+        const routingKey = 'order-email-key';
         await channel.assertExchange(exchangeName, 'direct');
         const orderEmailQueue = channel.assertQueue(queueName, {durable: true, autoDelete:false});
         await channel.bindQueue((await orderEmailQueue).queue, exchangeName,  routingKey);        
 
         channel.consume((await orderEmailQueue).queue, async (msg: ConsumeMessage | null)=>{
-            console.log(JSON.parse(msg!.content.toString()));
-            //send emails
+            console.log("MSG:", JSON.parse(msg!.content.toString()));
+            const { 
+                // message,
+                // type,
+                template,
+                orderUrl,
+                orderID,
+                invoiceID,
+                receiverEmail,
+                farmerUsername,
+                customerUsername,
+                totalAmount,
+                orderItems,
+            } = JSON.parse(msg!.content.toString());
+            //temple = 'orderPlaced', ' ', ' '
+            
+            const locals: EmailLocalsInterface = {
+                // appLink: `${config.CLIENT_URL}`, //app link is client URL (app link)
+                // username,
+                // verifyLink,
+                // resetLink
+                orderUrl,
+                orderID,
+                invoiceID,
+                receiverEmail,
+                farmerUsername,
+                customerUsername,
+                totalAmount,
+                orderItems
+            };
+            await sendEmail(template, receiverEmail, locals);
             channel.ack(msg!);
         });
         log.info(`Notification service orderConsumer initialized`);
@@ -59,6 +88,7 @@ async function OrderEmailConsumer(channel: Channel): Promise<void> {
     }
 }
 
+//on farmer approvment the payment result must be notified (succeed, denied)
 async function PaymentEmailConsumer(channel: Channel): Promise<void> {
     try{
         const exchangeName = 'payment-email-notification';
@@ -71,6 +101,9 @@ async function PaymentEmailConsumer(channel: Channel): Promise<void> {
         channel.consume((await paymentEmailQueue).queue, async (msg: ConsumeMessage | null)=>{
             console.log(JSON.parse(msg!.content.toString()));
             //send emails
+
+
+
             channel.ack(msg!);
         });
         log.info(`Notification service paymentConsumer initialized`);
