@@ -18,19 +18,11 @@ const orderPaymentDirectConsumer = async (channel:Channel):Promise<void> => {
   
         //Asserts an exchange into existence (set direct) --- set durable to true(makes queue survive)
         await channel.assertExchange(exchangeName, 'direct', {durable:true});
-    
-        const authUserQueue = channel.assertQueue(queueName, {
-            durable: true,
-            arguments: {
-                "x-message-ttl": 60000, // Messages expire after 60 seconds if not consumed
-                "x-dead-letter-exchange": exchangeName, // Requeue messages instead of DLQ
-                "x-dead-letter-routing-key": routingKey, // Send back to same queue
-            }
+        const paymentQueue = channel.assertQueue(queueName, {durable: true});
+
+        await channel.bindQueue((await paymentQueue).queue, exchangeName,  routingKey);        
         
-        });
-        await channel.bindQueue((await authUserQueue).queue, exchangeName,  routingKey);        
-        
-        channel.consume((await authUserQueue).queue, async (msg: ConsumeMessage | null)=>{
+        channel.consume((await paymentQueue).queue, async (msg: ConsumeMessage | null)=>{
             if(!msg) return;
             try{
                 //msg! garante that msg is not null or undefined
@@ -45,6 +37,7 @@ const orderPaymentDirectConsumer = async (channel:Channel):Promise<void> => {
                     //Simulating tokenization (for test)
                     const paymentToken = `token_${Date.now()}`;
                     const updatedData = { ...data, payment_token: paymentToken }; //override paymentToken props
+                    //As well add payment_intent_id
 
                     //Returns Payment Token to Order Service (via consumer)
                     await publishMessage(
@@ -69,7 +62,7 @@ const orderPaymentDirectConsumer = async (channel:Channel):Promise<void> => {
     }
     catch(error){
         //log? due to test fixing undefied log
-        log?.log('error', "Payment service customerDirectConsumer failed: ", error);
+        log?.log('error', "Payment service orderPaymentDirectConsumer failed: ", error);
     }
 }
 
@@ -78,25 +71,18 @@ const orderPaymentDirectConsumer = async (channel:Channel):Promise<void> => {
 //when farmer accept the order the payment process is starting (from captured state to withdrawing money)
 const farmerAccpetAndRejectDirectConsumer = async (channel:Channel):Promise<void> => {
     try{
-        const exchangeName = 'accept-order-payment-customer';
-        const queueName = 'accept-order-payment-customer-queue';
-        const routingKey = 'accept-order-payment-customer-key'
+        //this is used for consumer -> to receive message
+        const exchangeName = 'accept-reject-order-payment';
+        const queueName = 'accept-reject-order-payment-queue';
+        const routingKey = 'accept-reject-order-payment-key'
   
         //Asserts an exchange into existence (set direct) --- set durable to true(makes queue survive)
         await channel.assertExchange(exchangeName, 'direct', {durable:true});
-    
-        const authUserQueue = channel.assertQueue(queueName, {
-            durable: true,
-            arguments: {
-                "x-message-ttl": 60000, // Messages expire after 60 seconds if not consumed
-                "x-dead-letter-exchange": exchangeName, // Requeue messages instead of DLQ
-                "x-dead-letter-routing-key": routingKey, // Send back to same queue
-            }
+        const paymentQueue = channel.assertQueue(queueName, {durable: true});
+       
+        await channel.bindQueue((await paymentQueue).queue, exchangeName,  routingKey);        
         
-        });
-        await channel.bindQueue((await authUserQueue).queue, exchangeName,  routingKey);        
-        
-        channel.consume((await authUserQueue).queue, async (msg: ConsumeMessage | null)=>{
+        channel.consume((await paymentQueue).queue, async (msg: ConsumeMessage | null)=>{
             if(!msg) return;
             try{
                 //msg! garante that msg is not null or undefined
@@ -107,6 +93,10 @@ const farmerAccpetAndRejectDirectConsumer = async (channel:Channel):Promise<void
                     console.log("\n Order Approved data: ", data);
                     log.info("Payment Service Data recieved on farmer order approvment");
 
+                    //Different exchange and key name for sending back the payment success ack
+                    const exchangeName = 'payment-order-result';
+                    const routingKey = 'payment-order-result-key';              
+
                     try{
                         // Capture payment using Stripe
                         //const paymentIntent = await stripe.paymentIntents.capture(data.payment_intent_id);
@@ -116,7 +106,7 @@ const farmerAccpetAndRejectDirectConsumer = async (channel:Channel):Promise<void
                             exchangeName,
                             routingKey,
                             'Payment successfully captured - Farmer Approve order',
-                            JSON.stringify({ type: 'paymentSucceess', succeeded: true})
+                            JSON.stringify({ type: 'ApprovePaymentSuccess', data: data})
                         );
 
                         log.info("Payment Service payment succeeded, message forward back to Order Serivce");
@@ -129,17 +119,21 @@ const farmerAccpetAndRejectDirectConsumer = async (channel:Channel):Promise<void
                             exchangeName,
                             routingKey,
                             'Payment stipe caputed failed forward back to Order - Farmer Approved order',
-                            JSON.stringify({ type: 'paymentFailed', succeeded: false })
+                            JSON.stringify({ type: 'ApprovePaymentFailed', data: null })
                         );
 
                         log.log("error", "Payment service the stripe payment failed: ", error);
                     }
                 }
 
-                if(type == 'orderRejected'){  
+                if(type == 'orderCanceled'){  
                     log.info("Payment Service: payment rejected");
                     //Cancels the payment intent (refunds if already captured).
                     try{
+                        //using to send back message to the order service (that expecting payment results)
+                        const exchangeName = 'payment-order-result';
+                        const routingKey = 'payment-order-result-key'; 
+
                         // Refund payment using Stripe
                         //const refund = await stripe.refunds.create({ payment_intent: data.payment_intent_id });
 
@@ -149,7 +143,7 @@ const farmerAccpetAndRejectDirectConsumer = async (channel:Channel):Promise<void
                             exchangeName,
                             routingKey,
                             'Payment rejected, payment intent canceled and refunds  ',
-                            JSON.stringify({ type: 'paymentRejacted', succeeded: false })
+                            JSON.stringify({ type: 'paymentCanceled', data: data })
                         );
                         log.info("Payment Service: payment rejected");
                     }
@@ -162,7 +156,8 @@ const farmerAccpetAndRejectDirectConsumer = async (channel:Channel):Promise<void
                             exchangeName,
                             routingKey,
                             'Payment rejected, payment intent canceled and refunds  ',
-                            JSON.stringify({ type: 'paymentRejected', succeeded: false })
+                            JSON.stringify({ type: 'paymentCanceled', data: null })
+                            // JSON.stringify({ type: 'paymentRejectionFailed', data: null })
                         );
 
                         log.log("error", "Payment service the stripe payment refund failed: ", error);
@@ -180,7 +175,7 @@ const farmerAccpetAndRejectDirectConsumer = async (channel:Channel):Promise<void
     }
     catch(error){
         //log? due to test fixing undefied log
-        log?.log('error', "Payment service customerDirectConsumer failed: ", error);
+        log?.log('error', "Payment service farmerAccpetAndRejectDirectConsumer failed: ", error);
     }
 }
 

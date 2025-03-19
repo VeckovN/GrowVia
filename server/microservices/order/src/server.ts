@@ -12,7 +12,8 @@ import { connectPool } from "@order/postgreSQL";
 import { appRoutes } from "@order/routes";
 import { createConnection } from "@order/rabbitmqQueues/rabbitmq";
 import { Channel } from "amqplib";
-import { placeOrderPaymentDirectConsumer } from "@order/rabbitmqQueues/consumer";
+import { placeOrderPaymentDirectConsumer, farmerAcceptOrderPaymentDirectConsumer } from "@order/rabbitmqQueues/consumer";
+// import { placeOrderPaymentDirectConsumer } from "@order/rabbitmqQueues/consumer";
 const Server_port = 4005;
 const log: Logger = winstonLogger(`${config.ELASTICSEARCH_URL}`, 'ProductService', 'debug');
 
@@ -47,6 +48,7 @@ async function startRabbitmqQueue():Promise<void>{
     //create cosuming from payment service:
     orderChannel = await createConnection() as Channel;
     await placeOrderPaymentDirectConsumer(orderChannel);
+    await farmerAcceptOrderPaymentDirectConsumer(orderChannel);
 } 
 
 function errorHandlerMiddleware(app: Application):void{

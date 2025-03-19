@@ -186,9 +186,58 @@ const placeOrder = async(orderData: OrderCreateInterface):Promise<void> => {
 
 }
 
+const cancelOrder = async(orderID: string):Promise<void> => {
+    
+    const orderData:OrderDocumentInterface | null = await getOrderByID(orderID);
+    if(!orderData)
+        throw NotFoundError("Failed to find the order, orderID doesn't exist", "orderService farmerApproveOrder failed")
+    
+    //only 'panding' orders can be canceled
+    if(orderData.order_status !== 'pending')
+        throw BadRequestError(`Failed to cancel Order, only pending order can be canceled `, "orderService cancelOrder method error");
+
+    console.log(" Cancel data: ", orderData);
+    //handle notPropriete payment_method
+    if(!["stripe", "cod"].includes(orderData.payment_method)){
+        throw BadRequestError(`Failed to cancel Order, invalid payment method passed `, "orderService cancelOrder method error");
+    }
+
+    if(orderData.payment_method === "stripe"){
+         //send to payment service (data that's need for payment intent) 
+         // - Publish with 'type = orderPlaced')
+
+        //this sent data to PaymentService, and wait for response in consumer function (rabbitMQ)
+        await publishMessage (
+            orderChannel,
+            // 'order-payment-customer',
+            // 'order-payment-customer-key',
+            'accept-reject-order-payment',
+            'accept-reject-order-payment-key',
+            'Order data sent to the Payment service to cancel capture payment and refund',
+            JSON.stringify({type: "orderCanceled", data: orderData}),
+            // JSON.stringify(messagePayload)
+        );
+         // and waith feedback and place order -> as payment approved (with createOrderPaymentDirectConsumer Cosnumer)
+    }
+    else if(orderData.payment_method === "cod"){ //cash on delivery
+        //place order with 'Pending Farmer Approval' ()
+        // await insertOrder(orderData);
+        await changeOrderStatus(orderID, "cancel");
+    }
+
+}
+
 
 //on farmer approve order (status changed to 'accepted' and payment process starting -> produce/consume)
-const farmerApproveOrder = async(orderData: OrderDocumentInterface): Promise<void> => {
+// const farmerApproveOrder = async(orderData: OrderDocumentInterface): Promise<void> => {
+const farmerApproveOrder = async(orderID: string): Promise<void> => {
+    //get orderData based on orderID
+    const orderData:OrderDocumentInterface | null = await getOrderByID(orderID);
+    if(!orderData)
+        throw NotFoundError("Failed to find the order, orderID doesn't exist", "orderService farmerApproveOrder failed")
+
+    console.log("FarmerApproveOrder -- get Order By ID: ", orderData);
+
     if(!["stripe", "cod"].includes(orderData.payment_method)){
         throw BadRequestError(`Failed to place Order, invalid payment method passed `, "orderService createOrder method error");
     }
@@ -199,8 +248,10 @@ const farmerApproveOrder = async(orderData: OrderDocumentInterface): Promise<voi
     if(orderData.payment_method === 'stripe') {
         await publishMessage(
             orderChannel,
-            'accept-order-payment',
-            'accept-order-payment-key',
+            // 'accept-order-payment',
+            // 'accept-order-payment-key',
+            'accept-reject-order-payment',
+            'accept-reject-order-payment-key',
             'Order approved data sent to the Payment service',
             JSON.stringify({type: "orderApproved", data: orderData}),
         );
@@ -211,7 +262,7 @@ const farmerApproveOrder = async(orderData: OrderDocumentInterface): Promise<voi
         if(!orderData.order_id)
             throw NotFoundError("Failed to find the order, orderID doesn't exist", "orderService farmerApproveOrder with cod paymentMethod failed")
         
-        await changeOrderStatus(orderData.order_id, 'accepted');
+        await changeOrderStatus(orderData.order_id, 'pending');
     }
 }
 
@@ -233,8 +284,10 @@ const farmerRejectOrder = async(orderData: OrderDocumentInterface): Promise<void
         
         await publishMessage(
             orderChannel,
-            'accept-order-payment',
-            'accept-order-payment-key',
+            // 'accept-order-payment',
+            // 'accept-order-payment-key',
+            'accept-reject-order-payment',
+            'accept-reject-order-payment-key',
             'Order approved data sent to the Payment service',
             JSON.stringify({type: "orderRejected", data: orderData}),
         );
@@ -246,13 +299,20 @@ const farmerRejectOrder = async(orderData: OrderDocumentInterface): Promise<void
 //Once payment is captured and  the order is acceptet farmer's is starting:
 //packagin the product
 //arranging logistics.
-const farmerStartOrderProccess = async(orderData: OrderDocumentInterface): Promise<void> => { 
-    try{    
-        if(!orderData.order_id)
-            throw NotFoundError("Failed to find the order, orderID doesn't exist", "orderService farmerStartOrderProccess with cod paymentMethod failed")
+// const farmerStartOrderProccess = async(orderData: OrderDocumentInterface): Promise<void> => { 
+const farmerStartOrderProccess = async(orderID: string): Promise<void> => { 
+    try{  
+
+        const orderData:OrderDocumentInterface | null = await getOrderByID(orderID);
+        if(!orderData)
+            throw NotFoundError("Failed to find the order, orderID doesn't exist", "orderService farmerApproveOrder failed")
+        
+        // if(!orderData.order_id)
+        //     throw NotFoundError("Failed to find the order, orderID doesn't exist", "orderService farmerStartOrderProccess with cod paymentMethod failed")
         //orderData is needed for notification service 
 
-        await changeOrderStatus(orderData.order_id, 'processing');
+        // await changeOrderStatus(orderData.order_id, 'processing');
+        await changeOrderStatus(orderID, 'processing');
 
         //Not email, send a notification (that will be stored in Notification service)
         // const emailMessage: OrderEmailMessageInterface = {
@@ -284,18 +344,23 @@ const farmerStartOrderProccess = async(orderData: OrderDocumentInterface): Promi
 
 //This status means the order has left the warehouse and is on its way to the custome
 //Sending tracking information, //Updating inventory, Notifying the customer.
-const farmerStartOrderDelivery = async(orderData: OrderDocumentInterface):Promise<void> => {
+// const farmerStartOrderDelivery = async(orderData: OrderDocumentInterface):Promise<void> => {
+const farmerStartOrderDelivery = async(orderID: string):Promise<void> => {
     try{
-        if(!orderData.order_id)
-            throw NotFoundError("Failed to find the order, orderID doesn't exist", "orderService farmerStartOrderDelivery with cod paymentMethod failed")
-    
-        await changeOrderStatus(orderData.order_id, "onTheWay");
+        const orderData:OrderDocumentInterface | null = await getOrderByID(orderID);
+        if(!orderData)
+            throw NotFoundError("Failed to find the order, orderID doesn't exist", "orderService farmerApproveOrder failed");
+
+        // await changeOrderStatus(orderData.order_id, "onTheWay");
+        await changeOrderStatus(orderID, "shipped");
 
         const emailMessage: OrderEmailMessageInterface = {
             template: "onTheWayOrder", //email template name 
             type: "onTheWay", 
-            orderUrl: `${config.CLIENT_URL}/order/${orderData.order_id}`,
-            orderID: parseInt(orderData.order_id),
+            // orderUrl: `${config.CLIENT_URL}/order/${orderData.order_id}`,
+            orderUrl: `${config.CLIENT_URL}/order/${orderID}`,
+            // orderID: parseInt(orderData.order_id),
+            orderID: orderID,
             invoiceID: orderData.invoice_id,
             receiverEmail: orderData.customer_email,
             farmerUsername: orderData.farmer_username,
@@ -328,12 +393,15 @@ const farmerStartOrderDelivery = async(orderData: OrderDocumentInterface):Promis
     }
 }
 
-const farmerFinishOrderDelivery = async(orderData: OrderDocumentInterface):Promise<void> => {
+// const farmerFinishOrderDelivery = async(orderData: OrderDocumentInterface):Promise<void> => {
+const farmerFinishOrderDelivery = async(orderID: string):Promise<void> => {
     try{
-        if(!orderData.order_id)
-            throw NotFoundError("Failed to find the order, orderID doesn't exist", "orderService farmerStartOrderDelivery with cod paymentMethod failed")
-    
-        await changeOrderStatus(orderData.order_id, "delivered");
+        const orderData:OrderDocumentInterface | null = await getOrderByID(orderID);
+        if(!orderData)
+            throw NotFoundError("Failed to find the order, orderID doesn't exist", "orderService farmerApproveOrder failed");
+        
+        await changeOrderStatus(orderID, "completed");
+
     }
     catch(error){
         log.log("error", "Order service: order can't be finished/delivered");
@@ -342,19 +410,36 @@ const farmerFinishOrderDelivery = async(orderData: OrderDocumentInterface):Promi
 
 }
 
-const changeOrderStatus = async(orderID: string, newStatus: string): Promise<void> => {
+const changeOrderStatus = async(orderID: string, newStatus: string, newPaymentStatus?: string): Promise<void> => {
     try{
-        const validStatuses = ["pending", "accepted", "canceled", "shipped", "completed"];
+        const validStatuses = ["pending", "accepted", "canceled", "processing", "shipped", "completed"];
         if (!validStatuses.includes(newStatus)) {
             throw BadRequestError("Invalid order status provided", "orderService changeStatus method error");
         }
 
-        const changeOrderQuery = `
-            UPDATE public.orders
-            SET order_status = $2
-            WHERE order_id = $1
-        `
-        const changeOrderValues = [ orderID, newStatus];
+        const validPaymentStatuses = ["pending", "accepted", "canceled", "refunded"];
+        if(newPaymentStatus && !validPaymentStatuses.includes(newPaymentStatus)){
+            throw BadRequestError("Invalid payment order status provided", "orderService changeStatus method error");
+        }
+
+        let changeOrderQuery;
+        let changeOrderValues;
+        if(newStatus && newPaymentStatus){
+            changeOrderQuery = `
+                UPDATE public.orders
+                SET order_status = $2, payment_status = $3
+                WHERE order_id = $1
+            `
+            changeOrderValues = [ orderID, newStatus, newPaymentStatus];
+        }
+        else{
+            changeOrderQuery = `
+                UPDATE public.orders
+                SET order_status = $2
+                WHERE order_id = $1
+            `
+            changeOrderValues = [ orderID, newStatus];
+        }
 
         const result = await pool.query(changeOrderQuery, changeOrderValues);
 
@@ -362,26 +447,27 @@ const changeOrderStatus = async(orderID: string, newStatus: string): Promise<voi
             throw NotFoundError(`Order with ID ${orderID} not found `, "orderService changeStatus method error");
         }
 
+        console.log(`Order ${orderID} status changed to ${newStatus}`);
         log.info(`Order ${orderID} status changed to ${newStatus}`);
     }
     catch(error){
+        console.log("error", "Order service: order status can't be changed");
         log.log("error", "Order service: order status can't be changed");
         throw BadRequestError(`Failed to change order status: ${error} `, "orderService changeStatus method error");
     }
 }
 
 
+
 export { 
     getOrderByID,
     placePendingOrder,
     placeOrder,
+    cancelOrder,
     farmerApproveOrder,
     changeOrderStatus,
     farmerRejectOrder,
     farmerStartOrderProccess,
     farmerStartOrderDelivery,
     farmerFinishOrderDelivery
-
-    // farmerCancelOrder,
-    // changeOrderStatus
 }
