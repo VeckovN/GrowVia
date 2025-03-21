@@ -2,27 +2,14 @@ import { winstonLogger, BadRequestError} from "@veckovn/growvia-shared";
 import { Logger } from "winston";
 import { config } from '@gateway/config';
 import { Server, Socket } from 'socket.io';
-// import { io, Socket as clientSocket } from 'socket.io-client';
-// import { io } from 'socket.io-client';
+// import { io as ioSocketClient, Socket as clientSocket } from 'socket.io-client';
+import { io as ioSocketClient } from 'socket.io-client';
 import http from 'http';
 import { createAdapter } from "@socket.io/redis-adapter";
 import { createClient } from "redis";
 import { setSelectedProductCategory, setLoggedUser, removeLoggedUser, getLoggedUsers} from '@gateway/redis';
 
 const log: Logger = winstonLogger(`${config.ELASTICSEARCH_URL}`, 'gatewayService', 'debug');
-
-
-// const orderSocketServiceConnection(io:Server):void {
-//     //connection for order SErvice
-//     const orderSocketClient = io(`${config.ORDER_SERVICE_URL}`, {
-//         transports: ['websocket', 'polling'],
-//         secure: true
-//     })
-
-//     orderSocketClient.on('event...', () =>{
-
-//     })
-// }
 
 //other service Connections methods
 
@@ -59,10 +46,13 @@ const getSocketIO = ():Server =>{
 };
 
 
+
 const configureSocketEvents = (io: Server):void =>{
     // //Services Socket Connections:
-    // orderSocketServiceConnection(io);
+    //Connect to external services
+    orderSocketServiceConnection(io);
     
+    //client connections (origin -> CLIENT_URL)
     io.on('connection', async(socket: Socket) => {
         socket.on('category', async(category: string, username:string) => { 
             await setSelectedProductCategory(`selectedCategory:${username}`, category)
@@ -85,6 +75,31 @@ const configureSocketEvents = (io: Server):void =>{
 
         log.info("GatewayService socket events");
     })
+}
+
+const orderSocketServiceConnection = (io:Server):void => {
+    //connection for order SErvice
+    // const orderSocketClient = io(`${config.ORDER_SERVICE_URL}`, {
+    const orderSocketClient = ioSocketClient(`${config.ORDER_SERVICE_URL}`, {
+        transports: ['websocket', 'polling'],
+        secure: true
+    })
+
+    orderSocketClient.on('connect', () =>{
+        log.info('OrderService socket connected');
+    })
+
+    orderSocketClient.on('disconnect', () =>{
+        log.error('OrderSocket disconnected ');
+        orderSocketClient.connect();
+    });
+
+    //listener on socket.emit from Order Notification
+    orderSocketClient.on('order notify', (order, notification) => {
+        //when the event is reveived send it directly to the 'client'  
+        io.emit("order notification", order, notification);
+    })
+
 }
 
 export { configureSocketEvents, initializeSocketIO, getSocketIO }
