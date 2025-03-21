@@ -31,6 +31,7 @@ const orderTable = `
         customer_email TEXT,
         farmer_id TEXT NOT NULL,  -- MongoDB ObjectId stored as TEXT (or VARCHAR)
         farmer_username TEXT,
+        farmer_email TEXT,
         invoice_id TEXT,
         total_amount DECIMAL(10, 2) NOT NULL,
         payment_status VARCHAR(50) NOT NULL,
