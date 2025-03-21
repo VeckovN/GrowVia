@@ -1,16 +1,16 @@
 // import { OrderCreateZodSchema } from '@order/schema/order.schema';
-import { winstonLogger, BadRequestError, NotFoundError, OrderCreateInterface, OrderDocumentInterface, OrderEmailMessageInterface, OrderItemDocumentInterface } from '@veckovn/growvia-shared';
+import { winstonLogger, BadRequestError, NotFoundError, OrderCreateInterface, OrderDocumentInterface, OrderEmailMessageInterface, OrderItemDocumentInterface, OrderNotificationInterface } from '@veckovn/growvia-shared';
 import { Logger } from "winston";
 import { config } from "@order/config";
 import { pool } from '@order/postgreSQL';
 import { publishMessage } from '@order/rabbitmqQueues/producer';
 import { orderChannel } from '@order/server';
+import { orderSocketIO } from '@order/server';
+import { postOrderNotification, postOrderNotificationWithEmail } from '@order/helper';
 
 const log: Logger = winstonLogger(`${config.ELASTICSEARCH_URL}`, 'orderService', 'debug');
 
-
 // orderStatus { 'pending', 'accepted', 'rejected', 'paymentFailed', 'processing', 'on_the_way', 'delivered' }
-
 
 const getOrderByID = async(orderID: string):Promise<OrderDocumentInterface | null> => {
     try{
@@ -36,7 +36,7 @@ const getOrderByID = async(orderID: string):Promise<OrderDocumentInterface | nul
 //query for createing order
 const placePendingOrder = async(orderData: OrderCreateInterface):Promise<OrderDocumentInterface> => {
     // await OrderCreateZodSchema.validate(orderData);
-    
+    console.log("PLACE PEDNIGN ORDER: ", orderData);
     try {
         //Transaction: Together as one (Both succeed - order is fully placed, Or both fail - no partial data left in the database). )
         //1. Start Transaction
@@ -50,6 +50,7 @@ const placePendingOrder = async(orderData: OrderCreateInterface):Promise<OrderDo
             customer_username,
             customer_email,
             farmer_username,
+            farmer_email,
             invoice_id,
             total_amount, 
             payment_status, 
@@ -62,7 +63,7 @@ const placePendingOrder = async(orderData: OrderCreateInterface):Promise<OrderDo
             tracking_url, 
             payment_method
         )
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16) 
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17) 
         RETURNING order_id;
         `;
 
@@ -72,6 +73,7 @@ const placePendingOrder = async(orderData: OrderCreateInterface):Promise<OrderDo
             orderData.customer_username,
             orderData.customer_email,
             orderData.farmer_username,
+            orderData.farmer_email,
             orderData.invoice_id || null,
             orderData.total_amount,
             orderData.payment_status,
@@ -112,32 +114,44 @@ const placePendingOrder = async(orderData: OrderCreateInterface):Promise<OrderDo
         await pool.query('COMMIT');
         log.info("Order and items successfully created."); 
 
-        //send Notification to NotificationService 
-        //and send SocketIO event that notify user to add notification alert and put notification in the list
-        //Maybe to put it in the same function
-        
         const emailMessage: OrderEmailMessageInterface = {
             template: "orderPlaced", //email template name 
             type: "place", //panding status
             orderUrl: `${config.CLIENT_URL}/order/${order_id}`,
             orderID: order_id,
             invoiceID: orderData.invoice_id,
-            // receiverEmail: orderData.farmer_email, //to the farmer (farmet got the notification)
-            receiverEmail: orderData.customer_email,
+            receiverEmail: orderData.farmer_email, //to the farmer (farmet got the notification)
+            // receiverEmail: orderData.customer_email,
             farmerUsername: orderData.farmer_username,
             customerUsername: orderData.customer_username,
             totalAmount: orderData.total_amount,
             orderItems: orderData.orderItems
         }
-        await publishMessage(
-            orderChannel,
-            'order-email-notification',
-            'order-email-key',
-            'Send order email data to notification service',
-            JSON.stringify(emailMessage)
-        )
 
-        //SOCKET EMIT
+        const notificationMessage = ` You've got order request from user: ${orderData.customer_username} `
+        const logMessage = 'Send order email data to notification service';
+        const order:OrderDocumentInterface = { ...orderData, order_id};
+
+        const notification: OrderNotificationInterface = {
+            orderID: order_id,
+            senderID: orderData.farmer_id,  
+            senderUsername: orderData.farmer_username,
+            receiverID: orderData.customer_id,
+            receiverUsername: orderData.customer_username,
+            message: notificationMessage,
+            isRead: false
+            // type?: 
+        }
+
+        //send email and socket event
+        await postOrderNotificationWithEmail( 
+            orderChannel,
+            orderSocketIO,
+            emailMessage,
+            logMessage,
+            order,
+            notification
+        );
 
         const resultOrder:OrderDocumentInterface = { ...orderData, order_id };
         return resultOrder; 
@@ -164,9 +178,6 @@ const placeOrder = async(orderData: OrderCreateInterface):Promise<void> => {
     }
 
     if(orderData.payment_method === "stripe"){
-         //send to payment service (data that's need for payment intent) 
-         // - Publish with 'type = orderPlaced')
-
         //this sent data to PaymentService, and wait for response in consumer function (rabbitMQ)
         await publishMessage (
             orderChannel,
@@ -174,7 +185,7 @@ const placeOrder = async(orderData: OrderCreateInterface):Promise<void> => {
             'order-payment-customer-key',
             'Order data sent to the Payment service to place token and capture',
             JSON.stringify({type: "orderPlaced", data: orderData}),
-            // JSON.stringify(messagePayload)
+
         );
          // and waith feedback and place order -> as payment approved (with createOrderPaymentDirectConsumer Cosnumer)
     }
@@ -203,9 +214,6 @@ const cancelOrder = async(orderID: string):Promise<void> => {
     }
 
     if(orderData.payment_method === "stripe"){
-         //send to payment service (data that's need for payment intent) 
-         // - Publish with 'type = orderPlaced')
-
         //this sent data to PaymentService, and wait for response in consumer function (rabbitMQ)
         await publishMessage (
             orderChannel,
@@ -217,7 +225,6 @@ const cancelOrder = async(orderID: string):Promise<void> => {
             JSON.stringify({type: "orderCanceled", data: orderData}),
             // JSON.stringify(messagePayload)
         );
-         // and waith feedback and place order -> as payment approved (with createOrderPaymentDirectConsumer Cosnumer)
     }
     else if(orderData.payment_method === "cod"){ //cash on delivery
         //place order with 'Pending Farmer Approval' ()
@@ -229,9 +236,7 @@ const cancelOrder = async(orderID: string):Promise<void> => {
 
 
 //on farmer approve order (status changed to 'accepted' and payment process starting -> produce/consume)
-// const farmerApproveOrder = async(orderData: OrderDocumentInterface): Promise<void> => {
 const farmerApproveOrder = async(orderID: string): Promise<void> => {
-    //get orderData based on orderID
     const orderData:OrderDocumentInterface | null = await getOrderByID(orderID);
     if(!orderData)
         throw NotFoundError("Failed to find the order, orderID doesn't exist", "orderService farmerApproveOrder failed")
@@ -273,7 +278,6 @@ const farmerRejectOrder = async(orderData: OrderDocumentInterface): Promise<void
 
     //verify orderData 
 
-
     if(!orderData.order_id)
         throw NotFoundError("Failed to find the order, orderID doesn't exist", "orderService farmerApproveOrder with cod paymentMethod failed")
     
@@ -296,10 +300,7 @@ const farmerRejectOrder = async(orderData: OrderDocumentInterface): Promise<void
 }   
 
 
-//Once payment is captured and  the order is acceptet farmer's is starting:
-//packagin the product
-//arranging logistics.
-// const farmerStartOrderProccess = async(orderData: OrderDocumentInterface): Promise<void> => { 
+//Once payment is captured and  the order is acceptet farmer's is starting: packagin the product, arranging logistics.
 const farmerStartOrderProccess = async(orderID: string): Promise<void> => { 
     try{  
 
@@ -307,34 +308,31 @@ const farmerStartOrderProccess = async(orderID: string): Promise<void> => {
         if(!orderData)
             throw NotFoundError("Failed to find the order, orderID doesn't exist", "orderService farmerApproveOrder failed")
         
-        // if(!orderData.order_id)
-        //     throw NotFoundError("Failed to find the order, orderID doesn't exist", "orderService farmerStartOrderProccess with cod paymentMethod failed")
-        //orderData is needed for notification service 
-
-        // await changeOrderStatus(orderData.order_id, 'processing');
         await changeOrderStatus(orderID, 'processing');
 
-        //Not email, send a notification (that will be stored in Notification service)
-        // const emailMessage: OrderEmailMessageInterface = {
-        // }
-
-        //order props 
-        const notificationData = {
-            ...orderData 
+        const notificationMessage = ` Your order ${orderID} has begun processing `
+        const logMessage = 'Send order email data to notification service';
+        const notification: OrderNotificationInterface = {
+            orderID: orderID,
+            senderID: orderData.farmer_id,   
+            senderUsername: orderData.farmer_username,
+            receiverID: orderData.customer_id, 
+            receiverUsername: orderData.customer_username,
+            message: notificationMessage,
+            isRead: false 
+            // type?: 
         }
 
         //publish notification (customer)
-        await publishMessage(
+         //socket event without sending email
+         await postOrderNotification( 
             orderChannel,
-            // 'order-email-notification',
-            // 'order-email-key',
-            'order-notification',
-            'order-key',
-            'Send order processing status notification to notification service',
-            JSON.stringify(notificationData)
-        )
+            orderSocketIO,
+            logMessage,
+            orderData,
+            notification
+        );
 
-        //SocketIO
     }
     catch(error){
         log.log("error", "Order service: order progressing can't be started");
@@ -344,22 +342,19 @@ const farmerStartOrderProccess = async(orderID: string): Promise<void> => {
 
 //This status means the order has left the warehouse and is on its way to the custome
 //Sending tracking information, //Updating inventory, Notifying the customer.
-// const farmerStartOrderDelivery = async(orderData: OrderDocumentInterface):Promise<void> => {
 const farmerStartOrderDelivery = async(orderID: string):Promise<void> => {
     try{
         const orderData:OrderDocumentInterface | null = await getOrderByID(orderID);
         if(!orderData)
             throw NotFoundError("Failed to find the order, orderID doesn't exist", "orderService farmerApproveOrder failed");
 
-        // await changeOrderStatus(orderData.order_id, "onTheWay");
         await changeOrderStatus(orderID, "shipped");
 
         const emailMessage: OrderEmailMessageInterface = {
-            template: "onTheWayOrder", //email template name 
+            template: "orderOnTheWay", //email template name 
             type: "onTheWay", 
             // orderUrl: `${config.CLIENT_URL}/order/${orderData.order_id}`,
             orderUrl: `${config.CLIENT_URL}/order/${orderID}`,
-            // orderID: parseInt(orderData.order_id),
             orderID: orderID,
             invoiceID: orderData.invoice_id,
             receiverEmail: orderData.customer_email,
@@ -377,8 +372,30 @@ const farmerStartOrderDelivery = async(orderID: string):Promise<void> => {
             JSON.stringify(emailMessage)
         )
 
+        const notificationMessage = ` Your orderID: ${ orderID } is now out for delivery `
+        const logMessage = `Send notfication email order is on the way to notification service`;
+        const notification: OrderNotificationInterface = {
+            orderID: orderID,
+            senderID: orderData.farmer_id,  
+            senderUsername: orderData.farmer_username,
+            receiverID: orderData.customer_id,
+            receiverUsername: orderData.customer_username,
+            message: notificationMessage,
+            isRead: false,
+        }
 
-        // //publish to product service to decrease products amount that are delivering
+        //send email and socket event
+        await postOrderNotificationWithEmail( 
+            orderChannel,
+            orderSocketIO,
+            emailMessage,
+            logMessage,
+            orderData,
+            notification
+        );
+
+
+        //PUBLISH TO PRODUCT SERVICE (to decrease products amount that are delivering)       
         // await publishMessage(
         //     orderChannel,
         //     'decrease-ordered-product',
@@ -393,7 +410,6 @@ const farmerStartOrderDelivery = async(orderID: string):Promise<void> => {
     }
 }
 
-// const farmerFinishOrderDelivery = async(orderData: OrderDocumentInterface):Promise<void> => {
 const farmerFinishOrderDelivery = async(orderID: string):Promise<void> => {
     try{
         const orderData:OrderDocumentInterface | null = await getOrderByID(orderID);
@@ -456,7 +472,6 @@ const changeOrderStatus = async(orderID: string, newStatus: string, newPaymentSt
         throw BadRequestError(`Failed to change order status: ${error} `, "orderService changeStatus method error");
     }
 }
-
 
 
 export { 

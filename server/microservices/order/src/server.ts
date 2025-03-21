@@ -1,5 +1,5 @@
-import { Application, NextFunction, Request ,Response, urlencoded, json } from "express";
 import { winstonLogger, AuthPayloadInterface, CustomErrorInterface } from "@veckovn/growvia-shared";
+import { Application, NextFunction, Request ,Response, urlencoded, json } from "express";
 import { Logger } from "winston";
 import { config } from '@order/config';
 import helmet from "helmet";
@@ -12,12 +12,14 @@ import { connectPool } from "@order/postgreSQL";
 import { appRoutes } from "@order/routes";
 import { createConnection } from "@order/rabbitmqQueues/rabbitmq";
 import { Channel } from "amqplib";
+import { Server } from 'socket.io';
 import { placeOrderPaymentDirectConsumer, farmerAcceptOrderPaymentDirectConsumer } from "@order/rabbitmqQueues/consumer";
 // import { placeOrderPaymentDirectConsumer } from "@order/rabbitmqQueues/consumer";
 const Server_port = 4005;
 const log: Logger = winstonLogger(`${config.ELASTICSEARCH_URL}`, 'ProductService', 'debug');
 
 let orderChannel:Channel;
+let orderSocketIO: Server;
 
 function compressRequestMiddleware(app:Application):void {
     app.use(compression());
@@ -74,14 +76,30 @@ async function startHttpAndSocketServer(app:Application):Promise<void> {
         log.info("Order service has started");
 
         const httpServer: http.Server = new http.Server(app);
+        const socketIO: Server = await createSocketIO(httpServer);
+
         httpServer.listen(Server_port, ()=>{
             console.log("Order Service started");
             log.info(`Order service is running on port: ${Server_port}`)
         })
+
+        orderSocketIO = socketIO;
+
+        log.info("Order service has started");
     }
     catch(error){
         log.log("error", "Order service startServer failed: ", error);
     }
+}
+
+async function createSocketIO(httpServer: http.Server): Promise<Server> {
+    const socketIO: Server = new Server(httpServer, {
+        cors: {
+          origin: '*',
+          methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH']
+        }
+      });
+      return socketIO;
 }
 
 export function start(app:Application){
@@ -113,4 +131,4 @@ export function start(app:Application){
 }
 
 
-export { orderChannel }
+export { orderChannel, orderSocketIO }

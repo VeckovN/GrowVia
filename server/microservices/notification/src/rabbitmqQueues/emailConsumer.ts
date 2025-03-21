@@ -28,6 +28,7 @@ async function AuthEmailConsumer(channel: Channel): Promise<void> {
             };
             //different auth emails-templates (forgotPassword, resetPassword verifyEmail, verifyEmailConfirm, ) 
             await sendEmail(template, receiverEmail, locals);
+            //await storeNotification
             channel.ack(msg!);
         });
         log.info(`Notification service emailConsumer initialized`);
@@ -58,9 +59,12 @@ async function OrderEmailConsumer(channel: Channel): Promise<void> {
                 invoiceID,
                 receiverEmail,
                 farmerUsername,
+                farmerEmail,
                 customerUsername,
+                customerEmail,
                 totalAmount,
                 orderItems,
+                bothUsers
             } = JSON.parse(msg!.content.toString());
             //temple = 'orderPlaced', ' ', ' '
             
@@ -78,7 +82,49 @@ async function OrderEmailConsumer(channel: Channel): Promise<void> {
                 totalAmount,
                 orderItems
             };
-            await sendEmail(template, receiverEmail, locals);
+
+            console.log("")
+            //send emails to both users
+            if(bothUsers){
+                await sendEmail(template, customerEmail, locals);
+                await sendEmail(template, farmerEmail, locals);
+                console.log("BOTHUSERS BOOOOOOOOTHHHHH");
+                //storeNotification 
+            } 
+            else {
+                await sendEmail(template, receiverEmail, locals);
+                console.log("BOTHUSERS SINGLEEEE");
+                //storeNotification
+            }
+
+            channel.ack(msg!);
+        });
+        log.info(`Notification service orderConsumer initialized`);
+    }
+    catch(error){
+        log.log('error', "Notification service OrderEmailConsumer failed: ", error);
+    }
+}
+
+async function OrderNotificationConsumer(channel: Channel): Promise<void> {
+    try{
+        const exchangeName = 'order-notification';
+        const queueName = 'order-notification-queue';
+        const routingKey = 'order-notification-key';
+        await channel.assertExchange(exchangeName, 'direct');
+        const orderNotificaionQueue = channel.assertQueue(queueName, {durable: true, autoDelete:false});
+        await channel.bindQueue((await orderNotificaionQueue).queue, exchangeName,  routingKey);        
+
+        channel.consume((await orderNotificaionQueue).queue, async (msg: ConsumeMessage | null)=>{
+            console.log("MSG:", JSON.parse(msg!.content.toString()));
+            const { 
+                // order,
+                // notification
+                //bothUsers
+            } = JSON.parse(msg!.content.toString());
+
+            //just store notification
+            
             channel.ack(msg!);
         });
         log.info(`Notification service orderConsumer initialized`);
@@ -103,7 +149,6 @@ async function PaymentEmailConsumer(channel: Channel): Promise<void> {
             //send emails
 
 
-
             channel.ack(msg!);
         });
         log.info(`Notification service paymentConsumer initialized`);
@@ -113,4 +158,4 @@ async function PaymentEmailConsumer(channel: Channel): Promise<void> {
     }
 }
 
-export { AuthEmailConsumer, OrderEmailConsumer, PaymentEmailConsumer }
+export { AuthEmailConsumer, OrderEmailConsumer, OrderNotificationConsumer, PaymentEmailConsumer }
