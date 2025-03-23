@@ -51,13 +51,18 @@ export const postOrderNotificationWithEmail = async (
     notification: OrderNotificationInterface,
 
 ) => {
+        const payload = { 
+            ...emailMessage,
+            notification
+        }
         //post to email (there will be stored in Notification DB and email sent)
         await publishMessage(
             orderChannel,
             'order-email-notification',
             'order-email-key',
             logMessage,
-            JSON.stringify(emailMessage)
+            // JSON.stringify(emailMessage)
+            JSON.stringify(payload)
         )
 
         orderSocketIO.emit("order-notify", order, notification);
