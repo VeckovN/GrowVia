@@ -133,6 +133,7 @@ const placePendingOrder = async(orderData: OrderCreateInterface):Promise<OrderDo
         const order:OrderDocumentInterface = { ...orderData, order_id};
 
         const notification: OrderNotificationInterface = {
+            type: 'Order', 
             orderID: order_id,
             senderID: orderData.farmer_id,  
             senderUsername: orderData.farmer_username,
@@ -140,7 +141,6 @@ const placePendingOrder = async(orderData: OrderCreateInterface):Promise<OrderDo
             receiverUsername: orderData.customer_username,
             message: notificationMessage,
             isRead: false
-            // type?: 
         }
 
         //send email and socket event
@@ -313,6 +313,7 @@ const farmerStartOrderProccess = async(orderID: string): Promise<void> => {
         const notificationMessage = ` Your order ${orderID} has begun processing `
         const logMessage = 'Send order email data to notification service';
         const notification: OrderNotificationInterface = {
+            type: 'Order', 
             orderID: orderID,
             senderID: orderData.farmer_id,   
             senderUsername: orderData.farmer_username,
@@ -320,7 +321,6 @@ const farmerStartOrderProccess = async(orderID: string): Promise<void> => {
             receiverUsername: orderData.customer_username,
             message: notificationMessage,
             isRead: false 
-            // type?: 
         }
 
         //publish notification (customer)
@@ -375,6 +375,7 @@ const farmerStartOrderDelivery = async(orderID: string):Promise<void> => {
         const notificationMessage = ` Your orderID: ${ orderID } is now out for delivery `
         const logMessage = `Send notfication email order is on the way to notification service`;
         const notification: OrderNotificationInterface = {
+            type: 'Order', 
             orderID: orderID,
             senderID: orderData.farmer_id,  
             senderUsername: orderData.farmer_username,

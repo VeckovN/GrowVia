@@ -102,6 +102,7 @@ const farmerAcceptOrderPaymentDirectConsumer = async (channel:Channel):Promise<v
                     const notificationMessage = ` Your orderID: ${data.order_id} approved by farmer: ${data.farmer_username} `
                     const logMessage = 'Send farmer approve email data to notification service';
                     const notification: OrderNotificationInterface = {
+                        type: 'Order', 
                         orderID: data,
                         senderID: data.farmer_id,  
                         senderUsername: data.farmer_username,
@@ -149,6 +150,7 @@ const farmerAcceptOrderPaymentDirectConsumer = async (channel:Channel):Promise<v
                     const notificationMessage = ` Your payment failed on order: ${data.order_id} `
                     const logMessage = 'Send order reject email to users to notification service';
                     const notification: OrderNotificationInterface = {
+                        type: 'Order', 
                         orderID: data.order_id,
                         senderID: data.farmer_id,  
                         senderUsername: data.farmer_username,
@@ -196,6 +198,7 @@ const farmerAcceptOrderPaymentDirectConsumer = async (channel:Channel):Promise<v
                     const notificationMessage = ` Your requested order has canceled by: ${data.farmer_username} `
                     const logMessage = 'Send order cancel email to users to notification service';
                     const notification: OrderNotificationInterface = {
+                        type: 'Order', 
                         orderID: data.order_id,
                         senderID: data.farmer_id,  
                         senderUsername: data.farmer_username,
