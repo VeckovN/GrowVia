@@ -13,6 +13,7 @@ interface Config {
     JWT_TOKEN: string | undefined;
     FIRST_SECRET_KEY: string | undefined;
     SECOND_SECRET_KEY: string | undefined;
+    NOTIFICATION_SERVICE_URL: string | undefined;
     AUTH_SERVICE_URL: string | undefined;
     USER_SERVICE_URL: string | undefined;
     PRODUCT_SERVICE_URL: string | undefined;
@@ -32,6 +33,7 @@ export const config: Config = {
     JWT_TOKEN: process.env.JWT_TOKEN || '123123',
     FIRST_SECRET_KEY: process.env.FIRST_SECRET_KEY || '',
     SECOND_SECRET_KEY: process.env.SECOND_SECRET_KEY || '',
+    NOTIFICATION_SERVICE_URL: process.env.AUTH_SERVICE_URL || '',
     AUTH_SERVICE_URL: process.env.AUTH_SERVICE_URL || '',
     USER_SERVICE_URL: process.env.USER_SERVICE_URL || '',
     PRODUCT_SERVICE_URL: process.env.PRODUCT_SERVICE_URL || '',
