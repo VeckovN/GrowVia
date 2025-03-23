@@ -3,6 +3,7 @@ import { Logger } from "winston";
 import { Channel, ConsumeMessage } from 'amqplib';
 import { sendEmail } from "@notification/rabbitmqQueues/emailTransport";
 import { config } from '@notification/config';
+import { storeNotification } from "@notification/services/notification";
 
 const log:Logger = winstonLogger(`${config.ELASTICSEARCH_URL}`, 'notificationRabbitMQConnection', 'debug');
 
@@ -54,6 +55,7 @@ async function OrderEmailConsumer(channel: Channel): Promise<void> {
                 // message,
                 // type,
                 template,
+                notification,
                 orderUrl,
                 orderID,
                 invoiceID,
@@ -86,15 +88,22 @@ async function OrderEmailConsumer(channel: Channel): Promise<void> {
             console.log("")
             //send emails to both users
             if(bothUsers){
-                await sendEmail(template, customerEmail, locals);
-                await sendEmail(template, farmerEmail, locals);
                 console.log("BOTHUSERS BOOOOOOOOTHHHHH");
+                await Promise.all([
+                    sendEmail(template, customerEmail, locals),
+                    sendEmail(template, farmerEmail, locals),
+                    // storeNotificationToBothUsers(notification),
+                ])
+                // await sendEmail(template, customerEmail, locals);
+                // await sendEmail(template, farmerEmail, locals);
                 //storeNotification 
+                // await storeNotificationToBothUsers(notification);
             } 
             else {
+                console.log("BOTHUSERS SINGLEEEE  notificatioN: ", notification);
                 await sendEmail(template, receiverEmail, locals);
-                console.log("BOTHUSERS SINGLEEEE");
                 //storeNotification
+                await storeNotification(notification);
             }
 
             channel.ack(msg!);
@@ -119,11 +128,12 @@ async function OrderNotificationConsumer(channel: Channel): Promise<void> {
             console.log("MSG:", JSON.parse(msg!.content.toString()));
             const { 
                 // order,
-                // notification
+                notification
                 //bothUsers
             } = JSON.parse(msg!.content.toString());
 
             //just store notification
+            await storeNotification(notification);
             
             channel.ack(msg!);
         });

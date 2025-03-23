@@ -14,6 +14,7 @@ import { initializeSocketIO, getSocketIO, configureSocketEvents } from '@gateway
 import { checkConnection } from "@gateway/elastisearch";
 import { redisConnect } from "@gateway/redis";
 import { appRoutes } from "@gateway/routes";
+import { notificationAxiosInstance } from "@gateway/services/notification.service";
 import { authAxiosInstance } from "@gateway/services/auth.service";
 import { usersAxiosInstance } from "@gateway/services/user.service";
 import { productAxiosInstance } from "@gateway/services/product.service";
@@ -124,6 +125,7 @@ export function start(app:Application):void {
         console.log("REQ>SESSION : ", req.session);
         if(req.session?.jwtToken){   //if session exist (The user is logged)
             //we want to append bearer token to the each AXIOS INSTANCE (Auth, Product, User, Order ...)
+            notificationAxiosInstance.defaults.headers['Authorization']= `Bearer ${req.session?.jwtToken}`
             authAxiosInstance.defaults.headers['Authorization']= `Bearer ${req.session?.jwtToken}`
             usersAxiosInstance.defaults.headers['Authorization']= `Bearer ${req.session?.jwtToken}`
             productAxiosInstance.defaults.headers['Authorization']= `Bearer ${req.session?.jwtToken}`

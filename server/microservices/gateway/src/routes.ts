@@ -1,6 +1,7 @@
 import { Application } from "express";
 import { healthRoutes } from "@gateway/routes/health";
 import { authRoutes } from "@gateway/routes/auth";
+import { notificationRoutes } from "@gateway/routes/notification";
 import { currentUserRoutes } from "@gateway/routes/currentUser";
 import { customerRoutes } from "@gateway/routes/users/customer";
 import { farmerRoutes } from "./routes/users/farmer";
@@ -18,6 +19,7 @@ export function appRoutes(app:Application): void {
 
     //with authenticationMiddleware (authentications checking) Protected routes
     app.use(BASE_PATH, verifyUser, currentUserRoutes());
+    app.use(BASE_PATH, verifyUser, notificationRoutes());
     //users
     app.use(BASE_PATH, verifyUser, customerRoutes());
     app.use(BASE_PATH, verifyUser, farmerRoutes());

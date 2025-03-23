@@ -1,24 +1,44 @@
 import http from 'http';
-import { winstonLogger, EmailLocalsInterface} from "@veckovn/growvia-shared";
-import { Application } from 'express';
+import { winstonLogger, AuthPayloadInterface, CustomErrorInterface } from "@veckovn/growvia-shared";
+import { Application, NextFunction, Request ,Response, urlencoded, json } from 'express';
+import helmet from "helmet";
+import cors from 'cors';
+import compression from "compression";
 import { Logger } from "winston";
-import {healthRoute} from "@notification/routes";
+import { Channel } from "amqplib";
+import { verify } from "jsonwebtoken";
+import { config } from '@notification/config';
+import { appRoutes } from "@notification/routes";
 import { checkConnection } from "@notification/elasticsearch";
 import { createConnection } from "@notification/rabbitmqQueues/rabbitmq";
-import { Channel } from "amqplib";
+import { mongoDBconnection } from '@notification/database';
 import { AuthEmailConsumer, OrderEmailConsumer, PaymentEmailConsumer } from "./rabbitmqQueues/emailConsumer";
-import { config } from '@notification/config';
 
 const Server_port = 4001;
 const log: Logger = winstonLogger(`${config.ELASTICSEARCH_URL}`, 'notificationService', 'debug');
 
-export function start(app: Application):void {
-    startServer(app);
+
+function compressRequestMiddleware(app:Application):void {
+    app.use(compression());
+    app.use(json({
+        limit: '200mb',
+    }))
+    app.use(urlencoded({ 
+        limit: '200mb',
+        extended: true
+    }))
+}
+
+function routesMiddleware(app:Application):void{
+    appRoutes(app);
+}
+
+function startElasticsearch():void{
     checkConnection();
-    //the only route that isn;t passed through API Gataway(used for checking status of this service)
-    app.use('', healthRoute());
-    //rabbitMQ queue connection
-    startQueues();
+}
+
+function startMongoDB():void{
+    mongoDBconnection();
 }
 
 async function startQueues(): Promise<void>{
@@ -27,11 +47,28 @@ async function startQueues(): Promise<void>{
     await AuthEmailConsumer(emailChannel);
     await OrderEmailConsumer(emailChannel);
     await PaymentEmailConsumer(emailChannel);
-
-    // await publishMessages(emailChannel);
 }
 
-function startServer(app: Application):void {
+function errorHandlerMiddleware(app: Application):void{
+    app.use((error: CustomErrorInterface, _req: Request, res: Response, next: NextFunction) => {
+        if(error.statusCode){
+            log.log('error', `Notification Service Error:`, error);
+            res.status(error.statusCode).json({
+                message:error.message,
+                statusCode: error.statusCode,
+                status: error.status,
+                comingFrom: error.comingFrom
+            });
+        }
+        // else if(isAxiosError(error))
+        
+        //handle axios errors() -> comes from ApiGateway
+        next();
+    });
+}
+
+
+function startHttpServer(app: Application):void {
     try{
         const server: http.Server = new http.Server(app);
         log.info(`Notification service starting, process ID:${process.pid}`);
@@ -44,41 +81,30 @@ function startServer(app: Application):void {
     }
 }
 
+export function start(app:Application){
+    app.set('trust proxy', 1); 
+    app.use(helmet());
+    app.use(cors({
+        origin: config.API_GATEWAY_URL,
+        credentials: true, //enable to detach the JTW Token to every request comming from the client
+        methods:['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH']
+    }))
 
-// @ts-ignore (avoid unused function errior)
-async function publishMessages(channel: Channel): Promise<void>{
-    //publish some test messages (ofc to exchanger)
-    const authEmailExchangeName = 'auth-email-notification';
-    const authEmailRoutingKey = 'auth-email-key';
-    await channel.assertExchange(authEmailExchangeName, 'direct');
-    
-    //all props for sending 'verifyEmail' 
-    //Token for getting response on email confirm
-    const emailAuthMessage: EmailLocalsInterface = {
-        template:'verifyEmail',
-        receiverEmail: `${config.TEST_EMAIL}`,  //sender mail
-        resetLink: `${config.CLIENT_URL}/confirm_email_EXAMPLE_NOT_GENERATED`,
-        username: "TestUsername"
-    }
-    const message = JSON.stringify(emailAuthMessage);
-    channel.publish(authEmailExchangeName, authEmailRoutingKey, Buffer.from(message));
+    app.use((req:Request, _res:Response, next: NextFunction) =>{
+        //check does JWT_TOKEN exist in authorization header
+        if(req.headers.authorization){
+            const token = req.headers.authorization.split(" ")[1];
+            const payload:AuthPayloadInterface = verify(token, `${config.JWT_TOKEN}`)as AuthPayloadInterface;
+            req.currentUser = payload;
+        }
+        next();
+    })
 
-
-    const orderEmailExchangeName = 'order-email-notification';
-    const orderEmailRoutingKey = 'order-email-key';
-    await channel.assertExchange(orderEmailExchangeName, 'direct');
-    
-    // const emailOrderMessage: EmailLocalsInterface = {
-    //     template:'orderProduct',
-    //     receiverEmail: `${config.TEST_EMAIL}`,
-    // }
-
-    const messageOrder = JSON.stringify({name:"growvia", service:"notification", context:"Test order message"})
-    channel.publish(orderEmailExchangeName, orderEmailRoutingKey, Buffer.from(messageOrder));
-    
-    const paymentEmailExchangeName = 'payment-email-notification';
-    const paymentEmailRoutingKey = 'payment-email-key';
-    await channel.assertExchange(orderEmailExchangeName, 'direct');
-    const messagePayment = JSON.stringify({name:"growvia", service:"notification", context:"Test payment message"})
-    channel.publish(paymentEmailExchangeName, paymentEmailRoutingKey, Buffer.from(messagePayment));
+    compressRequestMiddleware(app);
+    routesMiddleware(app);
+    startElasticsearch();
+    startMongoDB();
+    startQueues();
+    errorHandlerMiddleware(app);
+    startHttpServer(app);
 }
