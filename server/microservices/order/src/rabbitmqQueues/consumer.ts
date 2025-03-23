@@ -99,17 +99,17 @@ const farmerAcceptOrderPaymentDirectConsumer = async (channel:Channel):Promise<v
                         orderItems: data.orderItems
                     }
 
-                    const notificationMessage = ` Your orderID: ${data.order_id} approved by farmer: ${data.farmer_username} `
+                    const notificationMessage = `Your orderID: ${data.order_id} approved by farmer: ${data.farmer_username} `
                     const logMessage = 'Send farmer approve email data to notification service';
                     const notification: OrderNotificationInterface = {
                         type: 'Order', 
-                        orderID: data,
+                        orderID: data.order_id,
                         senderID: data.farmer_id,  
                         senderUsername: data.farmer_username,
                         receiverID: data.customer_id,
                         receiverUsername: data.customer_username,
                         message: notificationMessage,
-                        isRead: false,
+                        isRead: false
                     }
             
                     //send email and socket event
