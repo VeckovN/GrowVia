@@ -33,7 +33,7 @@ export const config: Config = {
     JWT_TOKEN: process.env.JWT_TOKEN || '123123',
     FIRST_SECRET_KEY: process.env.FIRST_SECRET_KEY || '',
     SECOND_SECRET_KEY: process.env.SECOND_SECRET_KEY || '',
-    NOTIFICATION_SERVICE_URL: process.env.AUTH_SERVICE_URL || '',
+    NOTIFICATION_SERVICE_URL: process.env.NOTIFICATION_SERVICE_URL || '',
     AUTH_SERVICE_URL: process.env.AUTH_SERVICE_URL || '',
     USER_SERVICE_URL: process.env.USER_SERVICE_URL || '',
     PRODUCT_SERVICE_URL: process.env.PRODUCT_SERVICE_URL || '',
