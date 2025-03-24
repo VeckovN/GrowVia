@@ -9,7 +9,7 @@ const storeNotification = async(notification: NotificationInterface): Promise<No
 
 const getNotificationsByID = async(userID: string): Promise<NotificationInterface[]> => {
     //TODO: paggination
-    const notifications: NotificationInterface[] = await NotificationModel.aggregate([{ $match: { receiverID: userID }}]);
+    const notifications: NotificationInterface[] = await NotificationModel.find({receiverID: userID});
     return notifications;
 }
 
