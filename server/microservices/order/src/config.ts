@@ -10,6 +10,7 @@ interface Config {
     ELASTICSEARCH_APM_SERVER_URL: string | undefined;
     ELASTICSEARCH_APM_TOKEN: string | undefined;
     DATABASE_URL: string | undefined;
+    STRIPE_SECRET_KEY: string | undefined;
     RABBITMQ_AMQP_ENDPOINT: string | undefined;
     REDIS_HOST: string | undefined;
     POSTGRESQL_HOST: string | undefined;
@@ -28,6 +29,7 @@ export const config: Config = {
     ELASTICSEARCH_APM_SERVER_URL: process.env.ELASTICSEARCH_APM_SERVER_URL || '',
     ELASTICSEARCH_APM_TOKEN: process.env.ELASTICSEARCH_APM_TOKEN || '',
     DATABASE_URL: process.env.DATABASE_URL || '',
+    STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY || '',
     RABBITMQ_AMQP_ENDPOINT: process.env.RABBITMQ_AMQP_ENDPOINT || '',
     REDIS_HOST: process.env.REDIS_HOST || '',
     POSTGRESQL_HOST: process.env.POSTGRESQL_HOST || '',
