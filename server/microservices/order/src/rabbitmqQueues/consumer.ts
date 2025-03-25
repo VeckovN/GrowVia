@@ -1,5 +1,6 @@
 import { winstonLogger, OrderEmailMessageInterface, OrderNotificationInterface } from "@veckovn/growvia-shared";
 import { Logger } from "winston";
+import Stripe from "stripe";
 import { Channel, ConsumeMessage } from 'amqplib';
 import { config } from '@order/config';
 // import { publishMessage } from "@order/rabbitmqQueues/producer";
@@ -9,6 +10,11 @@ import { orderSocketIO } from "@order/server";
 import { postOrderNotificationWithEmail } from "@order/helper";
 
 const log:Logger = winstonLogger(`${config.ELASTICSEARCH_URL}`, 'orderRabbitMQConsumer', 'debug');
+
+const stripe: Stripe = new Stripe(config.STRIPE_SECRET_KEY!, {
+    apiVersion: '2025-02-24.acacia', 
+    typescript: true
+});
 
 
 //WHEN THE PAYMENT(strip) SELECTED
@@ -80,10 +86,9 @@ const farmerAcceptOrderPaymentDirectConsumer = async (channel:Channel):Promise<v
 
                 if(type == 'ApprovePaymentSuccess'){            
                     console.log("\n Order place Data: ", data);
-                    // await createCustomer(data); //from Service
-                    //Change order status to "accpeted"
-                    await changeOrderStatus(data.order_id, 'accepted', 'accepted');
-            
+                    
+                    await stripe.paymentIntents.capture(data.payment_intent_id);
+                    await changeOrderStatus(data.order_id, 'accepted', 'paid');
 
                     //publish message to Notification
                     const emailMessage: OrderEmailMessageInterface = {
@@ -112,6 +117,8 @@ const farmerAcceptOrderPaymentDirectConsumer = async (channel:Channel):Promise<v
                         isRead: false
                     }
             
+                    console.log("Consumer ApprovePaymentSuccess Notification being sent: ", notification);
+
                     //send email and socket event
                     await postOrderNotificationWithEmail( 
                         orderChannel,
@@ -129,7 +136,10 @@ const farmerAcceptOrderPaymentDirectConsumer = async (channel:Channel):Promise<v
                 //payment Fail on orderAccepted
                 if (type == 'ApprovePaymentFailed'){
                     //Change order status to "Payment Failed" 
+
+                    await stripe.paymentIntents.cancel(data.payment_intent_id);
                     await changeOrderStatus(data.order_id, 'paymentFailed');
+                    
                    
                     const emailMessage: OrderEmailMessageInterface = {
                         template: "orderPaymentFailed", //email template -> to the Customer 
@@ -162,6 +172,8 @@ const farmerAcceptOrderPaymentDirectConsumer = async (channel:Channel):Promise<v
                         isRead: false,
                         bothUsers: true
                     }
+
+                    console.log("Consumer ApprovePatmenyFailed Notification being sent: ", notification);
             
                     //send email and socket event
                     await postOrderNotificationWithEmail( 
@@ -207,6 +219,8 @@ const farmerAcceptOrderPaymentDirectConsumer = async (channel:Channel):Promise<v
                         message: notificationMessage,
                         isRead: false
                     }
+
+                    console.log("consumer paymentCanceled Notification being sent: ", notification);
             
                     //send email and socket event
                     await postOrderNotificationWithEmail( 

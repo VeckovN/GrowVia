@@ -1,6 +1,7 @@
 // import { OrderCreateZodSchema } from '@order/schema/order.schema';
 import { winstonLogger, BadRequestError, NotFoundError, OrderCreateInterface, OrderDocumentInterface, OrderEmailMessageInterface, OrderItemDocumentInterface, OrderNotificationInterface } from '@veckovn/growvia-shared';
 import { Logger } from "winston";
+import Stripe from 'stripe';
 import { config } from "@order/config";
 import { pool } from '@order/postgreSQL';
 import { publishMessage } from '@order/rabbitmqQueues/producer';
@@ -11,6 +12,11 @@ import { postOrderNotification, postOrderNotificationWithEmail } from '@order/he
 const log: Logger = winstonLogger(`${config.ELASTICSEARCH_URL}`, 'orderService', 'debug');
 
 // orderStatus { 'pending', 'accepted', 'rejected', 'paymentFailed', 'processing', 'on_the_way', 'delivered' }
+const stripe: Stripe = new Stripe(config.STRIPE_SECRET_KEY!, {
+    apiVersion: '2025-02-24.acacia', 
+    typescript: true
+});
+
 
 const getOrderByID = async(orderID: string):Promise<OrderDocumentInterface | null> => {
     try{
@@ -47,44 +53,48 @@ const placePendingOrder = async(orderData: OrderCreateInterface):Promise<OrderDo
         INSERT INTO public.orders (
             customer_id,
             farmer_id,
-            customer_username,
             customer_email,
+            customer_username,
             farmer_username,
             farmer_email,
             invoice_id,
             total_amount, 
-            payment_status, 
             order_status, 
+            payment_type,
+            payment_status, 
             payment_intent_id, 
-            payment_token, 
+            payment_method_id,
+            payment_method,
+            payment_expires_at
             shipping_address, 
             billing_address, 
             delivery_date, 
-            tracking_url, 
-            payment_method
+            tracking_url
         )
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17) 
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19) 
         RETURNING order_id;
         `;
 
         const values = [
             orderData.customer_id,
             orderData.farmer_id,
-            orderData.customer_username,
             orderData.customer_email,
+            orderData.customer_username,
             orderData.farmer_username,
             orderData.farmer_email,
             orderData.invoice_id || null,
             orderData.total_amount,
-            orderData.payment_status,
             orderData.order_status || "pending", 
+            orderData.payment_type || 'cod',
+            orderData.payment_status,
             orderData.payment_intent_id || null,
-            orderData.payment_token || null,
+            orderData.payment_method_id || null,
+            orderData.payment_method || null,
+            orderData.payment_expires_at || null,
             orderData.shipping_address || null,
             orderData.billing_address || null,
             orderData.delivery_date || null,
-            orderData.tracking_url || null,
-            orderData.payment_method || 'cod' 
+            orderData.tracking_url || null
         ];
 
         const orderResult = await pool.query(orderInsertQuery, values);
@@ -143,6 +153,8 @@ const placePendingOrder = async(orderData: OrderCreateInterface):Promise<OrderDo
             isRead: false
         }
 
+        console.log("PlaceOrder Notification being sent: ", notification);
+
         //send email and socket event
         await postOrderNotificationWithEmail( 
             orderChannel,
@@ -172,12 +184,12 @@ const placePendingOrder = async(orderData: OrderCreateInterface):Promise<OrderDo
 const placeOrder = async(orderData: OrderCreateInterface):Promise<void> => {
     console.log(" PlaceORder data: ", orderData);
 
-    //handle notPropriete payment_method
-    if(!["stripe", "cod"].includes(orderData.payment_method)){
+    //handle notPropriete payment_type
+    if(!["stripe", "cod"].includes(orderData.payment_type)){
         throw BadRequestError(`Failed to place Order, invalid payment method passed `, "orderService createOrder method error");
     }
 
-    if(orderData.payment_method === "stripe"){
+    if(orderData.payment_type === "stripe"){
         //this sent data to PaymentService, and wait for response in consumer function (rabbitMQ)
         await publishMessage (
             orderChannel,
@@ -189,7 +201,7 @@ const placeOrder = async(orderData: OrderCreateInterface):Promise<void> => {
         );
          // and waith feedback and place order -> as payment approved (with createOrderPaymentDirectConsumer Cosnumer)
     }
-    else if(orderData.payment_method === "cod"){ //cash on delivery
+    else if(orderData.payment_type === "cod"){ //cash on delivery
         //place order with 'Pending Farmer Approval' ()
         // await insertOrder(orderData);
         await placePendingOrder(orderData);
@@ -208,12 +220,12 @@ const cancelOrder = async(orderID: string):Promise<void> => {
         throw BadRequestError(`Failed to cancel Order, only pending order can be canceled `, "orderService cancelOrder method error");
 
     console.log(" Cancel data: ", orderData);
-    //handle notPropriete payment_method
-    if(!["stripe", "cod"].includes(orderData.payment_method)){
+    //handle notPropriete payment_type
+    if(!["stripe", "cod"].includes(orderData.payment_type)){
         throw BadRequestError(`Failed to cancel Order, invalid payment method passed `, "orderService cancelOrder method error");
     }
 
-    if(orderData.payment_method === "stripe"){
+    if(orderData.payment_type === "stripe"){
         //this sent data to PaymentService, and wait for response in consumer function (rabbitMQ)
         await publishMessage (
             orderChannel,
@@ -226,7 +238,7 @@ const cancelOrder = async(orderID: string):Promise<void> => {
             // JSON.stringify(messagePayload)
         );
     }
-    else if(orderData.payment_method === "cod"){ //cash on delivery
+    else if(orderData.payment_type === "cod"){ //cash on delivery
         //place order with 'Pending Farmer Approval' ()
         // await insertOrder(orderData);
         await changeOrderStatus(orderID, "cancel");
@@ -243,14 +255,27 @@ const farmerApproveOrder = async(orderID: string): Promise<void> => {
 
     console.log("FarmerApproveOrder -- get Order By ID: ", orderData);
 
-    if(!["stripe", "cod"].includes(orderData.payment_method)){
+    if(!["stripe", "cod"].includes(orderData.payment_type)){
         throw BadRequestError(`Failed to place Order, invalid payment method passed `, "orderService createOrder method error");
     }
 
     //verify orderData 
 
     //send orderApproved type message to payment service to start capturing
-    if(orderData.payment_method === 'stripe') {
+    if(orderData.payment_type === 'stripe') {
+
+        //check on payment authoriuzation expires
+        if(new Date() > orderData.payment_expires_at){
+            if(orderData.payment_intent_id){
+                await stripe.paymentIntents.cancel(orderData.payment_intent_id);
+                await changeOrderStatus(orderData.order_id!, 'canceled', 'canceled');
+            }
+            else
+                throw BadRequestError(`Failed to approve order, payment_intent_id doesn't exists `, "orderService FarmerApproveOrder method error"); 
+            
+            throw BadRequestError(`Failed to approve order, payment authorization expired `, "orderService FarmerApproveOrder method error"); 
+        }
+
         await publishMessage(
             orderChannel,
             // 'accept-order-payment',
@@ -262,7 +287,7 @@ const farmerApproveOrder = async(orderID: string): Promise<void> => {
         );
 
     }
-    else if(orderData.payment_method === 'cod') //without payment integration just change order status
+    else if(orderData.payment_type === 'cod') //without payment integration just change order status
     {
         if(!orderData.order_id)
             throw NotFoundError("Failed to find the order, orderID doesn't exist", "orderService farmerApproveOrder with cod paymentMethod failed")
@@ -272,7 +297,7 @@ const farmerApproveOrder = async(orderID: string): Promise<void> => {
 }
 
 const farmerRejectOrder = async(orderData: OrderDocumentInterface): Promise<void> => {
-    if(!["stripe", "cod"].includes(orderData.payment_method)){
+    if(!["stripe", "cod"].includes(orderData.payment_type)){
         throw BadRequestError(`Failed to place Order, invalid payment method passed `, "orderService createOrder method error");
     }
 
@@ -284,7 +309,7 @@ const farmerRejectOrder = async(orderData: OrderDocumentInterface): Promise<void
     await changeOrderStatus(orderData.order_id, 'rejected');
 
     //send orderData to paymentService to reject(refund) captured money.
-    if(orderData.payment_method === 'stripe') {
+    if(orderData.payment_type === 'stripe') {
         
         await publishMessage(
             orderChannel,
@@ -322,6 +347,8 @@ const farmerStartOrderProccess = async(orderID: string): Promise<void> => {
             message: notificationMessage,
             isRead: false 
         }
+
+        console.log("Darmer Start Notification being sent: ", notification);
 
         //publish notification (customer)
          //socket event without sending email
@@ -385,6 +412,8 @@ const farmerStartOrderDelivery = async(orderID: string):Promise<void> => {
             isRead: false,
         }
 
+        console.log("farmer start order delivery Notification being sent: ", notification);
+
         //send email and socket event
         await postOrderNotificationWithEmail( 
             orderChannel,
@@ -434,7 +463,8 @@ const changeOrderStatus = async(orderID: string, newStatus: string, newPaymentSt
             throw BadRequestError("Invalid order status provided", "orderService changeStatus method error");
         }
 
-        const validPaymentStatuses = ["pending", "accepted", "canceled", "refunded"];
+        // const validPaymentStatuses = ["pending", "accepted", "canceled", "refunded"];
+        const validPaymentStatuses = ["pending", "authorized", "paid", "refunded", "canceled"];
         if(newPaymentStatus && !validPaymentStatuses.includes(newPaymentStatus)){
             throw BadRequestError("Invalid payment order status provided", "orderService changeStatus method error");
         }
