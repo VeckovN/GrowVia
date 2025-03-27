@@ -50,35 +50,38 @@ const orderPaymentDirectConsumer = async (channel:Channel):Promise<void> => {
                 if(type == 'orderPlaced'){      
                     console.log("\n Order data received: ", data);
             
-                    // the service charge is 4% of the purchase amount, for purchases under $40, an additional $2 is applied
-                    const serviceFee: number = data.total_price < 40 ? (4 / 100) * data.total_price + 2 : (4 / 100) * data.total_price;
+                    const totalPrice = Number(data.total_price);
+                    let serviceFee: number;
+                    if (totalPrice < 40)
+                        serviceFee = (0.04 * totalPrice) + 2;
+                    else 
+                        serviceFee = 0.04 * totalPrice;
+                    
+                    const amountValue = Math.floor((totalPrice + serviceFee) * 100);
+                    
                     const paymentIntent = await stripe.paymentIntents.create({
-                        // amount: data.total_price
-                        amount: Math.floor((data.total_price + serviceFee) * 100),
-                        currency: 'eur',
+                        amount: amountValue,
+                        // currency: 'eur',
+                        currency: 'usd',
                         //For testing use data.payment_method
                         payment_method: data.payment_method, //using only for testing
                         // payment_method: data.payment_method_id, //using only for testing
                         confirm: true, // Auto-confirms for testing
                         capture_method: 'manual', // For farmer approval flow
-                        metadata: { order_id: data.order_id}
+                        metadata: { order_id: data.order_id},
+                        automatic_payment_methods: {
+                            enabled: true,
+                            allow_redirects: 'never', // Avoid redirect payment methods
+                        },
                     });
-
-                    //Confirm payment immediately (confirm on capturing)
-                    // const confirmedIntent = await stripe.paymentIntents.confirm(
-                    await stripe.paymentIntents.confirm(
-                        paymentIntent.id,
-                        // { payment_method: 'pm_card_visa' } // Replace with actual payment method
-                        { payment_method: data.payment_method } // Replace with actual payment method
-                    );
 
                     const updatedData = { 
                         ...data, 
                         payment_intent_id: paymentIntent.id,
                         payment_method_id: data.payment_method_id,
                         payment_method: data.payment_method,
-                        expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) // 7 days
-                        
+                        payment_expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) // 7 days  
+                        // payment_expires_at: new Date(Date.now() + 7) // 7 days  
                     }; 
                 
                     //Returns Payment Token to Order Service (via consumer)
@@ -93,7 +96,6 @@ const orderPaymentDirectConsumer = async (channel:Channel):Promise<void> => {
                     log.info("Payment Service payment Token forward back to Order Serivce");
                 }
 
-                log.info("Payment Service Data recieved from Order Serivce");
                 channel.ack(msg!); //Ack after successful processing 
             }
             catch(error){
@@ -142,7 +144,7 @@ const farmerAccpetAndRejectDirectConsumer = async (channel:Channel):Promise<void
 
                     try{
                         // Capture payment using Stripe
-                        //const paymentIntent = await stripe.paymentIntents.capture(data.payment_intent_id);
+                        await stripe.paymentIntents.capture(data.payment_intent_id);
 
                         await publishMessage(
                             channel,
@@ -156,6 +158,7 @@ const farmerAccpetAndRejectDirectConsumer = async (channel:Channel):Promise<void
                     }
                     catch(error){
                 
+                        await stripe.paymentIntents.cancel(data.payment_intent_id);
                         //Payment failed than -> Cancels the payment intent (refund if captured).   
                         await publishMessage(
                             channel,
@@ -179,6 +182,7 @@ const farmerAccpetAndRejectDirectConsumer = async (channel:Channel):Promise<void
 
                         // Refund payment using Stripe
                         //const refund = await stripe.refunds.create({ payment_intent: data.payment_intent_id });
+                        await stripe.paymentIntents.cancel(data.payment_intent_id);
 
                         //if the stripe refund has successed
                         await publishMessage(

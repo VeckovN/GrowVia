@@ -1,9 +1,7 @@
-import { winstonLogger, OrderEmailMessageInterface, OrderNotificationInterface } from "@veckovn/growvia-shared";
+import { winstonLogger, OrderEmailMessageInterface, NotificationInterface } from "@veckovn/growvia-shared";
 import { Logger } from "winston";
-import Stripe from "stripe";
 import { Channel, ConsumeMessage } from 'amqplib';
 import { config } from '@order/config';
-// import { publishMessage } from "@order/rabbitmqQueues/producer";
 import { placePendingOrder, changeOrderStatus} from '@order/services/order';
 import { orderChannel } from '@order/server';
 import { orderSocketIO } from "@order/server";
@@ -11,24 +9,14 @@ import { postOrderNotificationWithEmail } from "@order/helper";
 
 const log:Logger = winstonLogger(`${config.ELASTICSEARCH_URL}`, 'orderRabbitMQConsumer', 'debug');
 
-const stripe: Stripe = new Stripe(config.STRIPE_SECRET_KEY!, {
-    apiVersion: '2025-02-24.acacia', 
-    typescript: true
-});
-
-
-//WHEN THE PAYMENT(strip) SELECTED
 //when customer requires order, the order is staring create with payment intent
 const placeOrderPaymentDirectConsumer = async (channel:Channel):Promise<void> => {
-    
     try{
         //consumer is Payment Service on getting 'order.created' message 
-        //(when customer request order but farmer hasn't approved yet)
         const exchangeName = 'order-payment-customer';
         const queueName = 'order-payment-customer-queue';
         const routingKey = 'order-payment-customer-key'
   
-        //Asserts an exchange into existence (set direct) --- set durable to true(makes queue survive)
         await channel.assertExchange(exchangeName, 'direct', {durable:true});
         const orderPaymentQueue = channel.assertQueue(queueName, {durable: true});
         await channel.bindQueue((await orderPaymentQueue).queue, exchangeName,  routingKey);        
@@ -36,15 +24,11 @@ const placeOrderPaymentDirectConsumer = async (channel:Channel):Promise<void> =>
         channel.consume((await orderPaymentQueue).queue, async (msg: ConsumeMessage | null)=>{
             if(!msg) return;
             try{
-               
                 const { type, data } = JSON.parse(msg!.content.toString());
                 
-                //wait on payment token (used to create order -> persist in DB)
                 if(type == 'paymentTokenized') {
-                    //put paymentToken in new created order (order_ID)
                     console.log("Order Service consumer on, type: 'paymentTokenized' ")
                     await placePendingOrder(data);
-                    //we can check does data fits the orderDocuement
                     channel.ack(msg!); //Ack after successful processing 
                 }
             }
@@ -61,7 +45,6 @@ const placeOrderPaymentDirectConsumer = async (channel:Channel):Promise<void> =>
     }
 }
 
-
 //on farmer accept the payment is starting processing (the captured payment is starting )
 //this order consume(listen) for payment response (succeessed, rejected)
 const farmerAcceptOrderPaymentDirectConsumer = async (channel:Channel):Promise<void> => {
@@ -70,7 +53,6 @@ const farmerAcceptOrderPaymentDirectConsumer = async (channel:Channel):Promise<v
         const queueName = 'payment-order-result-queue';
         const routingKey = 'payment-order-result-key'; 
 
-        //Asserts an exchange into existence (set direct) --- set durable to true(makes queue survive)
         await channel.assertExchange(exchangeName, 'direct', {durable:true});
         const farmerAcceptQueue = channel.assertQueue(queueName, {durable: true});
         await channel.bindQueue((await farmerAcceptQueue).queue, exchangeName,  routingKey);        
@@ -80,14 +62,10 @@ const farmerAcceptOrderPaymentDirectConsumer = async (channel:Channel):Promise<v
             try{
                 //msg! garante that msg is not null or undefined
                 const {type, data} = JSON.parse(msg!.content.toString());
-                
                 console.log("DATA REEEEE: ", data);
-                console.log("DATA REEEEE TYPE: ", type);
 
                 if(type == 'ApprovePaymentSuccess'){            
                     console.log("\n Order place Data: ", data);
-                    
-                    await stripe.paymentIntents.capture(data.payment_intent_id);
                     await changeOrderStatus(data.order_id, 'accepted', 'paid');
 
                     //publish message to Notification
@@ -100,13 +78,13 @@ const farmerAcceptOrderPaymentDirectConsumer = async (channel:Channel):Promise<v
                         receiverEmail: data.customer_email, //to the Customer
                         farmerUsername: data.farmer_username,
                         customerUsername: data.customer_username,
-                        totalAmount: data.total_amount,
+                        totalPrice: data.total_price,
                         orderItems: data.orderItems
                     }
 
                     const notificationMessage = `Your orderID: ${data.order_id} approved by farmer: ${data.farmer_username} `
                     const logMessage = 'Send farmer approve email data to notification service';
-                    const notification: OrderNotificationInterface = {
+                    const notification: NotificationInterface = {
                         type: 'Order', 
                         orderID: data.order_id,
                         senderID: data.farmer_id,  
@@ -135,11 +113,8 @@ const farmerAcceptOrderPaymentDirectConsumer = async (channel:Channel):Promise<v
 
                 //payment Fail on orderAccepted
                 if (type == 'ApprovePaymentFailed'){
-                    //Change order status to "Payment Failed" 
-
-                    await stripe.paymentIntents.cancel(data.payment_intent_id);
-                    await changeOrderStatus(data.order_id, 'paymentFailed');
-                    
+                    // await stripe.paymentIntents.cancel(data.payment_intent_id);
+                    await changeOrderStatus(data.order_id, 'paymentFailed', 'canceled');
                    
                     const emailMessage: OrderEmailMessageInterface = {
                         template: "orderPaymentFailed", //email template -> to the Customer 
@@ -152,14 +127,14 @@ const farmerAcceptOrderPaymentDirectConsumer = async (channel:Channel):Promise<v
                         farmerEmail: data.farmer_email,
                         customerUsername: data.customer_username,
                         customerEmail: data.customer_email,
-                        totalAmount: data.total_amount,
+                        totalPrice: data.total_price,
                         orderItems: data.orderItems,
                         bothUsers: true
                     }
 
                     const notificationMessage = ` Your payment failed on order: ${data.order_id} `
                     const logMessage = 'Send order reject email to users to notification service';
-                    const notification: OrderNotificationInterface = {
+                    const notification: NotificationInterface = {
                         type: 'Order', 
                         orderID: data.order_id,
                         senderID: data.farmer_id,  
@@ -188,14 +163,11 @@ const farmerAcceptOrderPaymentDirectConsumer = async (channel:Channel):Promise<v
                     // log.info("Order Service: order approved - payment succeeded message recevied");
                 }
 
-                //When Farmer reject customer requested order(that is paid with stripe)
-                // if (type == 'paymentRejected'){
-                if (type == 'paymentCanceled'){
+                if (type == 'paymentCanceled'){;
                     await changeOrderStatus(data.order_id, "canceled", "canceled");
 
                     const emailMessage: OrderEmailMessageInterface = {
                         template: "orderCanceled", //email template -> to the Customer 
-                        // type: "ca", //panding status
                         type: "canceled", 
                         orderUrl: `${config.CLIENT_URL}/order/${data.order_id}`,
                         orderID: data.order_id,
@@ -203,13 +175,13 @@ const farmerAcceptOrderPaymentDirectConsumer = async (channel:Channel):Promise<v
                         receiverEmail: data.customer_email, //to the Customer
                         farmerUsername: data.farmer_username,
                         customerUsername: data.customer_username,
-                        totalAmount: data.total_amount,
+                        totalPrice: data.total_price,
                         orderItems: data.orderItems
                     }
 
                     const notificationMessage = ` Your requested order has canceled by: ${data.farmer_username} `
                     const logMessage = 'Send order cancel email to users to notification service';
-                    const notification: OrderNotificationInterface = {
+                    const notification: NotificationInterface = {
                         type: 'Order', 
                         orderID: data.order_id,
                         senderID: data.farmer_id,  

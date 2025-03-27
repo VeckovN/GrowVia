@@ -4,17 +4,53 @@ import { z } from 'zod';
 const OrderCreateZodSchema = z.object({
     customer_id: z.string().min(1, "Customer ID is required"),
     farmer_id: z.string().min(1, "Farmer ID is required"),
-    total_amount: z.number().min(0, "Total amount must be non-negative"),
-    payment_status: z.string().min(1, "Payment status is required"),
-    order_status: z.string().default('Pending Farmer Approval'),
+    // total_amount: z.number().min(0, "Total amount must be non-negative"),
+    customer_email: z.string().min(1, "Customer Email is required").email("Invalid email format"),
+    customer_username: z.string()
+        .min(3, "Customer Username too short")
+        .max(30, "Customer Username to long")
+        .regex(
+            /^[a-zA-Z][a-zA-Z0-9_]*$/,
+            "Username must start with a letter and can only contain letters, numbers, and underscores"
+        ),
+    farmer_email: z.string().min(1, "Farmer Email is required").email("Invalid email format"),
+    farmer_username: z.string()
+        .min(3, "Farmer Username too short")
+        .max(30, "Farmer Username to long")
+        .regex(
+            /^[a-zA-Z][a-zA-Z0-9_]*$/,
+            "Username must start with a letter and can only contain letters, numbers, and underscores"
+    ),
+    invoice_id: z.string().min(1, "Order Invoice iD is required").max(50, "Invoice ID too long"),
+    total_price: z.number().min(0.01, "Amount must be at least 0.01").max(100000, "Amount too large"),
+    order_status: z.enum([
+        'pending',
+        'accepted',
+        'canceled',
+        'processing',
+        'shipped',
+        'completed'
+    ]).default('pending'),
+    payment_status: z.enum([
+        'pending',
+        'authorized',
+        'paid',
+        'refunded',
+        'canceled'
+    ]),
+    payment_type: z.enum(['stripe', 'cod']),
+    payment_method: z.string().optional(), //relaeted to stripe
     payment_intent_id: z.string().optional(),
-    payment_token: z.string().optional(),
-    shipping_address: z.string().optional(),
-    billing_address: z.string().optional(),
+    payment_method_id: z.string().optional(),
+    // payment_expires_at: z.date().optional(), 
+    payment_expires_at: z.string().optional(), 
+    shipping_address: z.string().max(100, "Address too long").optional(),
+    billing_address: z.string().max(100, "Address too long").optional(),
     delivery_date: z.string().optional(),
     tracking_url: z.string().optional(),
-    payment_method: z.string().optional(),
+
 })
+
 
 // Order Update Schema (optional fields)
 const OrderUpdateZodSchema = OrderCreateZodSchema.partial();

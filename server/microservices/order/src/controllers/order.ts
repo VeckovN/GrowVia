@@ -1,4 +1,6 @@
-import { OrderDocumentInterface } from '@veckovn/growvia-shared';
+import { OrderDocumentInterface, BadRequestError } from '@veckovn/growvia-shared';
+import { OrderCreateZodSchema } from '@order/schema/order.schema';
+import { z } from 'zod';
 import { Request, Response } from 'express';
 import {
     placeOrder,
@@ -18,15 +20,29 @@ const getOrder = async(req:Request, res:Response):Promise<void> => {
 }   
 
 const placeCustomerOrder = async(req:Request, res:Response):Promise<void> => {
-    await placeOrder(req.body);
-    res.status(200).json({message:"Customer order created - pending:"});
+    try{
+        OrderCreateZodSchema.parse(req.body);
+        await placeOrder(req.body);
+        res.status(200).json({message:"Customer order created - pending:"});
+    }
+    catch(error){
+        if(error instanceof z.ZodError){ 
+            const errorMessages = error.errors.map((err) => ({
+                field: err.path.join('.'),
+                message: err.message,
+            }));
+            
+            //this throws error that returns res.status(error.statusCode) as middleware - in server.ts)
+            throw BadRequestError(`Invalid form data, error: ${JSON.stringify(errorMessages)} `, 'productCustomerZodSchema validation');
+        } 
+    }
 }
 
 //approve/${orderID}
 const approveOrder = async(req:Request, res:Response):Promise<void> => {
     await farmerApproveOrder(req.params.orderID);
     res.status(200).json({message:`Farmer approved order`});
-}
+} 
 
 const cancelPlacedOrder = async(req:Request, res:Response):Promise<void> => {
     await cancelOrder(req.params.orderID);
