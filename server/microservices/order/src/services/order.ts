@@ -18,7 +18,7 @@ const getOrderByID = async(orderID: string):Promise<OrderDocumentInterface | nul
         const resultOrderItems = await pool.query(`SELECT * FROM public.order_items WHERE order_id = $1 `, [orderID]);  
         const order: OrderDocumentInterface = {
             ...resultOrder.rows[0],
-            items: resultOrderItems.rows as OrderItemDocumentInterface[],
+            orderItems: resultOrderItems.rows as OrderItemDocumentInterface[],
         }
 
         return order;
@@ -404,16 +404,15 @@ const farmerStartOrderDelivery = async(orderID: string):Promise<void> => {
             notification
         );
 
-
-         //Ack expected in consumer (after the productService decrease order products)
+        //Ack expected in consumer (after the productService decrease order products)
         //PUBLISH TO PRODUCT SERVICE (to decrease products amount that are delivering)       
-        // await publishMessage(
-        //     orderChannel,
-        //     'decrease-ordered-product',
-        //     'decrease-ordered-product-key',
-        //     'Send order data to decrease amount of ordered products to Product service',
-        //     JSON.stringify({order: orderData})
-        // )
+        await publishMessage(
+            orderChannel,
+            'decrease-ordered-product',
+            'decrease-ordered-product-key',
+            'Send order data to decrease amount of ordered products to Product service',
+            JSON.stringify({data: orderData.orderItems})
+        )
     }
     catch(error){
         log.log("error", "Order service: order delivery can't be started");

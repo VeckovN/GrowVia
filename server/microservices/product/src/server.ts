@@ -12,6 +12,7 @@ import { verify } from "jsonwebtoken";
 import { mongoDBconnection } from "@product/database";
 import { appRoutes } from "@product/routes";
 import { createConnection } from "@product/rabbitmqQueues/rabbitmq";
+import { decreseProductsOrderDirectConsumer } from "@product/rabbitmqQueues/consumer";
 import { Channel } from "amqplib";
 const Server_port = 4004;
 const log: Logger = winstonLogger(`${config.ELASTICSEARCH_URL}`, 'ProductService', 'debug');
@@ -38,6 +39,7 @@ function startElasticsearch():void{
     createIndex('products');
 }
 
+
 function startRedis():void{
     redisConnect();
 }
@@ -49,6 +51,7 @@ function startMongoDB():void{
 async function startRabbitmqQueue():Promise<void>{
     // //create ProductChannel (consuming/listening):
     productChannel = await createConnection() as Channel;
+    await decreseProductsOrderDirectConsumer(productChannel);
 } 
 
 function errorHandlerMiddleware(app: Application):void{

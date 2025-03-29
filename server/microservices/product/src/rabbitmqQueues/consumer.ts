@@ -1,0 +1,45 @@
+import { winstonLogger } from "@veckovn/growvia-shared";
+import { Logger } from "winston";
+import { Channel, ConsumeMessage } from 'amqplib';
+import { config } from '@product/config';
+import { decreaseProductStock } from "@product/services/product";
+// import { orderChannel } from '@product/server';
+// import { orderSocketIO } from "@product/server";
+// import { postOrderNotificationWithEmail } from "@product/helper";
+
+const log:Logger = winstonLogger(`${config.ELASTICSEARCH_URL}`, 'productRabbitMQConsumer', 'debug');
+
+export const decreseProductsOrderDirectConsumer = async (channel:Channel):Promise<void> => {
+    try{
+        //consumer is Payment Service on getting 'order.created' message 
+        const exchangeName = 'decrease-ordered-product';
+        const queueName = 'decrease-ordered-product-queue';
+        const routingKey = 'decrease-ordered-product-key'
+  
+        await channel.assertExchange(exchangeName, 'direct', {durable:true});
+        const orderProductQueue = channel.assertQueue(queueName, {durable: true});
+        await channel.bindQueue((await orderProductQueue).queue, exchangeName,  routingKey);        
+        
+        channel.consume((await orderProductQueue).queue, async (msg: ConsumeMessage | null)=>{
+            if(!msg) return;
+            try{
+                const { data } = JSON.parse(msg!.content.toString());
+                
+                console.log("Product Service data: ", data);
+                const newUpdatedProducts = await decreaseProductStock(data);
+                console.log("New Updated Product: ", newUpdatedProducts);
+
+                channel.ack(msg!);
+            }
+            catch(error){
+                log.log("error", "Order Service error processing message:", error);
+                // channel.nack(msg, false, true) //Requeue message instead of moving to DLQ
+            }   
+        });
+        log.info(`Users service customer consumer initialized`);
+    }
+    catch(error){
+        //log? due to test fixing undefied log
+        log?.log('error', "Order service customerDirectConsumer failed: ", error);
+    }
+}

@@ -1,4 +1,4 @@
-import { ProductDocumentInterface  } from "@veckovn/growvia-shared";
+import { ProductDocumentInterface, OrderItemDocumentInterface } from "@veckovn/growvia-shared";
 import { getDataIndex, addDataToIndex, updateDataIndex, deleteDataIndex } from "@product/elasticsearch";
 import { ProductModel } from "@product/model/product";
 import { productsSerachByFarmerID, productsSerachByCategory } from "@product/services/search";
@@ -22,7 +22,7 @@ const createProduct = async(product:ProductDocumentInterface):Promise<ProductDoc
 }
 
 const updateProduct = async(productID: string, product:ProductDocumentInterface):Promise<ProductDocumentInterface> =>{
-    //id as productID 
+    //id as productID
     const updatedDocument = await ProductModel.findOneAndUpdate(
         { _id: productID },
         {
@@ -49,6 +49,7 @@ const updateProduct = async(productID: string, product:ProductDocumentInterface)
 
     return updatedDocument;
 }
+
 
 const deleteProduct = async(productID: string):Promise<void> =>{
 // const deleteProduct = async(productID: string, farmerID: string):Promise<void> =>{
@@ -85,11 +86,35 @@ const getProductsByCategory = async(category: string): Promise<ProductDocumentIn
     return productsResult;
 }
 
+const decreaseProductStock = async(orderProductList: OrderItemDocumentInterface[]) => {
+    //bulkWrite()
+    //Performance: Executes multiple updates in one operation instead of making separate calls for each product.
+    //Atomicity: Reduces the risk of inconsistencies when multiple orders modify the stock.
+    const bulkOperations = orderProductList.map((orderItem) => ({
+        updateOne:{
+            filter: { _id: orderItem.product_id},
+            update: { $inc: { stock: -orderItem.quantity } }
+        }
+    }));
+
+    if (bulkOperations.length > 0) {
+        await ProductModel.bulkWrite(bulkOperations);
+    }
+
+    const updatedProducts = await ProductModel.find({
+        _id: { $in: orderProductList.map((item) => item.product_id) }
+    });
+
+    return updatedProducts;
+
+}
+
 export {
     createProduct,
     updateProduct,
     deleteProduct,
     getProductById,
     getFarmerProducts,
-    getProductsByCategory
+    getProductsByCategory,
+    decreaseProductStock
 }
