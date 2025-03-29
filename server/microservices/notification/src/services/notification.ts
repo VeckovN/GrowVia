@@ -1,9 +1,16 @@
 import { NotificationInterface } from "@veckovn/growvia-shared";
 import { NotificationModel } from "@notification/model/notification";
+import mongoose from 'mongoose'
 
 
 const storeNotification = async(notification: NotificationInterface): Promise<NotificationInterface> => {
-    const data:NotificationInterface = await NotificationModel.create(notification);
+    const notificationObject:NotificationInterface = {
+        ...notification,
+        receiverID: new mongoose.Types.ObjectId(notification.receiverID),
+        senderID: new mongoose.Types.ObjectId(notification.senderID)
+    }
+    
+    const data:NotificationInterface = await NotificationModel.create(notificationObject);
     return data;
 }
 

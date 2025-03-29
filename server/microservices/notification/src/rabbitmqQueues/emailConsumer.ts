@@ -64,7 +64,7 @@ async function OrderEmailConsumer(channel: Channel): Promise<void> {
                 farmerEmail,
                 customerUsername,
                 customerEmail,
-                totalAmount,
+                totalPrice,
                 orderItems,
                 bothUsers
             } = JSON.parse(msg!.content.toString());
@@ -81,26 +81,22 @@ async function OrderEmailConsumer(channel: Channel): Promise<void> {
                 receiverEmail,
                 farmerUsername,
                 customerUsername,
-                totalAmount,
+                totalPrice,
                 orderItems
             };
 
             console.log("")
             //send emails to both users
             if(bothUsers){
-                console.log("BOTHUSERS BOOOOOOOOTHHHHH");
+                console.log("BOTHUSERS Notification");
                 await Promise.all([
                     sendEmail(template, customerEmail, locals),
                     sendEmail(template, farmerEmail, locals),
                     // storeNotificationToBothUsers(notification),
                 ])
-                // await sendEmail(template, customerEmail, locals);
-                // await sendEmail(template, farmerEmail, locals);
-                //storeNotification 
-                // await storeNotificationToBothUsers(notification);
             } 
             else {
-                console.log("BOTHUSERS SINGLEEEE  notificatioN: ", notification);
+                console.log("SINGLEEEE  Notification: ", notification);
                 await sendEmail(template, receiverEmail, locals);
                 //storeNotification
                 await storeNotification(notification);
