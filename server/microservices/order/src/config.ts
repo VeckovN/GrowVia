@@ -4,6 +4,7 @@ dotenv.config();
 
 interface Config {
     NODE_ENV: string | undefined;
+    RUNNING_IN_DOCKER: string | undefined;
     API_GATEWAY_URL: string | undefined;
     CLIENT_URL: string | undefined;
     ELASTICSEARCH_URL: string | undefined;
@@ -23,6 +24,7 @@ interface Config {
 
 export const config: Config = {
     NODE_ENV: process.env.NODE_ENV || '',
+    RUNNING_IN_DOCKER: process.env.RUNNING_IN_DOCKER || '',
     API_GATEWAY_URL: process.env.API_GATEWAY_URL || '',
     CLIENT_URL: process.env.CLIENT_URL || '',
     ELASTICSEARCH_URL: process.env.ELASTICSEARCH_URL || '', 
