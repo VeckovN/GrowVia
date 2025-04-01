@@ -99,7 +99,10 @@ async function OrderEmailConsumer(channel: Channel): Promise<void> {
                 console.log("SINGLEEEE  Notification: ", notification);
                 await sendEmail(template, receiverEmail, locals);
                 //storeNotification
-                await storeNotification(notification);
+                if(notification){
+                    await storeNotification(notification);
+                }
+                // await storeNotification(notification);
             }
 
             channel.ack(msg!);
@@ -129,7 +132,10 @@ async function OrderNotificationConsumer(channel: Channel): Promise<void> {
             } = JSON.parse(msg!.content.toString());
 
             //just store notification
-            await storeNotification(notification);
+            if(notification){
+                await storeNotification(notification);
+            }
+            // await storeNotification(notification);
             
             channel.ack(msg!);
         });

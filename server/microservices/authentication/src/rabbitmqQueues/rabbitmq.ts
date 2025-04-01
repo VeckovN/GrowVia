@@ -4,15 +4,16 @@
 
 import { winstonLogger } from "@veckovn/growvia-shared";
 import { Logger } from "winston";
-import client, { Channel, Connection } from 'amqplib';
+// import client, { Channel, Connection } from 'amqplib';
+import * as amqp from 'amqplib'; 
 import { config } from '@authentication/config';
 
 const log:Logger = winstonLogger(`${config.ELASTICSEARCH_URL}`, 'authenticationRabbitMQConnection', 'debug');
 
-export async function createConnection():Promise<Channel | undefined> {
+export async function createConnection():Promise<amqp.Channel | undefined> {
     try{
-        const connection:Connection = await client.connect(`${config.RABBITMQ_AMQP_ENDPOINT}`);
-        const channel: Channel = await connection.createChannel();
+        const connection:amqp.Connection = await amqp.connect(`${config.RABBITMQ_AMQP_ENDPOINT}`);
+        const channel: amqp.Channel = await connection.createChannel();
         log.info('Authentication service connected to RabbitMQ successfully');
         return channel;
     }

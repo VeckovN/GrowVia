@@ -91,7 +91,7 @@ const orderSocketServiceConnection = (io:Server):void => {
 
     orderSocketClient.on('disconnect', () =>{
         log.error('OrderSocket disconnected ');
-        orderSocketClient.connect();
+        // orderSocketClient.connect();
     });
 
     //listener on socket.emit from Order Notification

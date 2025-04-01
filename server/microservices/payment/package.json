@@ -3,7 +3,9 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "jest --coverage=true -w=1 --forceExit --detectOpenHandles --watchAll=false",
+    "dev": "nodemon -r tsconfig-paths/register src/app.ts | pino-pretty -c",
+    "build": "tsc --project tsconfig.json && tsc-alias -p tsconfig.json"
   },
   "keywords": [],
   "author": "",
@@ -11,8 +13,8 @@
   "description": "",
   "dependencies": {
     "@elastic/elasticsearch": "^8.17.1",
-    "@veckovn/growvia-shared": "^0.3.2",
-    "amqplib": "^0.10.5",
+    "@veckovn/growvia-shared": "^0.3.9",
+    "amqplib": "^0.10.3",
     "compression": "^1.8.0",
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
@@ -27,7 +29,7 @@
   },
   "devDependencies": {
     "@jest/types": "^29.6.3",
-    "@types/amqplib": "^0.10.6",
+    "@types/amqplib": "^0.8.2",
     "@types/compression": "^1.7.5",
     "@types/cors": "^2.8.17",
     "@types/express": "^5.0.0",
