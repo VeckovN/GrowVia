@@ -1,15 +1,13 @@
 "use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.healthRoute = healthRoute;
-const express_1 = __importDefault(require("express"));
-const router = express_1.default.Router();
-function healthRoute() {
-    router.get("/notification-health", (_req, res) => {
-        res.status(200).send("Notification service is OK");
-    });
-    return router;
+exports.appRoutes = appRoutes;
+const growvia_shared_1 = require("@veckovn/growvia-shared");
+const health_1 = require("./routes/health");
+const notification_1 = require("./routes/notification");
+const BASE_PATH = '/api/v1/notification';
+function appRoutes(app) {
+    app.use('', (0, health_1.healthRoutes)());
+    app.use(`${BASE_PATH}`, growvia_shared_1.verifyGateway, (0, notification_1.notificationRoutes)());
+    // app.use(`${BASE_PATH}`, verifyGateway, searchRoutes()); 
 }
 //# sourceMappingURL=routes.js.map

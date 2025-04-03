@@ -15,20 +15,37 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.start = start;
 const http_1 = __importDefault(require("http"));
 const growvia_shared_1 = require("@veckovn/growvia-shared");
+const express_1 = require("express");
+const helmet_1 = __importDefault(require("helmet"));
+const cors_1 = __importDefault(require("cors"));
+const compression_1 = __importDefault(require("compression"));
+const jsonwebtoken_1 = require("jsonwebtoken");
+const config_1 = require("./config");
 const routes_1 = require("./routes");
 const elasticsearch_1 = require("./elasticsearch");
 const rabbitmq_1 = require("./rabbitmqQueues/rabbitmq");
+const database_1 = require("./database");
 const emailConsumer_1 = require("./rabbitmqQueues/emailConsumer");
-const config_1 = require("./config");
 const Server_port = 4001;
 const log = (0, growvia_shared_1.winstonLogger)(`${config_1.config.ELASTICSEARCH_URL}`, 'notificationService', 'debug');
-function start(app) {
-    startServer(app);
+function compressRequestMiddleware(app) {
+    app.use((0, compression_1.default)());
+    app.use((0, express_1.json)({
+        limit: '200mb',
+    }));
+    app.use((0, express_1.urlencoded)({
+        limit: '200mb',
+        extended: true
+    }));
+}
+function routesMiddleware(app) {
+    (0, routes_1.appRoutes)(app);
+}
+function startElasticsearch() {
     (0, elasticsearch_1.checkConnection)();
-    //the only route that isn;t passed through API Gataway(used for checking status of this service)
-    app.use('', (0, routes_1.healthRoute)());
-    //rabbitMQ queue connection
-    startQueues();
+}
+function startMongoDB() {
+    (0, database_1.mongoDBconnection)();
 }
 function startQueues() {
     return __awaiter(this, void 0, void 0, function* () {
@@ -37,10 +54,25 @@ function startQueues() {
         yield (0, emailConsumer_1.AuthEmailConsumer)(emailChannel);
         yield (0, emailConsumer_1.OrderEmailConsumer)(emailChannel);
         yield (0, emailConsumer_1.PaymentEmailConsumer)(emailChannel);
-        // await publishMessages(emailChannel);
     });
 }
-function startServer(app) {
+function errorHandlerMiddleware(app) {
+    app.use((error, _req, res, next) => {
+        if (error.statusCode) {
+            log.log('error', `Notification Service Error:`, error);
+            res.status(error.statusCode).json({
+                message: error.message,
+                statusCode: error.statusCode,
+                status: error.status,
+                comingFrom: error.comingFrom
+            });
+        }
+        // else if(isAxiosError(error))
+        //handle axios errors() -> comes from ApiGateway
+        next();
+    });
+}
+function startHttpServer(app) {
     try {
         const server = new http_1.default.Server(app);
         log.info(`Notification service starting, process ID:${process.pid}`);
@@ -52,37 +84,29 @@ function startServer(app) {
         log.log('error', 'Notification service running error ', err);
     }
 }
-// @ts-ignore (avoid unused function errior)
-function publishMessages(channel) {
-    return __awaiter(this, void 0, void 0, function* () {
-        //publish some test messages (ofc to exchanger)
-        const authEmailExchangeName = 'auth-email-notification';
-        const authEmailRoutingKey = 'auth-email-key';
-        yield channel.assertExchange(authEmailExchangeName, 'direct');
-        //all props for sending 'verifyEmail' 
-        //Token for getting response on email confirm
-        const emailAuthMessage = {
-            template: 'verifyEmail',
-            receiverEmail: `${config_1.config.TEST_EMAIL}`, //sender mail
-            resetLink: `${config_1.config.CLIENT_URL}/confirm_email_EXAMPLE_NOT_GENERATED`,
-            username: "TestUsername"
-        };
-        const message = JSON.stringify(emailAuthMessage);
-        channel.publish(authEmailExchangeName, authEmailRoutingKey, Buffer.from(message));
-        const orderEmailExchangeName = 'order-email-notification';
-        const orderEmailRoutingKey = 'order-email-key';
-        yield channel.assertExchange(orderEmailExchangeName, 'direct');
-        // const emailOrderMessage: EmailLocalsInterface = {
-        //     template:'orderProduct',
-        //     receiverEmail: `${config.TEST_EMAIL}`,
-        // }
-        const messageOrder = JSON.stringify({ name: "growvia", service: "notification", context: "Test order message" });
-        channel.publish(orderEmailExchangeName, orderEmailRoutingKey, Buffer.from(messageOrder));
-        const paymentEmailExchangeName = 'payment-email-notification';
-        const paymentEmailRoutingKey = 'payment-email-key';
-        yield channel.assertExchange(orderEmailExchangeName, 'direct');
-        const messagePayment = JSON.stringify({ name: "growvia", service: "notification", context: "Test payment message" });
-        channel.publish(paymentEmailExchangeName, paymentEmailRoutingKey, Buffer.from(messagePayment));
+function start(app) {
+    app.set('trust proxy', 1);
+    app.use((0, helmet_1.default)());
+    app.use((0, cors_1.default)({
+        origin: config_1.config.API_GATEWAY_URL,
+        credentials: true, //enable to detach the JTW Token to every request comming from the client
+        methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH']
+    }));
+    app.use((req, _res, next) => {
+        //check does JWT_TOKEN exist in authorization header
+        if (req.headers.authorization) {
+            const token = req.headers.authorization.split(" ")[1];
+            const payload = (0, jsonwebtoken_1.verify)(token, `${config_1.config.JWT_TOKEN}`);
+            req.currentUser = payload;
+        }
+        next();
     });
+    compressRequestMiddleware(app);
+    routesMiddleware(app);
+    startElasticsearch();
+    startMongoDB();
+    startQueues();
+    errorHandlerMiddleware(app);
+    startHttpServer(app);
 }
 //# sourceMappingURL=server.js.map
