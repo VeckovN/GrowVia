@@ -20,7 +20,7 @@ const productCreate = async (req: Request, res: Response): Promise<void> => {
             farmerID: req.body.farmerID,
             name: req.body.name,
             // images: `${uploadImg.secure_url}, //already uploaded images
-            images: req.body.images, //for test
+            images: req.body.images, //for test *array of {url, publicID}
             description: req.body.description,
             shortDescription: req.body.shortDescription,
             category: req.body.category,

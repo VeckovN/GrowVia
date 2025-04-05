@@ -1,11 +1,16 @@
 import { CustomerDocumentInterface } from "@veckovn/growvia-shared";
+import { uploadImageToCloudinary, updateImageInCloudinary } from '@users/helper';
 import { CustomerModel } from "@users/models/customer";
 
 const createCustomer = async(customerData: CustomerDocumentInterface):Promise<void> =>{
     const checkCustomerUser:CustomerDocumentInterface = await CustomerModel.findOne({username: `${customerData.username}`})
         .exec() as CustomerDocumentInterface; 
     if(!checkCustomerUser){
-        await CustomerModel.create(customerData);
+
+        const { profilePublicID, profilePicture } = await uploadImageToCloudinary(customerData); 
+        const customerCreateData = { ...customerData, profilePicture, profilePublicID };
+
+        await CustomerModel.create(customerCreateData);
     }
 }
 
@@ -19,27 +24,47 @@ const getCustomerByEmail = async(email: string): Promise<CustomerDocumentInterfa
     return customerUser;
 }
 
-// if a property is not set in customerData, it will not be included in the update.
 const updateCustomerDataByID = async(customerID: string, customerData:CustomerDocumentInterface) =>{
-    //to update and return newUpdated document -> findOnAndUpdate
-    const updatedUser = CustomerModel.findOneAndUpdate(
-        { _id: customerID },
-        {
-            $set: {
-                username: customerData.username, 
-                email: customerData.email, 
-                fullName: customerData.fullName, 
-                location: customerData.location, 
-                profilePicture: customerData.profilePicture,
-                purchasedProducts: customerData.purchasedProducts,
-                wishlist: customerData.wishlist, 
-                savedFarmers: customerData.savedFarmes, 
-                orderHistory: customerData.orderHistroy
+    const existingCustomerData: CustomerDocumentInterface | null = await CustomerModel.findOne({ _id:customerID }).exec();
+    console.log("ExistingCUstomerDatA: ", existingCustomerData);
+
+    if(existingCustomerData)
+    {
+        let newProfilePicture = customerData?.profilePicture;
+        //if customerData contains profilePicture (new picture) FIle
+        if(customerData.profilePicture && customerData.profilePublicID){
+            try{
+                const { profilePicture } = await updateImageInCloudinary(customerData.profilePicture, customerData.profilePublicID);
+                newProfilePicture = profilePicture;
             }
-        },
-        { new: true } //return new updated document
-    );
-    return updatedUser;
+            catch(error){
+                newProfilePicture = existingCustomerData?.profilePicture;
+            }
+        }
+
+        //to update and return newUpdated document -> findOnAndUpdate
+        const updatedUser = CustomerModel.findOneAndUpdate(
+            { _id: customerID },
+            {
+                $set: {
+                    username: customerData.username, 
+                    email: customerData.email, 
+                    fullName: customerData.fullName, 
+                    location: customerData.location, 
+                    profilePicture: newProfilePicture,
+                    purchasedProducts: customerData.purchasedProducts,
+                    wishlist: customerData.wishlist, 
+                    savedFarmers: customerData.savedFarmes, 
+                    orderHistory: customerData.orderHistroy
+                }
+            },
+            { new: true } //return new updated document
+        );
+        return updatedUser;
+    }
+    else{
+        return null;
+    }
 }
 
 const updateCustomerWishlist = async(customerID: string, productID: string, action: 'add' | 'remove'):Promise<void> =>{

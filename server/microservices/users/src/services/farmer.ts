@@ -1,11 +1,16 @@
 import { FarmerDocumentInterface } from "@veckovn/growvia-shared";
 import { FarmerModel } from "@users/models/farmer";
+import { uploadImageToCloudinary } from "@users/helper";
 
 const createFarmer = async(farmerData: FarmerDocumentInterface):Promise<void> =>{
     const checkCustomerUser:FarmerDocumentInterface = await FarmerModel.findOne({username: `${farmerData.username}`})
         .exec() as FarmerDocumentInterface; 
     if(!checkCustomerUser){
-        await FarmerModel.create(farmerData);
+        
+        const { profilePublicID, profilePicture } = await uploadImageToCloudinary(farmerData); 
+        const farmerCreateData = { ...farmerData, profilePicture, profilePublicID };
+        
+        await FarmerModel.create(farmerCreateData);
     }
 }
 

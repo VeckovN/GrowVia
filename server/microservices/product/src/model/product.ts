@@ -5,7 +5,10 @@ const ProductSchema: Schema = new Schema(
     {
         farmerID: { type: mongoose.Schema.Types.ObjectId, index:true, require:true}, //Farmer user id  from Users Service DB (mongoDB as well)
         name: { type: String, required: true },
-        images: [{ type: String, required: true}],
+        images: [{
+            url: { type: String, required: true },
+            publicID: { type: String, required: true } 
+        }],
         description: { type: String, required: true },
         shortDescription: { type: String, required: true }, //SINTAX FIXED
         category: { type: String, required: true },

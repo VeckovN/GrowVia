@@ -1,13 +1,25 @@
-import { ProductDocumentInterface, OrderItemDocumentInterface } from "@veckovn/growvia-shared";
+import { BadRequestError, ProductDocumentInterface, OrderItemDocumentInterface, ProductCreateInterface } from "@veckovn/growvia-shared";
 import { getDataIndex, addDataToIndex, updateDataIndex, deleteDataIndex } from "@product/elasticsearch";
 import { ProductModel } from "@product/model/product";
+import { uploadProductImageToCloudinary } from "@product/helper";
 import { productsSerachByFarmerID, productsSerachByCategory } from "@product/services/search";
 
-const createProduct = async(product:ProductDocumentInterface):Promise<ProductDocumentInterface> =>{
-    const createdDocument = await ProductModel.create(product);
-    //the new created document will be returned
 
-    console.log("createdDocument: ", createdDocument);
+const createProduct = async(product:ProductCreateInterface):Promise<ProductDocumentInterface> =>{
+    
+    const images = product.images as string[];
+    if (!images || images.length === 0) {
+        throw BadRequestError("At least one image is required", "Product Service");
+    }
+    
+    const uploadedImages = await uploadProductImageToCloudinary(images); 
+    const createProductData: ProductCreateInterface = {
+        ...product,
+        images: uploadedImages
+    }
+    
+    const createdDocument = await ProductModel.create(createProductData);
+
     //Store it in ELasticSearch (JSON object should be stored) -> Transform _id to id 
     if(createdDocument){ 
         //if the products is created, the toJSON (that transform _id to id) will be added to every object 

@@ -59,6 +59,11 @@ const FarmerSchema: Schema = new Schema(
             trim: true,
             //match: /^https?:\/\/.+\.(jpg|jpeg|png|gif)$/, // Only allow valid image URLs
         }, 
+        profilePublicID: {  //cloudinary image id
+            type: String,
+            default: "", 
+            trim: true,
+        }, 
         description: {
             type: String,
             trim: true,

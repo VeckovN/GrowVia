@@ -6,6 +6,7 @@ import helmet from "helmet";
 import cors from 'cors';
 import compression from "compression";
 import http from 'http';
+import cloudinary from 'cloudinary';
 import { checkConnection, createIndex} from "@product/elasticsearch";
 import { redisConnect } from "@product/redis";
 import { verify } from "jsonwebtoken";
@@ -46,6 +47,16 @@ function startRedis():void{
 
 function startMongoDB():void{
     mongoDBconnection();
+}
+
+function configCloudinary():void {
+    cloudinary.v2.config({
+        cloud_name: config.CLOUDINARY_NAME, 
+        api_key: config.CLOUDINARY_API_KEY ,
+        api_secret: config.CLOUDINARY_API_SECRET
+    })
+
+    log.info(`Product service config Cloudinary configured`);
 }
 
 async function startRabbitmqQueue():Promise<void>{
@@ -114,6 +125,7 @@ export function start(app:Application){
     startElasticsearch();
     startRedis();
     startMongoDB();
+    configCloudinary();
     startRabbitmqQueue();
     errorHandlerMiddleware(app);
     startHttpAndSocketServer(app);
