@@ -24,7 +24,6 @@ export async function seedUsers(req:Request, res:Response):Promise<void>{
 
     for(let i = 0; i < parseInt(count); i++){
 
-        const profilePublicId = uuidv4();
         const verificationToken = crypto.randomBytes(32).toString("hex");
 
         if(type !== 'customer' && type !== 'farmer')
@@ -37,8 +36,8 @@ export async function seedUsers(req:Request, res:Response):Promise<void>{
             username: generateUniqueUsername(),
             password: 'seedPassword', //same password for everyone
             email: faker.internet.email(),
-            cloudinaryProfilePublicId: profilePublicId,
-            profilePicture: faker.image.urlPicsumPhotos(),
+            // cloudinaryProfilePublicId: profilePublicId,
+            // profilePicture: faker.image.urlPicsumPhotos(),
             verificationEmailToken: verificationToken,
         }
 
@@ -55,6 +54,8 @@ export async function seedUsers(req:Request, res:Response):Promise<void>{
         const firstName = faker.person.firstName(); 
         const lastName = getValidLastName();
 
+        const profilePublicId = uuidv4();
+
         const generatedFullName = `${firstName.charAt(0).toUpperCase() + firstName.slice(1)} ${
             lastName.charAt(0).toUpperCase() + lastName.slice(1)
         }`;
@@ -62,26 +63,30 @@ export async function seedUsers(req:Request, res:Response):Promise<void>{
         const baseData = {
             username: createUserData.username!,
             email: createUserData.email!,
-            profilePicture: createUserData.profilePicture!,
+            // profilePicture: createUserData.profilePicture!,
             fullName: generatedFullName, //First Upper Letter with "FirstName LastName" Structure
-            //user specific type data 
+            //user specific type data     
             address: {
                 country: faker.location.country(),
                 city: faker.location.city(),
                 address: faker.location.streetAddress()
-            }
+            },
+            cloudinaryProfilePublicId: profilePublicId,
+            profilePicture: faker.image.urlPicsumPhotos()
         }
 
         if(type === 'customer'){
             createSpecificUserData = {
                 ...baseData,
                 //other customer specific props
+
             } as CustomerDocumentInterface
         }
         else if (type === 'farmer'){
             createSpecificUserData = {
                 ...baseData,
                 farmName: faker.company.name(),
+
             } as FarmerDocumentInterface
         }
         else{

@@ -20,8 +20,6 @@ export async function createUser(
         password,
         email,
         userType,
-        cloudinaryProfilePublicId,
-        profilePicture,
         verificationEmailToken,
         resetPasswordToken,
         expiresResetPassword
@@ -35,9 +33,9 @@ export async function createUser(
     
     const query = `
         INSERT INTO public.auths (
-            username, password, email, userType, cloudinaryProfilePublicId, profilePicture, 
-            verificationEmailToken, resetPasswordToken, expiresResetPassword, createdAt )
-        VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+            username, password, email, userType, verificationEmailToken, 
+            resetPasswordToken, expiresResetPassword, createdAt )
+        VALUES($1, $2, $3, $4, $5, $6, $7, $8)
         RETURNING *
     `;
 
@@ -46,8 +44,6 @@ export async function createUser(
         hashedPassoword,
         email,
         userType,
-        cloudinaryProfilePublicId,
-        profilePicture,
         verificationEmailToken,
         resetPasswordToken,
         expiresResetPassword,

@@ -8,13 +8,12 @@ import { config } from '@authentication/config';
 import { Pool } from 'pg';
 
 const log: Logger = winstonLogger(`${config.ELASTICSEARCH_URL}`, 'authenticationService', 'debug');
-
-const isDocker = config.RUNNING_IN_DOCKER;
+const isDocker = config.RUNNING_IN_DOCKER === '1';
 
 const pool:Pool = new Pool({
     user: `${config.POSTGRESQL_USER}`,
     password: `${config.POSTGRESQL_PASSWORD}`,
-    host: `${isDocker ? config.POSTGRESQL_HOST : ''}`,
+    host: isDocker ? config.POSTGRESQL_HOST : '',
     port: 5432,
     database: `${config.POSTGRESQL_NAME}`,
 })
@@ -31,8 +30,6 @@ const authUserTable = `
         password text NOT NULL,
         email text NOT NULL UNIQUE,
         userType text NOT NULL,
-        cloudinaryProfilePublicId text NOT NULL, 
-        profilePicture text NOT NULL, 
         verificationEmailToken text, 
         resetPasswordToken text,
         expiresResetPassword timestamp,
@@ -69,8 +66,8 @@ const authUserTable = `
         IF NOT EXISTS (SELECT FROM information_schema.views 
                     WHERE table_name = 'auths_user_without_password') THEN
             CREATE VIEW public.auths_user_without_password AS
-                SELECT id, username, email, cloudinaryProfilePublicId, profilePicture, 
-                    verificationEmailToken, resetPasswordToken, expiresResetPassword, createdAt
+                SELECT id, username, email, verificationEmailToken, 
+                    resetPasswordToken, expiresResetPassword, createdAt
                 FROM public.auths;
         END IF;
     END $$;

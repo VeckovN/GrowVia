@@ -8,8 +8,6 @@ const mapAuthUser = (row:any): AuthUserInterface => {
         password: row.password,
         userType: row?.usertype,
         ...(row.password && { password: row.password }), //inlcude it if exists in the row
-        cloudinaryProfilePublicId: row.cloudinaryprofilepublicid, // Map to camelCase
-        profilePicture: row.profilepicture,
         verificationEmailToken: row.verificationemailtoken,
         resetPasswordToken: row.resetpasswordtoken,
         expiresResetPassword: row.expiresresetpassword,

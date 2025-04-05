@@ -1,7 +1,6 @@
 import { Request, Response } from 'express';
 import { AuthUserInterface, AuthEmailVerificationInterface, EmailLocalsInterface, isEmailValid, ConflictError, BadRequestError, CustomerDocumentInterface, FarmerDocumentInterface} from '@veckovn/growvia-shared';
 import { createUser, getUserByID, getUserByEmail, getUserByUsername, getUserByPasswordToken, updateEmailVerification, updatePasswordTokenExpiration, updatePassword} from '@authentication/services/auth';
-import { v4 as uuidv4 } from 'uuid';
 import crypto from 'crypto';
 import { config } from '@authentication/config';
 import { publishMessage } from "@authentication/rabbitmqQueues/producer";
@@ -14,14 +13,12 @@ const factoryCreateUserData = (
     userType: string,
     username: string,
     email: string,
-    uploadedPictureResult: string,
     otherUserData: any
 ): CustomerDocumentInterface | FarmerDocumentInterface =>{
 
     const baseUserData = { 
         username,
-        email,
-        profilePicture: uploadedPictureResult
+        email
     }
     
     if(userType == 'farmer'){
@@ -52,13 +49,6 @@ export async function create(req:Request, res:Response):Promise<void>{
         throw ConflictError("User exist, cant be created again", "create/signup function error");
     }
 
-    //when we on oue own generate publicID for cloudinary when ever the image is updated the  publicID won't be changed 
-    //but if we let to cloudinary generate it , it will change publicID on every user image changing
-    const profilePublicId = uuidv4();
-    //UPLOAD 'profilePicture' ON CLODINARY with this profilePublicId
-    // const upldatedPicture =  upload(...)
-    const uploadedPictureResult:string =  'not yet uploaded to cloudinary'
-
     //create Publish Message for email-verification
     //Create random values as our Verification Link
     const verificationToken = crypto.randomBytes(32).toString("hex");
@@ -69,17 +59,14 @@ export async function create(req:Request, res:Response):Promise<void>{
         password: password,
         email: email,
         userType: userType,
-        cloudinaryProfilePublicId: profilePublicId,
-        profilePicture: uploadedPictureResult,
         verificationEmailToken: verificationToken,
         // resetPasswordToken,
         // expiresResetPassword
     }
     
-    //add profilePicture: uploadedPictureResult -> from cloudinary uploading
 
     //!watch on parameter order
-    const userTypeData = factoryCreateUserData(userType, username, email, uploadedPictureResult, othersUsersData);
+    const userTypeData = factoryCreateUserData(userType, username, email, othersUsersData);
 
     const userID: number = await createUser(userAuthData, userTypeData);
     // const user:AuthUserInterface = await createUser(req.body);
