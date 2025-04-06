@@ -3,9 +3,6 @@ import { Logger } from "winston";
 import { Channel, ConsumeMessage } from 'amqplib';
 import { config } from '@product/config';
 import { decreaseProductStock } from "@product/services/product";
-// import { orderChannel } from '@product/server';
-// import { orderSocketIO } from "@product/server";
-// import { postOrderNotificationWithEmail } from "@product/helper";
 
 const log:Logger = winstonLogger(`${config.ELASTICSEARCH_URL}`, 'productRabbitMQConsumer', 'debug');
 
@@ -36,7 +33,7 @@ export const decreseProductsOrderDirectConsumer = async (channel:Channel):Promis
                 // channel.nack(msg, false, true) //Requeue message instead of moving to DLQ
             }   
         });
-        log.info(`Users service customer consumer initialized`);
+        log.info(`Product service customer consumer initialized`);
     }
     catch(error){
         //log? due to test fixing undefied log

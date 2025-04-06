@@ -10,11 +10,11 @@ export async function createConnection():Promise<Channel | undefined> {
     try{
         const connection:Connection = await client.connect(`${config.RABBITMQ_AMQP_ENDPOINT}`);
         const channel: Channel = await connection.createChannel();
-        log.info('Product service connected to RabbitMQ successfully');
+        log.info('Order service connected to RabbitMQ successfully');
         return channel;
     }
     catch(error){
-        log.log('error', 'Product service RabbitMQ connection failed: ', error);
+        log.log('error', 'Order service RabbitMQ connection failed: ', error);
         return undefined;
     }
 }

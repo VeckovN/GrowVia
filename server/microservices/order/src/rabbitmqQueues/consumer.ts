@@ -37,7 +37,7 @@ const placeOrderPaymentDirectConsumer = async (channel:Channel):Promise<void> =>
                 channel.nack(msg, false, true) //Requeue message instead of moving to DLQ
             }   
         });
-        log.info(`Users service customer consumer initialized`);
+        log.info(`Order service customer consumer initialized`);
     }
     catch(error){
         //log? due to test fixing undefied log
@@ -213,11 +213,11 @@ const farmerAcceptOrderPaymentDirectConsumer = async (channel:Channel):Promise<v
                 channel.nack(msg, false, true) //Requeue message instead of moving to DLQ
             }   
         });
-        log.info(`Users service customer consumer initialized`);
+        log.info(`Order service customer consumer initialized`);
     }
     catch(error){
         //log? due to test fixing undefied log
-        log?.log('error', "Users service customerDirectConsumer failed: ", error);
+        log?.log('error', "Order service customerDirectConsumer failed: ", error);
     }
 }
 

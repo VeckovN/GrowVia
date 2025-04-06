@@ -86,7 +86,7 @@ const orderSocketServiceConnection = (io:Server):void => {
     })
 
     orderSocketClient.on('connect', () =>{
-        log.info('OrderService socket connected');
+        log.info('Gateway Service socket connected');
     })
 
     orderSocketClient.on('disconnect', () =>{

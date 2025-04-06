@@ -9,11 +9,11 @@ export async function createConnection():Promise<Channel | undefined> {
     try{
         const connection:Connection = await client.connect(`${config.RABBITMQ_AMQP_ENDPOINT}`);
         const channel: Channel = await connection.createChannel();
-        log.info('Users service connected to RabbitMQ successfully');
+        log.info('Payment service connected to RabbitMQ successfully');
         return channel;
     }
     catch(error){
-        log.log('error', 'Users service RabbitMQ connection failed: ', error);
+        log.log('error', 'Payment service RabbitMQ connection failed: ', error);
         return undefined;
     }
 }

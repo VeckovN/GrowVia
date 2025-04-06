@@ -16,7 +16,7 @@ import { Server } from 'socket.io';
 import { placeOrderPaymentDirectConsumer, farmerAcceptOrderPaymentDirectConsumer } from "@order/rabbitmqQueues/consumer";
 // import { placeOrderPaymentDirectConsumer } from "@order/rabbitmqQueues/consumer";
 const Server_port = 4005;
-const log: Logger = winstonLogger(`${config.ELASTICSEARCH_URL}`, 'ProductService', 'debug');
+const log: Logger = winstonLogger(`${config.ELASTICSEARCH_URL}`, 'OrderService', 'debug');
 
 let orderChannel:Channel;
 let orderSocketIO: Server;

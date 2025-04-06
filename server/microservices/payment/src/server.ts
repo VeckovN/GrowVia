@@ -67,7 +67,7 @@ async function startHttpAndSocketServer(app:Application):Promise<void> {
 
         const httpServer: http.Server = new http.Server(app);
         httpServer.listen(Server_port, ()=>{
-            console.log("User Service started");
+            console.log("Payment Service started");
             log.info(`Payment service is running on port: ${Server_port}`)
         })
 
