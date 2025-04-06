@@ -77,7 +77,10 @@ export const mockProduct: ProductDocumentInterface = {
     farmerID: '67ab173453bc80962a36871e', //from the user service (passed from frontend)
     name: 'Fresh Strawberries',
     images: [
-        "https://example.com/images/fresh-strawberries.jpg"
+        {
+            url:"https://example.com/images/fresh-strawberries.jpg",
+            publicID: "someID"
+        }
     ],
     description: "Juicy and sweet fresh strawberries, perfect for desserts and smoothies.",
     shortDescription: "Fresh strawberries, 250g box.",
