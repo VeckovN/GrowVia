@@ -4,12 +4,13 @@ import { config } from '@order/config';
 import { Pool } from 'pg';
 
 const log: Logger = winstonLogger(`${config.ELASTICSEARCH_URL}`, 'orderService', 'debug');
-const isDocker = config.RUNNING_IN_DOCKER;
+const isDocker = config.RUNNING_IN_DOCKER === '1';
+
 
 const pool:Pool = new Pool({
     user: `${config.POSTGRESQL_USER}`,
     password: `${config.POSTGRESQL_PASSWORD}`,
-    host: `${isDocker ? config.POSTGRESQL_HOST : ''}`,
+    host: isDocker ? config.POSTGRESQL_HOST : '',
     port: 5432,
     database: `${config.POSTGRESQL_NAME}`,
 })
