@@ -1,0 +1,10 @@
+
+
+@baseUrl = http://localhost:4000  
+@urlPath = api/gateway/v1/users/customer
+
+//customer/:customerID/savedlist/:farmerID
+DELETE {{baseUrl}}/{{urlPath}}/67a7838b4ecf9bb98118f7e8/savedlist/67a7838b4ecf9bb98118f7a1
+Content-Type: application/json
+Accept: application/json
+withCredentials:true

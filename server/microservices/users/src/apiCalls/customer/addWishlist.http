@@ -1,0 +1,13 @@
+@baseUrl = http://localhost:4000  
+@urlPath = api/gateway/v1/users/customer
+
+POST {{baseUrl}}/{{urlPath}}/wishlist
+Content-Type: application/json
+Accept: application/json
+withCredentials:true
+
+{
+    //MongoDB's ids (should be correct mongoose ObjectID type)
+    "customerID": "67a7838b4ecf9bb98118f7e8",
+    "productID": "67a7838b4ecf9bb98118f7e6"
+}

@@ -1,0 +1,8 @@
+@baseUrl = http://localhost:4000  
+@urlPath = api/gateway/v1/users/farmer
+
+//http://localhost:4000/api/gateway/v1/users/farmer/email/:email 
+GET {{baseUrl}}/{{urlPath}}/email/rataa12@gmail.com
+Content-Type: application/json
+Accept: application/json
+withCredentials:true

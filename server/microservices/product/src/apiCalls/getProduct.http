@@ -1,0 +1,8 @@
+@baseUrl = http://localhost:4000 
+@urlPath = api/gateway/v1/product
+
+// /:productID
+GET {{baseUrl}}/{{urlPath}}/67c97da460065ac4c94e3ca2
+Content-Type: application/json
+Accept: application/json
+withCredentials:true

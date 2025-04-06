@@ -1,0 +1,8 @@
+@baseUrl = http://localhost:4000  
+@urlPath = api/gateway/v1/order
+
+//Post Request to -> http://localhost:4000/app/v1/gateway/order/approve/:orderID
+PUT {{baseUrl}}/{{urlPath}}/finish/91fadaf0-9363-47c5-b7bc-6bf8441204af
+Content-Type: application/json
+Accept: application/json
+withCredentials:true

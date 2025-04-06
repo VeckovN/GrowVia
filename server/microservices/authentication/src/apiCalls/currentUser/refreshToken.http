@@ -1,0 +1,9 @@
+@baseUrl = http://localhost:4000  
+@urlPath = api/gateway/v1/auth
+
+GET {{baseUrl}}/{{urlPath}}/refresh-token
+Content-Type: application/json
+Accept: application/json
+withCredentials:true
+
+//after login.http the jwtToken will be in the session => req.session.jwtToken

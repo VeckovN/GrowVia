@@ -1,0 +1,54 @@
+@baseUrl = http://localhost:4000  
+@urlPath = api/gateway/v1/order
+
+//Post Request to -> http://localhost:4000/app/v1/gateway/order/create
+POST {{baseUrl}}/{{urlPath}}/create
+Content-Type: application/json
+Accept: application/json
+withCredentials:true
+
+//This post request requires data to be passed to the body (object)
+{
+    "customer_id": "67cb27b035755eb9cadabab8",
+    "farmer_id": "67cb27a235755eb9cadaba94",
+    "customer_email": "urban.heaney38@yahoo.com",
+    "customer_username": "Oralla5302",
+    "farmer_username": "Meriel5733",
+    "farmer_email": "tiara_keebler58@hotmail.com",
+    "invoice_id": "inv123123", 
+    "total_price": 149.8,
+    //'stripe' | 'cod'
+    "payment_type": "stripe", 
+    "payment_status": "pending",
+    "order_status": "pending",
+    "payment_intent_id": "", 
+    //"payment_token": "", 
+    ///use on frontend payment creation (when user request order)
+    "payment_method_id": "pm_card_visa", 
+     //only used for testing *in production(frontend) the 'payment_method_id' will be used
+    "payment_method": "pm_card_visa",
+    "shipping_address": "Mokranjceva 12", 
+    //"billing_address?": "", 
+    //"delivery_date?": " ", 
+    "tracking_url": "tr", 
+    "orderItems": [
+        {
+            "product_id": "67cb2855318f6ab840cd736a",
+            "quantity": 10,
+            "unit_price": 7.5,
+            "total_price": 75
+        },
+        {
+            "product_id": "67cb285f318f6ab840cd736c",
+            "quantity": 9,
+            "unit_price": 2.2,
+            "total_price": 19.8
+        },
+        {
+            "product_id": "67cb2868318f6ab840cd736e",
+            "quantity": 20,
+            "unit_price": 3,
+            "total_price": 60
+        }
+    ]
+}

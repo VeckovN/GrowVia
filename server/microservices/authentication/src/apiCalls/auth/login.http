@@ -1,0 +1,33 @@
+@baseUrl = http://localhost:4000  
+@urlPath = api/gateway/v1/auth
+
+
+####### SIGNIN / LOGIN
+# "username": "Lazar",
+# "password": "LazarPassword"
+
+# "username": "novak12",
+# "password": "novak12"
+
+# "username": "sara22",
+# "email": "sara22.vec@gmail.com",
+# "password": "sara22",
+
+//Post Request to -> http://localhost:4000/app/v1/gateway/auth/signin
+POST {{baseUrl}}/{{urlPath}}/signin
+Content-Type: application/json
+Accept: application/json
+withCredentials:true
+
+//This post request requires data to be passed to the body (object)
+{
+    //"usernameOrEmail": "sara22",
+    "usernameOrEmail": "Ilse1016",
+    //"usernameOrEmail": "veckov",
+    //"usernameOrEmail": "veckov@gmail.com",
+
+    //new password after password update 
+    //"password": "sara22"
+    "password": "seedPassword"
+    //"password": "veckov"
+}

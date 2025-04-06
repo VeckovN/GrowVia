@@ -1,0 +1,13 @@
+@baseUrl = http://localhost:4000  
+@urlPath = api/gateway/v1/auth
+
+# PUT {{baseUrl}}/{{urlPath}}/verify-email
+PUT http://localhost:4000/api/gateway/v1/auth/verify-email
+Content-Type: application/json
+Accept: application/json
+withCredentials:true
+
+//This post request requires data to be passed to the body (object)
+{   
+    "userID": 4
+}

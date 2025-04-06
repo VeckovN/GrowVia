@@ -1,0 +1,8 @@
+@baseUrl = http://localhost:4000 
+@urlPath = api/gateway/v1/product
+
+// /search/:from/:size/:type 
+GET {{baseUrl}}/{{urlPath}}/search/0/10/forward?query=Organic&minPrice=1&maxPrice=1000
+Content-Type: application/json
+Accept: application/json
+withCredentials:true

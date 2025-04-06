@@ -1,0 +1,27 @@
+@baseUrl = http://localhost:4000 
+@urlPath = api/gateway/v1/product
+
+// /:productID
+PUT {{baseUrl}}/{{urlPath}}/67c97ed060065ac4c94e3ca8
+Content-Type: application/json
+Accept: application/json
+withCredentials:true
+
+{
+    "price": 2.4,
+    "stock": 350
+}
+//{
+//    "name": "Goat Cheese",
+//    "images": [
+//        "https://example.com/images/goat-cheese.jpg"
+//    ],
+//    "description": "Artisan goat cheese with a creamy texture and tangy flavor, perfect for salads and sandwiches.",
+//    "shortDescription": "Creamy goat cheese 250g.",
+//    "category": "Dairy & Eggs",
+//    "subCategories": ["Cheese", "Goat Cheese"],
+//    "price": 7,
+//    "stock": 70,
+//    "unit": "g",
+//    "tags": ["cheese", "goat", "dairy", "artisan"]
+//}

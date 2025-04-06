@@ -1,0 +1,8 @@
+@baseUrl = http://localhost:4000 
+@urlPath = api/gateway/v1/product
+
+// /:productID/:farmerID
+DELETE {{baseUrl}}/{{urlPath}}/67b6fdd47ff1e08e36f31e67/67b6fd78ec380c06c4916012
+Content-Type: application/json
+Accept: application/json
+withCredentials:true

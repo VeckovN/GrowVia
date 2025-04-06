@@ -1,0 +1,13 @@
+@baseUrl = http://localhost:4000 
+@urlPath = api/gateway/v1/notification
+
+
+PUT {{baseUrl}}/{{urlPath}}/mark
+Content-Type: application/json
+Accept: application/json
+withCredentials:true
+
+{
+    "notificationID": "67e061a2fcb9f05140e8028c"
+}
+
