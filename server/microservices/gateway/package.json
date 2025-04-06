@@ -3,6 +3,13 @@
   "version": "1.0.0",
   "main": "app.js",
   "scripts": {
+    "start": "pm2 start ./build/src/app.js -i 5 --attach --watch | pino-pretty -c",
+    "stop": "pm2 stop all",
+    "delete": "pm2 delete all",
+    "lint_check": "eslint 'src/**/*.ts",
+    "lint_fix": "eslint 'src/**/*.ts",
+    "prettier:check": "prettier --check 'src/**/*.{ts,json}'",
+    "prettier:fix": "prettier --write 'src/**/*.{ts,json}'",
     "test": "jest --coverage=true -w=1 --forceExit --detectOpenHandles --watchAll=false",
     "dev": "nodemon -r tsconfig-paths/register src/app.ts | pino-pretty -c",
     "build": "tsc --project tsconfig.json && tsc-alias -p tsconfig.json"
@@ -14,7 +21,7 @@
   "dependencies": {
     "@elastic/elasticsearch": "^8.17.0",
     "@socket.io/redis-adapter": "^8.3.0",
-    "@veckovn/growvia-shared": "^0.3.8",
+    "@veckovn/growvia-shared": "^0.4.2",
     "axios": "^1.7.9",
     "bcrypt": "^5.1.1",
     "compression": "^1.7.5",
