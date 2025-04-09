@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: growvia-mongo
+  namespace: production
+spec:
+  type: ClusterIP
+  selector:
+    app: growvia-mongo
+  ports:
+  - name: growvia-mongo
+    port: 27017
+    targetPort: 27017

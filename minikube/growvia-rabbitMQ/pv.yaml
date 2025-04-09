@@ -1,0 +1,32 @@
+#The Persistentvolume nad storageClass was additionally created to fix problem with queue restarts
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: rabbitmq-pv
+spec:
+  # Value of metadata:name from storageClass.yaml
+  storageClassName: rabbitmq-storage
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    # As i notice this is same path that ‘redis-storage’ uses
+    path: "/storage/data1"
+
+# three lines separate logic from the object(from pervious configured)
+---
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: rabbitmq-pvc
+  namespace: production
+spec:
+  storageClassName: rabbitmq-storage
+  resources:
+    requests:
+      storage: 1Gi
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteOnce

@@ -1,0 +1,62 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: growvia-pg
+  namespace: production
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: growvia-pg
+  template:
+    metadata:
+      labels:
+        app: growvia-pg
+    spec:
+      terminationGracePeriodSeconds: 10
+      containers:
+      - name: growvia-pg
+        image: postgres:latest
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: POSTGRES_USER
+          value: growvia
+        - name: POSTGRES_PASSWORD
+          value: growviapass
+        - name: POSTGRES_DB
+          value: intiall_db
+          #needed variable From docker docs for postgres
+        - name: PGDATA
+          value: /var/lib/postgresql/data/pgdata
+        resources:
+          limits:
+            memory: "1Gi"
+            cpu: "500m"
+          requests:
+            memory: 150Mi
+            cpu: 100m
+        ports:
+        - name: growvia-pg
+          containerPort: 5432
+        volumeMounts:
+        - name: postgres-storage
+          mountPath: /var/lib/postgresql/data
+          subPath: postgres
+        readinessProbe:
+          exec:
+            # command: ["psql", "-w", "-U", "POSTGRES_PASSWORD", "-d", "POSTGRES_PASSWORD", "-c", "SELECT 1"]
+            command: ["psql", "-w", "-U", "growvia", "-d", "growviapass", "-c", "SELECT 1"]
+          initialDelaySeconds: 90
+          periodSeconds: 250
+          timeoutSeconds: 60
+        livenessProbe:
+          exec:
+            # command: ["psql", "-w", "-U", "POSTGRES_USER", "-d", "POSTGRES_PASSWORD", "-c", "SELECT 1"]
+            command: ["psql", "-w", "-U", "growvia", "-d", "growviapass", "-c", "SELECT 1"]
+          initialDelaySeconds: 90
+          periodSeconds: 250
+          timeoutSeconds: 60
+      volumes:
+      - name: postgres-storage
+        persistentVolumeClaim:
+          claimName: postgres-pvc
