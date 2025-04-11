@@ -19,7 +19,7 @@ metadata:
   name: mongo-pvc
   namespace: production
 spec:
-  storageClassName: mongo-local-storage
+  storageClassName: mongo-storage
   resources:
     requests:
       storage: 1Gi
