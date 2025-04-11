@@ -1,0 +1,34 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: growvia-kibana
+  namespace: production
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: growvia-kibana
+  template:
+    metadata:
+      labels:
+        app: growvia-kibana
+    spec:
+      containers:
+        - name: growvia-kibana
+          image: docker.elastic.co/kibana/kibana:8.17.0
+          resources:
+            limits:
+              memory: "1Gi"
+              cpu: "1250m"
+            requests:
+              cpu: 250m
+              memory: 1Gi
+          env:
+            - name: ELASTICSEARCH_HOSTS
+              #use elastic service name and specify 'production' namespace
+              value: http://growvia-elastic.production.svc.cluster.local:9200
+            - name: ELASTICSEARCH_PASSWORD
+              value: 'adminelastic'
+          ports:
+            - name: growvia-kibana
+              containerPort: 5601

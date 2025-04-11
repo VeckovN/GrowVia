@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: growvia-elastic
+  namespace: production
+spec:
+  type: ClusterIP
+  selector:
+    app: growvia-elastic
+  ports:
+  #We have 2 porst in elastic search
+  - name: rest
+    port: 9200
+    targetPort: 9200
+    protocol: TCP
+  # We don’t need this this port because we're only creating a single node
+  # elasticsearch Cluster (but we can write it)
+  - name: inter-node
+    port: 9300
+    targetPort: 9300
+    protocol: TCP
