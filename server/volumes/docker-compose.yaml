@@ -70,6 +70,7 @@ services:
       xpack.security.authc.api_key.enabled: "true"
       xpack.monitoring.collection.enabled: "true"
       xpack.security.enrollment.enabled: "true"
+      ELASTICSEARCH_PASSWORD: adminelastic
     ports:
       - 9300:9300 # this is for another node (When isn't discovery.type: single-node)
       - 9200:9200 #Access elasticsearch api  
@@ -85,6 +86,10 @@ services:
     restart: always
     environment:
       - ELASTICSEARCH_HOSTS=["http://elasticsearch_container:9200"] #form this kibana will get access to this service -> elasticsearch_container 
+      # - ELASTICSEARCH_USERNAME = kibana
+      # - ELASTICSEARCH_PASSWORD = elastickibana
+      - ELASTICSEARCH_KIBANA_USERNAME = kibana
+      - ELASTICSEARCH__KIBANAPASSWORD = elastickibana
     ports:
       - 5601:5601
     networks:
@@ -110,6 +115,8 @@ services:
       # - ELASTICSEARCH_URL=http://localhost:9200
       # - ELASTICSEARCH_URL=http://elasticsearch_container:9200
       - ELASTICSEARCH_URL=http://elasticsearch:9200
+      # with new defiend password (adminelastic)
+      - ELASTICSEARCH_URL=http://elastic:adminelastic@elasticsearch:9200
       - ELASTICSEARCH_APM_SERVER_URL=http//localhost:8200
       - ELASTICSEARCH_APM_TOKEN=
       # - RABBITMQ_AMQP_ENDPOINT=amqp://growvia:growviapassword@localhost:5672
@@ -146,6 +153,7 @@ services:
       # - ELASTICSEARCH_URL=http://localhost:9200 instead of 'localhost' use 'elasticsearch_container'
       # - ELASTICSEARCH_URL=http://elasticsearch_container:9200
       - ELASTICSEARCH_URL=http://elasticsearch:9200
+      #- ELASTICSEARCH_URL=http://elastic:adminelastic@elasticsearch:9200
       - ELASTICSEARCH_APM_SERVER_URL=http//localhost:8200
       - ELASTICSEARCH_APM_TOKEN=
       - DATABASE_URL=mongodb://mongodb/notification
@@ -172,6 +180,7 @@ services:
       - CLIENT_URL=http://localhost:3000 
       - API_GATEWAY_URL=http://localhost:4000
       - ELASTICSEARCH_URL=http://elasticsearch:9200
+      #- ELASTICSEARCH_URL=http://elastic:adminelastic@elasticsearch:9200
       - ELASTICSEARCH_APM_SERVER_URL=http//localhost:8200
       - ELASTICSEARCH_APM_TOKEN=
       - RABBITMQ_AMQP_ENDPOINT=amqp://growvia:growviapassword@rabbitmq_container:5672
@@ -181,9 +190,6 @@ services:
       - POSTGRESQL_USER = growvia
       - POSTGRESQL_PASSWORD = growviapass
       - POSTGRESQL_NAME = auth_service
-      - CLOUDINARY_NAME=
-      - CLOUDINARY_API_KEY=
-      - CLOUDINARY_API_SECRET=
       - GATEWAY_JWT_TOKEN = 294bc0dd5baab813c5f762c3a8bba157  #MD5 Hash   
       - JWT_TOKEN=0c41cc5c3479d16cb278d5e066b7ff5c
     depends_on: 
@@ -211,14 +217,15 @@ services:
       # - ELASTICSEARCH_URL=http://localhost:9200 instead of 'localhost' use 'elasticsearch_container'
       # - ELASTICSEARCH_URL=http://elasticsearch_container:9200
       - ELASTICSEARCH_URL=http://elasticsearch:9200
+      #- ELASTICSEARCH_URL=http://elastic:adminelastic@elasticsearch:9200
       - ELASTICSEARCH_APM_SERVER_URL=http//localhost:8200
       - ELASTICSEARCH_APM_TOKEN=
       - DATABASE_URL=mongodb://mongodb/users
       - RABBITMQ_AMQP_ENDPOINT=amqp://growvia:growviapassword@rabbitmq_container:5672
       - REDIS_HOST=redis://localhost:6379
-      - CLOUDINARY_NAME=
-      - CLOUDINARY_API_KEY=
-      - CLOUDINARY_API_SECRET=
+      - CLOUDINARY_NAME= dqloq0g97
+      - CLOUDINARY_API_KEY= 129114878692724
+      - CLOUDINARY_API_SECRET= e2ARRbp8TfCj_RChgD5J_7mCfzY
       - GATEWAY_JWT_TOKEN = 294bc0dd5baab813c5f762c3a8bba157  #MD5 Hash   
       - JWT_TOKEN=0c41cc5c3479d16cb278d5e066b7ff5c
     depends_on: 
@@ -244,14 +251,15 @@ services:
       - CLIENT_URL=http://localhost:3000 
       - API_GATEWAY_URL=http://localhost:4000
       - ELASTICSEARCH_URL=http://elasticsearch:9200
+      # ELASTICSEARCH_URL=http://elastic:adminelastic@elasticsearch:9200
       - ELASTICSEARCH_APM_SERVER_URL=http//localhost:8200
       - ELASTICSEARCH_APM_TOKEN=
       - DATABASE_URL=mongodb://mongodb/products
       - RABBITMQ_AMQP_ENDPOINT=amqp://growvia:growviapassword@rabbitmq_container:5672
       - REDIS_HOST=redis://redis:6379
-      - CLOUDINARY_NAME=
-      - CLOUDINARY_API_KEY=
-      - CLOUDINARY_API_SECRET=
+      - CLOUDINARY_NAME= dqloq0g97
+      - CLOUDINARY_API_KEY= 129114878692724
+      - CLOUDINARY_API_SECRET= e2ARRbp8TfCj_RChgD5J_7mCfzY
       - GATEWAY_JWT_TOKEN = 294bc0dd5baab813c5f762c3a8bba157  #MD5 Hash   
       - JWT_TOKEN=0c41cc5c3479d16cb278d5e066b7ff5c
     depends_on: 
@@ -276,6 +284,7 @@ services:
       - CLIENT_URL=http://localhost:3000 
       - API_GATEWAY_URL=http://localhost:4000
       - ELASTICSEARCH_URL=http://elasticsearch:9200
+      #- ELASTICSEARCH_URL=http://elastic:adminelastic@elasticsearch:9200
       - ELASTICSEARCH_APM_SERVER_URL=http//localhost:8200
       - ELASTICSEARCH_APM_TOKEN=
       - RABBITMQ_AMQP_ENDPOINT=amqp://growvia:growviapassword@rabbitmq_container:5672
@@ -308,6 +317,7 @@ services:
       - CLIENT_URL=http://localhost:3000 
       - API_GATEWAY_URL=http://localhost:4000
       - ELASTICSEARCH_URL=http://elasticsearch:9200
+      #- ELASTICSEARCH_URL=http://elastic:adminelastic@elasticsearch:9200
       - ELASTICSEARCH_APM_SERVER_URL=http//localhost:8200
       - ELASTICSEARCH_APM_TOKEN=
       - RABBITMQ_AMQP_ENDPOINT=amqp://growvia:growviapassword@rabbitmq_container:5672
