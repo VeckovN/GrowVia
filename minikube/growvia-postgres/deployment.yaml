@@ -20,9 +20,18 @@ spec:
         imagePullPolicy: IfNotPresent
         env:
         - name: POSTGRES_USER
-          value: growvia
+          #value: growvia
+          valueFrom:
+              secretKeyRef:
+                name: secret-data
+                key: growvia-postgres-user
+                
         - name: POSTGRES_PASSWORD
-          value: growviapass
+          #value: growviapass
+          valueFrom:
+              secretKeyRef:
+                name: secret-data
+                key: growvia-postgres-password
         - name: POSTGRES_DB
           value: intiall_db
           #needed variable From docker docs for postgres
@@ -45,14 +54,14 @@ spec:
         readinessProbe:
           exec:
             # command: ["psql", "-w", "-U", "POSTGRES_PASSWORD", "-d", "POSTGRES_PASSWORD", "-c", "SELECT 1"]
-            command: ["psql", "-w", "-U", "growvia", "-d", "growviapass", "-c", "SELECT 1"]
+            command: ["psql", "-w", "-U", "growvia", "-d", "intiall_db", "-c", "SELECT 1"]
           initialDelaySeconds: 90
           periodSeconds: 250
           timeoutSeconds: 60
         livenessProbe:
           exec:
             # command: ["psql", "-w", "-U", "POSTGRES_USER", "-d", "POSTGRES_PASSWORD", "-c", "SELECT 1"]
-            command: ["psql", "-w", "-U", "growvia", "-d", "growviapass", "-c", "SELECT 1"]
+            command: ["psql", "-w", "-U", "growvia", "-d", "intiall_db", "-c", "SELECT 1"]
           initialDelaySeconds: 90
           periodSeconds: 250
           timeoutSeconds: 60

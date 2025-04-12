@@ -26,9 +26,19 @@ spec:
           env:
             - name: ELASTICSEARCH_HOSTS
               #use elastic service name and specify 'production' namespace
-              value: http://growvia-elastic.production.svc.cluster.local:9200
+              #value: http://growvia-elastic.production.svc.cluster.local:9200
+              valueFrom:
+                secretKeyRef:
+                  name: secret-data
+                  key: growvia-elastic-hosts
+                
             - name: ELASTICSEARCH_PASSWORD
-              value: 'adminelastic'
+              #value: 'adminelastic'
+              valueFrom:
+                secretKeyRef:
+                  name: secret-data
+                  key: growvia-elastic-password
+                
           ports:
             - name: growvia-kibana
               containerPort: 5601

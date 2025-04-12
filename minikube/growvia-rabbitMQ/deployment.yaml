@@ -23,9 +23,18 @@ spec:
         #Password will be stored in 'secret' file 
         env: 
         - name: RABBITMQ_DEFAULT_USER
-          value: growvia
+          #value: growvia
+          valueFrom:
+              secretKeyRef:
+                name: secret-data
+                key: growvia-rabbitmq-user
+                
         - name: RABBITMQ_DEFAULT_PASS
-          value: growviapassword
+          #value: growviapassword
+          valueFrom:
+              secretKeyRef:
+                name: secret-data
+                key: growvia-rabbitmq-password
         resources:
           limits:
             memory: "1Gi"

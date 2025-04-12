@@ -58,7 +58,11 @@ spec:
             - name: xpack.security.authc.token.enabled
               value: 'true'
             - name: ELASTIC_PASSWORD
-              value: 'adminelastic'
+              # value: 'adminelastic'
+              valueFrom:
+                secretKeyRef:
+                  name: secret-data
+                  key: growvia-elastic-password
           ports:
           - name: growvia-elastic
             #The port that used to access Elastic
