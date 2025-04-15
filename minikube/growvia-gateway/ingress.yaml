@@ -1,0 +1,29 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: growvia-gateway-ingress
+  namespace: production
+spec:
+  #for minkube (localy) we’ll use nginx-ingress but for production(AWS) the loadBalancer will be used 
+  ingressClassName: nginx
+  defaultBackend:
+    service:
+      name: growvia-gateway
+      port: 
+        number: 4000
+  rules:
+  #Host domain - for local testing: http://growvia.com
+  #this 'local/fake domen' has to be maped to Minikube IP address.
+  #more in documentations about mapping
+  - host: growvia.com
+    http:
+      paths:
+      - path: /api/gateway/v1
+        #Path tha all routes go trough that commign from frontend (client) 
+        #This we’ll use in Frontend http://localhost:4000/api/gateway/v1
+        pathType: Prefix
+        backend:
+          service:
+            name: growvia-gateway
+            port: 
+              number: 4000

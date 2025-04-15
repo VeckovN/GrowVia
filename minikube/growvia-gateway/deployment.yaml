@@ -1,0 +1,97 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: growvia-gateway
+  namespace: production
+spec:
+  replicas: 1 
+  selector:
+    matchLabels:
+      app: growvia-gateway
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+  template:
+    metadata:
+      labels:
+        app: growvia-gateway
+    spec:
+      containers:
+      - name: growvia-gateway
+        image: veckovn/growvia-gateway:stable 
+        imagePullPolicy: Always
+        resources:
+          limits:
+            memory: "1Gi"
+            cpu: "500m"
+          requests:
+            cpu: 100m
+            memory: 150Mi
+        ports:
+        - name: gateway
+          containerPort: 4000
+        env:
+          - name: ENALBE_APM
+            value: '1'
+          - name: NODE_ENV
+            value: 'production'
+          - name: RUNNING_IN_DOCKER
+            value: '0'
+          - name: CLIENT_URL
+            value: "http://localhost:3000"
+          - name: ELASTICSEARCH_URL
+            valueFrom:
+              secretKeyRef:
+                name: secret-data
+                key: growvia-elastic-url
+          - name: ELASTICSEARCH_APM_SERVER_URL
+            valueFrom:
+              secretKeyRef:
+                name: secret-data
+                key: growvia-elastic-apm-server-url          
+          - name: ELASTICSEARCH_APM_TOKEN
+            valueFrom:
+              secretKeyRef:
+                name: secret-data
+                key: growvia-elastic-apm-token                
+          - name: RABBITMQ_AMQP_ENDPOINT
+            valueFrom:
+              secretKeyRef:
+                name: secret-data
+                key: growvia-rabbitmq-endpoint
+          - name: REDIS_HOST
+            valueFrom:
+              secretKeyRef:
+                name: secret-data
+                key: growvia-redis-host        
+          - name: GATEWAY_JWT_TOKEN 
+            valueFrom:
+              secretKeyRef:
+                name: secret-data
+                key: gateway-jwt-token
+          - name: JWT_TOKEN
+            valueFrom:
+              secretKeyRef:
+                name: secret-data
+                key: jwt-token
+          - name: FIRST_SECRET_KEY
+            valueFrom:
+              secretKeyRef:
+                name: secret-data
+                key: first-secret-key
+          - name: SECOND_SECRET_KEY
+            valueFrom:
+              secretKeyRef:
+                name: secret-data
+                key: second-secret-key
+          - name: NOTIFICATION_SERVICE_URL
+            value: 'http://growvia-notification.svc.cluster.local:4001'
+          - name: AUTH_SERVICE_URL
+            value: 'http://growvia-authentication.svc.cluster.local:4002'
+          - name: USER_SERVICE_URL
+            value: 'http://growvia-users.svc.cluster.local:4003'
+          - name: PRODUCT_SERVICE_URL
+            value: 'http://growvia-notification.svc.cluster.local:4004'
+          - name: ORDER_SERVICE_URL
+            value: 'http://growvia-notification.svc.cluster.local:4005'

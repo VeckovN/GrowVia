@@ -1,0 +1,116 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: growvia-notification
+  namespace: production
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: growvia-notification
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+  template:
+    metadata:
+      labels:
+        app: growvia-notification
+    spec:
+      containers:
+      - name: growvia-notification
+        image: veckovn/growvia-notification:stable
+        imagePullPolicy: Always
+        resources:
+          limits:
+            memory: "1Gi"
+            cpu: "500m"
+          requests:
+            cpu: 100m
+            memory: 150Mi
+        ports:
+        - name: notification
+          containerPort: 4001
+        env:
+          - name: ENALBE_APM
+            value: '1'
+          - name: NODE_ENV
+            value: 'production'
+          - name: CLIENT_URL
+            value: "http://localhost:3000"
+          - name: API_GATEWAY_URL
+            value: "http://growvia-gateway.production.svc.cluster.local:4000"
+          - name: ELASTICSEARCH_URL
+            valueFrom:
+              secretKeyRef:
+                name: secret-data
+                key: growvia-elastic-url
+          - name: ELASTICSEARCH_APM_SERVER_URL
+            valueFrom:
+              secretKeyRef:
+                name: secret-data
+                key: growvia-elastic-apm-server-url          
+          - name: ELASTICSEARCH_APM_TOKEN
+            valueFrom:
+              secretKeyRef:
+                name: secret-data
+                key: growvia-elastic-apm-token                
+          #Should be test (to use one db with more collections)
+          # - name: DATABASE_URL
+          #   valueFrom:
+          #     secretKeyRef:
+          #       name: secret-data
+          #       key: growvia-mongodb-url
+
+          #or use multiple DB in one MongoDB instances (one container, multiple DB-s)
+          - name: DATABASE_URL
+            valueFrom:
+              secretKeyRef:
+                name: secret-data
+                key: growvia-mongo-notification-url
+          - name: RABBITMQ_AMQP_ENDPOINT
+            valueFrom:
+              secretKeyRef:
+                name: secret-data
+                key: growvia-rabbitmq-endpoint      
+          - name: CLOUDINARY_NAME
+            valueFrom:
+              secretKeyRef:
+                name: secret-data
+                key: cloudinary-name
+          - name: CLOUDINARY_API_KEY
+            valueFrom:
+              secretKeyRef:
+                name: secret-data
+                key: cloudinary-api-key
+          - name: CLOUDINARY_API_SECRET
+            valueFrom:
+              secretKeyRef:
+                name: secret-data
+                key: cloudinary-api-secret
+          - name: TEST_EMAIL_NAME
+            valueFrom:
+              secretKeyRef:
+                name: secret-data
+                key: test-email-name
+          - name: TEST_EMAIL
+            valueFrom:
+              secretKeyRef:
+                name: secret-data
+                key: test-email
+          - name: TEST_EMAIL_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: secret-data
+                key: test-email-password
+          - name: GATEWAY_JWT_TOKEN 
+            valueFrom:
+              secretKeyRef:
+                name: secret-data
+                key: gateway-jwt-token
+          - name: JWT_TOKEN
+            valueFrom:
+              secretKeyRef:
+                name: secret-data
+                key: jwt-token

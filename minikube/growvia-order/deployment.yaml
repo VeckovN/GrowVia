@@ -1,0 +1,103 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: growvia-order
+  namespace: production
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: growvia-order
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+  template:
+    metadata:
+      labels:
+        app: growvia-order
+    spec:
+      containers:
+      - name: growvia-order
+        image: veckovn/growvia-order:stable
+        imagePullPolicy: Always
+        resources:
+          limits:
+            memory: "1Gi"
+            cpu: "500m"
+          requests:
+            cpu: 100m
+            memory: 150Mi
+        ports:
+        - name: order
+          containerPort: 4005
+        env:
+          - name: ENALBE_APM
+            value: '1'
+          - name: NODE_ENV
+            value: 'production'
+          - name: RUNNING_IN_DOCKER
+            value: '0'
+          - name: CLIENT_URL
+            value: "http://localhost:3000"
+          - name: API_GATEWAY_URL
+            value: "http://growvia-gateway.production.svc.cluster.local:4000"
+          - name: ELASTICSEARCH_URL
+            valueFrom:
+              secretKeyRef:
+                name: secret-data
+                key: growvia-elastic-url
+          - name: ELASTICSEARCH_APM_SERVER_URL
+            valueFrom:
+              secretKeyRef:
+                name: secret-data
+                key: growvia-elastic-apm-server-url          
+          - name: ELASTICSEARCH_APM_TOKEN
+            valueFrom:
+              secretKeyRef:
+                name: secret-data
+                key: growvia-elastic-apm-token                
+          - name: STRIPE_SECRET_KEY
+            valueFrom:
+              secretKeyRef:
+                name: secret-data
+                key: stripe-secret-key               
+          - name: RABBITMQ_AMQP_ENDPOINT
+            valueFrom:
+              secretKeyRef:
+                name: secret-data
+                key: growvia-rabbitmq-endpoint      
+          - name: REDIS_HOST
+            valueFrom:
+              secretKeyRef:
+                name: secret-data
+                key: growvia-redis-host  
+          - name: POSTGRESQL_HOST
+            valueFrom:
+              secretKeyRef:
+                name: secret-data
+                key: growvia-postgres-host
+          - name: POSTGRESQL_USER
+            valueFrom:
+              secretKeyRef:
+                name: secret-data
+                key: growvia-postgres-user
+          - name: POSTGRESQL_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: secret-data
+                key: growvia-postgres-password
+          #Depends on service -> here is order_service
+          - name: POSTGRESQL_NAME
+            value: order_service    
+          - name: GATEWAY_JWT_TOKEN 
+            valueFrom:
+              secretKeyRef:
+                name: secret-data
+                key: gateway-jwt-token
+          - name: JWT_TOKEN
+            valueFrom:
+              secretKeyRef:
+                name: secret-data
+                key: jwt-token
