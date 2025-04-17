@@ -1,5 +1,6 @@
 import { winstonLogger, AuthPayloadInterface, CustomErrorInterface } from "@veckovn/growvia-shared";
 import { Application, NextFunction, Request ,Response, urlencoded, json } from "express";
+import 'express-async-errors';
 import { Logger } from "winston";
 import { config } from '@order/config';
 import helmet from "helmet";
@@ -70,6 +71,7 @@ function errorHandlerMiddleware(app: Application):void{
         next();
     });
 }
+
 
 async function startHttpAndSocketServer(app:Application):Promise<void> {
     try{

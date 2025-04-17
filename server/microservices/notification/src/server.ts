@@ -1,6 +1,7 @@
-import http from 'http';
 import { winstonLogger, AuthPayloadInterface, CustomErrorInterface } from "@veckovn/growvia-shared";
 import { Application, NextFunction, Request ,Response, urlencoded, json } from 'express';
+import 'express-async-errors';
+import http from 'http';
 import helmet from "helmet";
 import cors from 'cors';
 import compression from "compression";

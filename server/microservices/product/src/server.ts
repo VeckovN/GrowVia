@@ -1,5 +1,6 @@
 import { Application, NextFunction, Request ,Response, urlencoded, json } from "express";
 import { winstonLogger, AuthPayloadInterface, CustomErrorInterface } from "@veckovn/growvia-shared";
+import 'express-async-errors';
 import { Logger } from "winston";
 import { config } from '@product/config';
 import helmet from "helmet";

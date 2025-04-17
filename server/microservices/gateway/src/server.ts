@@ -1,5 +1,6 @@
 import { Application, json, NextFunction, Request ,Response, urlencoded } from "express";
 import { winstonLogger, CustomErrorInterface} from "@veckovn/growvia-shared";
+import 'express-async-errors';
 import { Logger } from "winston";
 import { config } from '@gateway/config';
 import cookieSession from "cookie-session";
@@ -106,10 +107,14 @@ export function start(app:Application):void {
             name:"session", 
             keys:[`${config.FIRST_SECRET_KEY}`, `${config.SECOND_SECRET_KEY}`], //keys are 'secret keys' will be added later
             maxAge: 24 * 3 *3600000, //3 days
-            // secure:false //for local development is FALSE (use config value to set false/true based on Dev/Prod state)
-            secure: config.NODE_ENV != "development"  //true if development
-            //sameSite: none //for production
-        })
+            //sameSite: 'none' -> for prodution (token will be saved to cookie
+            //for example we'll logged in but will automatically logged out because the token won't exist(not stored in the session)
+            //dinamiclly set the secure
+            secure: config.NODE_ENV  !== 'development',
+            ...(config.NODE_ENV !== 'development' && {
+                sameSite: 'none'
+            })
+        }) 
     )
 
     app.use(helmet());
