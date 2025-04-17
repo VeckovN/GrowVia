@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "main": "app.js",
   "scripts": {
-    "start": "pm2 start ./build/src/app.js -i 5 --attach --watch | pino-pretty -c",
+    "start": "pm2 start ./build/src/app.js -i 1 --attach --watch | pino-pretty -c",
     "stop": "pm2 stop all",
     "delete": "pm2 delete all",
     "lint_check": "eslint 'src/**/*.ts",
@@ -28,6 +28,7 @@
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
+    "express-async-errors": "^3.1.1",
     "helmet": "^8.0.0",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.10.1",
