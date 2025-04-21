@@ -110,10 +110,14 @@ export function start(app:Application):void {
             //sameSite: 'none' -> for prodution (token will be saved to cookie
             //for example we'll logged in but will automatically logged out because the token won't exist(not stored in the session)
             //dinamiclly set the secure
-            secure: config.NODE_ENV  !== 'development',
-            ...(config.NODE_ENV !== 'development' && {
-                sameSite: 'none'
-            })
+            // secure: config.NODE_ENV  !== 'development',
+            // ...(config.NODE_ENV !== 'development' && {
+            //     sameSite: 'none'
+            // })
+
+            //If the secure is true then we must use HTTPS 
+            //and client url also must be HTTPS 
+            secure: config.NODE_ENV  !== 'development'
         }) 
     )
 
