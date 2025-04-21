@@ -11,6 +11,10 @@ spec:
       name: growvia-gateway
       port: 
         number: 4000
+  tls:  #point certificates to the ingress
+    - hosts:
+      - growvia.com 
+      secretName: gateway-growvia-tls #secret that is created
   rules:
   #Host domain - for local testing: http://growvia.com
   #this 'local/fake domen' has to be maped to Minikube IP address.
