@@ -1,0 +1,23 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: kibana-ingress
+  namespace: production
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  ingressClassName: nginx
+  rules:
+    #Map this host
+    #add <minikube ip> kibana.growvia.com to hosts file
+  - host: kibana.growvia.com
+    http:
+      paths:
+      - pathType: Prefix
+        path: /
+        backend:
+          service:
+            #name form service.yaml 
+            name: growvia-kibana
+            port: 
+              number: 5601
