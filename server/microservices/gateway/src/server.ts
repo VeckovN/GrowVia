@@ -54,6 +54,7 @@ function errorHandlerMiddleware(app: Application):void{
     app.use('*', (req:Request, res:Response, next:NextFunction) =>{
         log.log('error', "That endpoint doesn't exist. ");
         const fullUrl = `${req.protocol}://${req.get('host')}${req.originalUrl}`;
+        console.log("FullUrl: ", fullUrl);
         res.status(404).json({message:`The endpoint required doesn't exist: ${fullUrl}`});
         next();
     })
