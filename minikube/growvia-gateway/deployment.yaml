@@ -86,12 +86,12 @@ spec:
                 name: secret-data
                 key: second-secret-key
           - name: NOTIFICATION_SERVICE_URL
-            value: 'http://growvia-notification.svc.cluster.local:4001'
+            value: 'http://growvia-notification.production.svc.cluster.local:4001'
           - name: AUTH_SERVICE_URL
-            value: 'http://growvia-authentication.svc.cluster.local:4002'
+            value: 'http://growvia-authentication.production.svc.cluster.local:4002'
           - name: USER_SERVICE_URL
-            value: 'http://growvia-users.svc.cluster.local:4003'
+            value: 'http://growvia-users.production.svc.cluster.local:4003'
           - name: PRODUCT_SERVICE_URL
-            value: 'http://growvia-notification.svc.cluster.local:4004'
+            value: 'http://growvia-product.production.svc.cluster.local:4004'
           - name: ORDER_SERVICE_URL
-            value: 'http://growvia-notification.svc.cluster.local:4005'
+            value: 'http://growvia-order.production.svc.cluster.local:4005'
