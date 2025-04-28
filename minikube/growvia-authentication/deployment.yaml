@@ -34,13 +34,14 @@ spec:
         ports:
         - name: authentication
           containerPort: 4002
+        #RUNNIN_IN_DOCKER -> #If is 0 the POSTGRE_HOST is '' => Fix it in authentication service 
         env:
           - name: ENALBE_APM
             value: '1'
           - name: NODE_ENV
             value: 'production'
           - name: RUNNING_IN_DOCKER
-            value: '0'
+            value: '1'
           - name: CLIENT_URL
             value: "http://localhost:3000"
           - name: API_GATEWAY_URL
