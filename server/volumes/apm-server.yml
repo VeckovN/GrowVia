@@ -1,0 +1,22 @@
+apm-server:
+  host: "apmServer_container:8200"
+
+#Due to -> -E apm-server.auth.anonymous.enabled=true in apmServer configuration
+auth:
+  secret_token: ''
+
+output.elasticsearch:
+  hosts: 'http://elasticsearch_container:9200'
+  enabled: true
+  protocol: "http"
+  username: "elastic"
+  password: "adminelastic"
+  ssl.enabled: false
+
+monitoring.enabled: true
+
+monitoring.elasticsearch:
+  protocol: "http"
+  username: "elastic"
+  password: "adminelastic"
+  hosts: 'http://elasticsearch_container:9200'

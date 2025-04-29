@@ -152,6 +152,28 @@ services:
     depends_on: 
       - elasticsearch
 
+  apmServer:
+    image: docker.elastic.co/apm/apm-server:8.18.0
+    container_name: apmServer_container
+    ports:
+      - 8200:8200
+    volumes:
+      - ./apm-server.yml:/usr/share/apm-server/apm-server.yml:ro
+    networks:
+      - elastic
+    #on auth.anonymous = true for local dev the ELASTICSEARCH_APM_SECRET_TOKEN is EMPTY IN SERVICE CONFIGURATIONS(in .env services as well)
+    #and in apm-server.yaml the auth: secret_token: ''
+    command: >
+      apm-server -e
+        -E apm-server.rum.enabled=true
+        -E setup.kibana.host=kibana_container:5601
+        -E setup.template.settings.index.number_of_replicas=0
+        -E apm-server.kibana.enabled=true
+        -E apm-server.kibana.host=kibana_container:5601
+        -E apm-server.kibana.protocol=http
+        -E strict.perms=false
+        -E apm-server.auth.anonymous.enabled=true
+
   gateway:
     container_name: gateway_container
     build:
@@ -173,8 +195,8 @@ services:
       #if doesn't work with elasticserach(service name) try with elasticserach_container (container name)
       #- ELASTICSEARCH_URL=http://elastic:adminelastic@elasticsearch_container:9200
       
-      - ELASTICSEARCH_APM_SERVER_URL=http//localhost:8200
-      - ELASTICSEARCH_APM_TOKEN=
+      - ELASTIC_APM_SERVER_URL=http://localhost:8200
+      - ELASTIC_APM_SECRET_TOKEN=
       # - RABBITMQ_AMQP_ENDPOINT=amqp://growvia:growviapassword@localhost:5672
       # - REDIS_HOST=redis://localhost:6379  
       # - REDIS_HOST=redis://redis_container:6379 
@@ -211,8 +233,8 @@ services:
       #- ELASTICSEARCH_URL=http://elasticsearch:9200
       - ELASTICSEARCH_URL=http://elastic:adminelastic@elasticsearch:9200
       #- ELASTICSEARCH_URL=http://elastic:adminelastic@elasticsearch_container:9200
-      - ELASTICSEARCH_APM_SERVER_URL=http//localhost:8200
-      - ELASTICSEARCH_APM_TOKEN=
+      - ELASTIC_APM_SERVER_URL=http://localhost:8200
+      - ELASTIC_APM_SECRET_TOKEN=
       - DATABASE_URL=mongodb://mongodb/notification
       # - RABBITMQ_AMQP_ENDPOINT=amqp://growvia:growviapassword@localhost:5672
       - RABBITMQ_AMQP_ENDPOINT=amqp://growvia:growviapassword@rabbitmq_container:5672
@@ -238,8 +260,8 @@ services:
       - API_GATEWAY_URL=http://localhost:4000
       #- ELASTICSEARCH_URL=http://elasticsearch:9200
       - ELASTICSEARCH_URL=http://elastic:adminelastic@elasticsearch:9200
-      - ELASTICSEARCH_APM_SERVER_URL=http//localhost:8200
-      - ELASTICSEARCH_APM_TOKEN=
+      - ELASTIC_APM_SERVER_URL=http://localhost:8200
+      - ELASTIC_APM_SECRET_TOKEN=
       - RABBITMQ_AMQP_ENDPOINT=amqp://growvia:growviapassword@rabbitmq_container:5672
       - REDIS_HOST=redis://localhost:6379
       # - POSTGRESQL_HOST = postgres_container #pc ip address(should be liked)
@@ -275,8 +297,8 @@ services:
       # - ELASTICSEARCH_URL=http://elasticsearch_container:9200
       #- ELASTICSEARCH_URL=http://elasticsearch:9200
       - ELASTICSEARCH_URL=http://elastic:adminelastic@elasticsearch:9200
-      - ELASTICSEARCH_APM_SERVER_URL=http//localhost:8200
-      - ELASTICSEARCH_APM_TOKEN=
+      - ELASTIC_APM_SERVER_URL=http://localhost:8200
+      - ELASTIC_APM_SECRET_TOKEN=
       - DATABASE_URL=mongodb://mongodb/users
       - RABBITMQ_AMQP_ENDPOINT=amqp://growvia:growviapassword@rabbitmq_container:5672
       - REDIS_HOST=redis://localhost:6379
@@ -309,8 +331,8 @@ services:
       - API_GATEWAY_URL=http://localhost:4000
       #- ELASTICSEARCH_URL=http://elasticsearch:9200
       - ELASTICSEARCH_URL=http://elastic:adminelastic@elasticsearch:9200
-      - ELASTICSEARCH_APM_SERVER_URL=http//localhost:8200
-      - ELASTICSEARCH_APM_TOKEN=
+      - ELASTIC_APM_SERVER_URL=http://localhost:8200
+      - ELASTIC_APM_SECRET_TOKEN=
       - DATABASE_URL=mongodb://mongodb/products
       - RABBITMQ_AMQP_ENDPOINT=amqp://growvia:growviapassword@rabbitmq_container:5672
       - REDIS_HOST=redis://redis:6379
@@ -342,8 +364,8 @@ services:
       - API_GATEWAY_URL=http://localhost:4000
       #- ELASTICSEARCH_URL=http://elasticsearch:9200
       - ELASTICSEARCH_URL=http://elastic:adminelastic@elasticsearch:9200
-      - ELASTICSEARCH_APM_SERVER_URL=http//localhost:8200
-      - ELASTICSEARCH_APM_TOKEN=
+      - ELASTIC_APM_SERVER_URL=http://localhost:8200
+      - ELASTIC_APM_SECRET_TOKEN=
       - RABBITMQ_AMQP_ENDPOINT=amqp://growvia:growviapassword@rabbitmq_container:5672
       - REDIS_HOST=redis://redis:6379
       - POSTGRESQL_HOST=postgre
@@ -375,8 +397,8 @@ services:
       - API_GATEWAY_URL=http://localhost:4000
       #- ELASTICSEARCH_URL=http://elasticsearch:9200
       - ELASTICSEARCH_URL=http://elastic:adminelastic@elasticsearch:9200
-      - ELASTICSEARCH_APM_SERVER_URL=http//localhost:8200
-      - ELASTICSEARCH_APM_TOKEN=
+      - ELASTIC_APM_SERVER_URL=http://localhost:8200
+      - ELASTIC_APM_SECRET_TOKEN=
       - RABBITMQ_AMQP_ENDPOINT=amqp://growvia:growviapassword@rabbitmq_container:5672
       - STRIPE_SECRET_KEY=sk_test_51R3HICGDD69JuV4mRnSDxfiGenqITBbaZPzQB4jRjxXQywtkhJFcSABiuJTNtwC6KFSSqoPjlz6ImfB5DfRotRlD00OV0AyW4u
       - GATEWAY_JWT_TOKEN=294bc0dd5baab813c5f762c3a8bba157  #MD5 Hash   
