@@ -36,6 +36,7 @@ services:
     environment:
      - POSTGRES_USER=growvia
      - POSTGRES_PASSWORD=growviapass
+     #try to set more dbs(that must exist on postgres connection)
      - POSTGRES_DB=intiall_db
     ports:
       - '5432:5432'
@@ -60,17 +61,27 @@ services:
 
   elasticsearch:
     container_name: elasticsearch_container
-    image: docker.elastic.co/elasticsearch/elasticsearch:8.17.0
+    # image: docker.elastic.co/elasticsearch/elasticsearch:8.17.0
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.18.0
     restart: always
     environment:
       ES_JAVA_OPTS: -Xmx1g -Xms1g
       bootstrap.memory_lock: "true"
       discovery.type: single-node #sufficient for local dev
-      xpack.security.enabled: "false" #security requeries to have a valid SSL sertificate ->HTTPS (no for local dev)
+      #enable securilty for allowing APM server as well
+      xpack.security.enabled: "true" #security requeries to have a valid SSL sertificate ->HTTPS (no for local dev)
+      network.host: 0.0.0.0
+      transport.host: 127.0.0.1
+      http.host: 0.0.0.0
+      xpack.security.authc.token.enabled: "true"
       xpack.security.authc.api_key.enabled: "true"
       xpack.monitoring.collection.enabled: "true"
       xpack.security.enrollment.enabled: "true"
-      ELASTICSEARCH_PASSWORD: adminelastic
+      #MUST BE "ELASTIC_PASSWORD"
+      #ELASTICSEARCH_PASSWORD: adminelastic
+      ELASTIC_PASSWORD: adminelastic
+      #execute this in conatiner to change kibana user password ->
+      #curl -s -X POST -u elastic:adminelastic -H "Content-Type: application/json" http://localhost:9200/_security/user/kibana_system/_password -d "{\"password\":\"elastickibana\"}"
     ports:
       - 9300:9300 # this is for another node (When isn't discovery.type: single-node)
       - 9200:9200 #Access elasticsearch api  
@@ -81,15 +92,15 @@ services:
   
   kibana:
     container_name: kibana_container
-    image: docker.elastic.co/kibana/kibana:8.17.0
-    # image: docker.elastic.co/kibana/kibana:8.11.0
+    image: docker.elastic.co/kibana/kibana:8.18.0
     restart: always
     environment:
       - ELASTICSEARCH_HOSTS=["http://elasticsearch_container:9200"] #form this kibana will get access to this service -> elasticsearch_container 
-      # - ELASTICSEARCH_USERNAME = kibana
-      # - ELASTICSEARCH_PASSWORD = elastickibana
-      - ELASTICSEARCH_KIBANA_USERNAME = kibana
-      - ELASTICSEARCH__KIBANAPASSWORD = elastickibana
+      - ELASTICSEARCH_KIBANA_USERNAME=kibana_system
+      - ELASTICSEARCH_KIBANA_PASSWORD=elastickibana
+      # The correct name of the variable token is: ELASTICSEARCH_SERVICEACCOUNTTOKEN
+      - ELASTICSEARCH_SERVICEACCOUNTTOKEN=AAEAAWVsYXN0aWMva2liYW5hL2dyb3d2aWEta2liYW5hOmQtdmJ6YmRrVF9HQmZmN1pfS3hOUmc
+      - XPACK_FLEET_AGENTS_ELASTICSEARCH_HOSTS=["http://elasticsearch_container:9200"] 
     ports:
       - 5601:5601
     networks:
@@ -98,6 +109,48 @@ services:
       - ./kibana.yml:/usr/share/kibana/config/kibana.yml:ro #:ro -> readOnly
     depends_on:
       - elasticsearch #start only when elasticSearch running
+
+
+  metricbeat:
+    container_name: metricbeat_container
+    image: docker.elastic.co/beats/metricbeat:8.18.0
+    #allow to read our docker sokcet -> set user to root
+    user: root 
+    ports:
+      - 5066:5066
+    networks:
+      - elastic
+    #we want get data from docker 
+    volumes:
+      #set up metricbeat.yaml file -> create it and configure it
+      - ./metricbeat.yml:/usr/share/metricbeat/metricbeat.yml:ro
+      # metricbeaths to have access to docker containers (docker module)
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      # gets access to our system (system module)
+      - /sys/fs/cgroup:/hostfs/sys/fs/cgroup:ro
+      - /proc:/hostfs/proc:ro
+      - /:/hostfs:ro
+    # command: ["--strict.perms=false", "-system.hostfs=/hostfs"]
+    command: ["-e", "--strict.perms=false", "--system.hostfs=/hostfs"]
+    # command: ["--strict.perms=false", "-E", "system.hostfs=/hostfs"]
+    depends_on: 
+      - elasticsearch
+
+  heartbeat:
+    container_name: heartbeat_container
+    image: docker.elastic.co/beats/heartbeat:8.18.0
+    user: root
+    hostname: heartbeat
+    #capabilities for this particular container
+    cap_add:
+      - NET_RAW
+    networks:
+      - elastic
+    command: ["--strict.perms=false"]
+    volumes:
+      - ./heartbeat.yml:/usr/share/heartbeat/heartbeat.yml:ro
+    depends_on: 
+      - elasticsearch
 
   gateway:
     container_name: gateway_container
@@ -123,17 +176,17 @@ services:
       # - REDIS_HOST=redis://localhost:6379  
       # - REDIS_HOST=redis://redis_container:6379 
       - REDIS_HOST=redis://redis:6379 
-      - GATEWAY_JTW_TOKEN = 294bc0dd5baab813c5f762c3a8bba157  
+      - GATEWAY_JTW_TOKEN=294bc0dd5baab813c5f762c3a8bba157  
       - JWT_TOKEN=0c41cc5c3479d16cb278d5e066b7ff5c
-      - FIRST_SECRET_KEY= 10dc0da8b2dd041b78a828551ca73ca0
-      - SECOND_SECRET_KEY= a27f3f722435720dd5758bbf02e6055c
+      - FIRST_SECRET_KEY=10dc0da8b2dd041b78a828551ca73ca0
+      - SECOND_SECRET_KEY=a27f3f722435720dd5758bbf02e6055c
       # - AUTH_SERVICE_URL= http://localhost:4002
       # - AUTH_SERVICE_URL= http://authentication_container:4002
-      - AUTH_SERVICE_URL= http://authentication:4002
-      - USER_SERVICE_URL= http://user:4003
-      - PRODUCT_SERVICE_URL= http://product:4004
-      - ORDER_SERVICE_URL= http://order:4005
-      - PAYMENT_SERVICE_URL= http://payment:4006
+      - AUTH_SERVICE_URL=http://authentication:4002
+      - USER_SERVICE_URL=http://user:4003
+      - PRODUCT_SERVICE_URL=http://product:4004
+      - ORDER_SERVICE_URL=http://order:4005
+      - PAYMENT_SERVICE_URL=http://payment:4006
     depends_on: 
       - elasticsearch 
 
@@ -159,9 +212,9 @@ services:
       - DATABASE_URL=mongodb://mongodb/notification
       # - RABBITMQ_AMQP_ENDPOINT=amqp://growvia:growviapassword@localhost:5672
       - RABBITMQ_AMQP_ENDPOINT=amqp://growvia:growviapassword@rabbitmq_container:5672
-      - TEST_EMAIL_NAME = Danika Price
-      - TEST_EMAIL = danika.price93@ethereal.email
-      - TEST_EMAIL_PASSWORD = AS8nZBfGXdDVhGvXh3
+      - TEST_EMAIL_NAME=Danika Price
+      - TEST_EMAIL=danika.price93@ethereal.email
+      - TEST_EMAIL_PASSWORD=AS8nZBfGXdDVhGvXh3
     depends_on: 
       - elasticsearch 
 
@@ -186,11 +239,11 @@ services:
       - RABBITMQ_AMQP_ENDPOINT=amqp://growvia:growviapassword@rabbitmq_container:5672
       - REDIS_HOST=redis://localhost:6379
       # - POSTGRESQL_HOST = postgres_container #pc ip address(should be liked)
-      - POSTGRESQL_HOST = postgres #recommended postgres service name (the container_name should be use as well)
-      - POSTGRESQL_USER = growvia
-      - POSTGRESQL_PASSWORD = growviapass
-      - POSTGRESQL_NAME = auth_service
-      - GATEWAY_JWT_TOKEN = 294bc0dd5baab813c5f762c3a8bba157  #MD5 Hash   
+      - POSTGRESQL_HOST=postgres #recommended postgres service name (the container_name should be use as well)
+      - POSTGRESQL_USER=growvia
+      - POSTGRESQL_PASSWORD=growviapass
+      - POSTGRESQL_NAME=auth_service
+      - GATEWAY_JWT_TOKEN=294bc0dd5baab813c5f762c3a8bba157  #MD5 Hash   
       - JWT_TOKEN=0c41cc5c3479d16cb278d5e066b7ff5c
     depends_on: 
       - elasticsearch
@@ -223,10 +276,10 @@ services:
       - DATABASE_URL=mongodb://mongodb/users
       - RABBITMQ_AMQP_ENDPOINT=amqp://growvia:growviapassword@rabbitmq_container:5672
       - REDIS_HOST=redis://localhost:6379
-      - CLOUDINARY_NAME= dqloq0g97
-      - CLOUDINARY_API_KEY= 129114878692724
-      - CLOUDINARY_API_SECRET= e2ARRbp8TfCj_RChgD5J_7mCfzY
-      - GATEWAY_JWT_TOKEN = 294bc0dd5baab813c5f762c3a8bba157  #MD5 Hash   
+      - CLOUDINARY_NAME=dqloq0g97
+      - CLOUDINARY_API_KEY=129114878692724
+      - CLOUDINARY_API_SECRET=e2ARRbp8TfCj_RChgD5J_7mCfzY
+      - GATEWAY_JWT_TOKEN=294bc0dd5baab813c5f762c3a8bba157  #MD5 Hash   
       - JWT_TOKEN=0c41cc5c3479d16cb278d5e066b7ff5c
     depends_on: 
       - elasticsearch
@@ -257,10 +310,10 @@ services:
       - DATABASE_URL=mongodb://mongodb/products
       - RABBITMQ_AMQP_ENDPOINT=amqp://growvia:growviapassword@rabbitmq_container:5672
       - REDIS_HOST=redis://redis:6379
-      - CLOUDINARY_NAME= dqloq0g97
-      - CLOUDINARY_API_KEY= 129114878692724
-      - CLOUDINARY_API_SECRET= e2ARRbp8TfCj_RChgD5J_7mCfzY
-      - GATEWAY_JWT_TOKEN = 294bc0dd5baab813c5f762c3a8bba157  #MD5 Hash   
+      - CLOUDINARY_NAME=dqloq0g97
+      - CLOUDINARY_API_KEY=129114878692724
+      - CLOUDINARY_API_SECRET=e2ARRbp8TfCj_RChgD5J_7mCfzY
+      - GATEWAY_JWT_TOKEN=294bc0dd5baab813c5f762c3a8bba157  #MD5 Hash   
       - JWT_TOKEN=0c41cc5c3479d16cb278d5e066b7ff5c
     depends_on: 
       - elasticsearch
@@ -289,11 +342,11 @@ services:
       - ELASTICSEARCH_APM_TOKEN=
       - RABBITMQ_AMQP_ENDPOINT=amqp://growvia:growviapassword@rabbitmq_container:5672
       - REDIS_HOST=redis://redis:6379
-      - POSTGRESQL_HOST = postgre
-      - POSTGRESQL_USER = growvia
-      - POSTGRESQL_PASSWORD = growviapass
-      - POSTGRESQL_NAME = order_service
-      - GATEWAY_JWT_TOKEN = 294bc0dd5baab813c5f762c3a8bba157  #MD5 Hash   
+      - POSTGRESQL_HOST=postgre
+      - POSTGRESQL_USER=growvia
+      - POSTGRESQL_PASSWORD=growviapass
+      - POSTGRESQL_NAME=order_service
+      - GATEWAY_JWT_TOKEN=294bc0dd5baab813c5f762c3a8bba157  #MD5 Hash   
       - JWT_TOKEN=0c41cc5c3479d16cb278d5e066b7ff5c
     depends_on: 
       - elasticsearch
@@ -321,8 +374,8 @@ services:
       - ELASTICSEARCH_APM_SERVER_URL=http//localhost:8200
       - ELASTICSEARCH_APM_TOKEN=
       - RABBITMQ_AMQP_ENDPOINT=amqp://growvia:growviapassword@rabbitmq_container:5672
-      - STRIPE_SECRET_KEY= sk_test_51R3HICGDD69JuV4mRnSDxfiGenqITBbaZPzQB4jRjxXQywtkhJFcSABiuJTNtwC6KFSSqoPjlz6ImfB5DfRotRlD00OV0AyW4u
-      - GATEWAY_JWT_TOKEN = 294bc0dd5baab813c5f762c3a8bba157  #MD5 Hash   
+      - STRIPE_SECRET_KEY=sk_test_51R3HICGDD69JuV4mRnSDxfiGenqITBbaZPzQB4jRjxXQywtkhJFcSABiuJTNtwC6KFSSqoPjlz6ImfB5DfRotRlD00OV0AyW4u
+      - GATEWAY_JWT_TOKEN=294bc0dd5baab813c5f762c3a8bba157  #MD5 Hash   
       - JWT_TOKEN=0c41cc5c3479d16cb278d5e066b7ff5c
     depends_on: 
       - elasticsearch

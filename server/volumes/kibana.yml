@@ -8,10 +8,12 @@ monitoring.ui.container.elasticsearch.enabled: true
 xpack.fleet.enabled: true
 xpack.fleet.agents.enabled: true
 xpack.fleet.agents.elasticsearch.hosts: ["http://elasticsearch_container:9200"]
-xpack.fleet.agents.fleet_server.hosts: ["http://fleet_server:9243"]
+# xpack.fleet.agents.fleet_server.hosts: ["http://fleet_server:9243"]
 xpack.reporting.roles.enabled: false
-
-xpack.encryptedSavedObjects.encryptionKey: 'a-very-secure-and-long-encryption-key-32-chars'
+xpack.fleet.agentIdVerificationEnabled: false
+#set random token key
+xpack.security.encryptionKey: iwM4wqpHBLhdnpBgyXk29GeqzG6K+Q6n
+xpack.encryptedSavedObjects.encryptionKey: iwM4wqpHBLhdnpBgyXk29GeqzG6K+Q6n
 # xpack.reporting.kibanaServer.hostname: localhost
 
 ## Add policy for apm-server integration

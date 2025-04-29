@@ -1,0 +1,75 @@
+heartbeat.config.monitors:
+  path: ${path.config}/monitors.d/*.yml
+  reload.enabled: false
+  reload.period: 5s 
+
+heartbeat.monitors:
+  - type: http
+    id: growvia-api-gateway
+    name: Growvia API Gateway Service
+    #send beat on every 5s
+    schedule: '@every 5s'
+    #use main local network IP: 192.168.0.17 because iam running services with npm run dev (all services on my machine -> same IP address)
+    #in situations if i run services in docker conatainer then I would use 'container_name' instead of IP address
+    hosts: ["http://192.168.0.17:4000/gateway-health"]
+    check.request.method: GET
+    check.response.status: [200]
+
+  - type: http
+    id: growvia-notification
+    name: Growvia Notification Service
+    schedule: '@every 5s'
+    hosts: ["http://192.168.0.17:4001/notification-health"]
+    check.request.method: GET
+    check.response.status: [200]
+
+  - type: http
+    id: growvia-auth
+    name: Growvia Auth Service
+    schedule: '@every 5s'
+    hosts: ["http://192.168.0.17:4002/auth-health"]
+    check.request.method: GET
+    check.response.status: [200]
+
+  - type: http
+    id: growvia-users
+    name: Growvia Users Service
+    schedule: '@every 5s'
+    hosts: ["http://192.168.0.17:4003/users-health"]
+    check.request.method: GET
+    check.response.status: [200]
+
+  - type: http
+    id: growvia-product
+    name: Growvia Product Service
+    schedule: '@every 5s'
+    hosts: ["http://192.168.0.17:4004/product-health"]
+    check.request.method: GET
+    check.response.status: [200]
+
+  - type: http
+    id: growvia-order
+    name: Growvia Order Service
+    schedule: '@every 5s'
+    hosts: ["http://192.168.0.17:4005/order-health"]
+    check.request.method: GET
+    check.response.status: [200]
+
+  - type: http
+    id: growvia-payment
+    name: Growvia Payment Service
+    schedule: '@every 5s'
+    hosts: ["http://192.168.0.17:4006/payment-health"]
+    check.request.method: GET
+    check.response.status: [200]
+
+processors:
+- add_cloud_metadata: ~
+- add_docker_metadata: ~
+
+monitoring.enabled: true
+
+output.elasticsearch:
+  hosts: ['http://elasticsearch_container:9200']
+  username: 'elastic'
+  password: 'adminelastic'
