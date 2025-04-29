@@ -167,9 +167,12 @@ services:
       - CLIENT_URL=http://localhost:3000 
       # - ELASTICSEARCH_URL=http://localhost:9200
       # - ELASTICSEARCH_URL=http://elasticsearch_container:9200
-      - ELASTICSEARCH_URL=http://elasticsearch:9200
+      #- ELASTICSEARCH_URL=http://elasticsearch:9200
       # with new defiend password (adminelastic)
       - ELASTICSEARCH_URL=http://elastic:adminelastic@elasticsearch:9200
+      #if doesn't work with elasticserach(service name) try with elasticserach_container (container name)
+      #- ELASTICSEARCH_URL=http://elastic:adminelastic@elasticsearch_container:9200
+      
       - ELASTICSEARCH_APM_SERVER_URL=http//localhost:8200
       - ELASTICSEARCH_APM_TOKEN=
       # - RABBITMQ_AMQP_ENDPOINT=amqp://growvia:growviapassword@localhost:5672
@@ -205,8 +208,9 @@ services:
       - CLIENT_URL=http://localhost:3000 
       # - ELASTICSEARCH_URL=http://localhost:9200 instead of 'localhost' use 'elasticsearch_container'
       # - ELASTICSEARCH_URL=http://elasticsearch_container:9200
-      - ELASTICSEARCH_URL=http://elasticsearch:9200
-      #- ELASTICSEARCH_URL=http://elastic:adminelastic@elasticsearch:9200
+      #- ELASTICSEARCH_URL=http://elasticsearch:9200
+      - ELASTICSEARCH_URL=http://elastic:adminelastic@elasticsearch:9200
+      #- ELASTICSEARCH_URL=http://elastic:adminelastic@elasticsearch_container:9200
       - ELASTICSEARCH_APM_SERVER_URL=http//localhost:8200
       - ELASTICSEARCH_APM_TOKEN=
       - DATABASE_URL=mongodb://mongodb/notification
@@ -232,8 +236,8 @@ services:
       - NODE_ENV=development
       - CLIENT_URL=http://localhost:3000 
       - API_GATEWAY_URL=http://localhost:4000
-      - ELASTICSEARCH_URL=http://elasticsearch:9200
-      #- ELASTICSEARCH_URL=http://elastic:adminelastic@elasticsearch:9200
+      #- ELASTICSEARCH_URL=http://elasticsearch:9200
+      - ELASTICSEARCH_URL=http://elastic:adminelastic@elasticsearch:9200
       - ELASTICSEARCH_APM_SERVER_URL=http//localhost:8200
       - ELASTICSEARCH_APM_TOKEN=
       - RABBITMQ_AMQP_ENDPOINT=amqp://growvia:growviapassword@rabbitmq_container:5672
@@ -269,8 +273,8 @@ services:
       - API_GATEWAY_URL=http://localhost:4000
       # - ELASTICSEARCH_URL=http://localhost:9200 instead of 'localhost' use 'elasticsearch_container'
       # - ELASTICSEARCH_URL=http://elasticsearch_container:9200
-      - ELASTICSEARCH_URL=http://elasticsearch:9200
-      #- ELASTICSEARCH_URL=http://elastic:adminelastic@elasticsearch:9200
+      #- ELASTICSEARCH_URL=http://elasticsearch:9200
+      - ELASTICSEARCH_URL=http://elastic:adminelastic@elasticsearch:9200
       - ELASTICSEARCH_APM_SERVER_URL=http//localhost:8200
       - ELASTICSEARCH_APM_TOKEN=
       - DATABASE_URL=mongodb://mongodb/users
@@ -303,8 +307,8 @@ services:
       - NODE_ENV=development
       - CLIENT_URL=http://localhost:3000 
       - API_GATEWAY_URL=http://localhost:4000
-      - ELASTICSEARCH_URL=http://elasticsearch:9200
-      # ELASTICSEARCH_URL=http://elastic:adminelastic@elasticsearch:9200
+      #- ELASTICSEARCH_URL=http://elasticsearch:9200
+      - ELASTICSEARCH_URL=http://elastic:adminelastic@elasticsearch:9200
       - ELASTICSEARCH_APM_SERVER_URL=http//localhost:8200
       - ELASTICSEARCH_APM_TOKEN=
       - DATABASE_URL=mongodb://mongodb/products
@@ -336,8 +340,8 @@ services:
       - NODE_ENV=development
       - CLIENT_URL=http://localhost:3000 
       - API_GATEWAY_URL=http://localhost:4000
-      - ELASTICSEARCH_URL=http://elasticsearch:9200
-      #- ELASTICSEARCH_URL=http://elastic:adminelastic@elasticsearch:9200
+      #- ELASTICSEARCH_URL=http://elasticsearch:9200
+      - ELASTICSEARCH_URL=http://elastic:adminelastic@elasticsearch:9200
       - ELASTICSEARCH_APM_SERVER_URL=http//localhost:8200
       - ELASTICSEARCH_APM_TOKEN=
       - RABBITMQ_AMQP_ENDPOINT=amqp://growvia:growviapassword@rabbitmq_container:5672
@@ -369,8 +373,8 @@ services:
       - NODE_ENV=development
       - CLIENT_URL=http://localhost:3000 
       - API_GATEWAY_URL=http://localhost:4000
-      - ELASTICSEARCH_URL=http://elasticsearch:9200
-      #- ELASTICSEARCH_URL=http://elastic:adminelastic@elasticsearch:9200
+      #- ELASTICSEARCH_URL=http://elasticsearch:9200
+      - ELASTICSEARCH_URL=http://elastic:adminelastic@elasticsearch:9200
       - ELASTICSEARCH_APM_SERVER_URL=http//localhost:8200
       - ELASTICSEARCH_APM_TOKEN=
       - RABBITMQ_AMQP_ENDPOINT=amqp://growvia:growviapassword@rabbitmq_container:5672
