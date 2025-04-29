@@ -14,8 +14,7 @@ const BASE_PATH = '/api/gateway/v1';
 export function appRoutes(app:Application): void {
     app.use('', healthRoutes()); // url is " " + "gateway-health"(return of healthRoutes()) => localhost:4000:/gateway-health
     // api/gateway/v1 + what authRoutes.routes() returns => /auth/something
-    //=> /api/gateway/v1/auth/something
-    app.use(BASE_PATH, authRoutes()); 
+    app.use(BASE_PATH, authRoutes());  //api/gateway/v1/auth/something
 
     //with authenticationMiddleware (authentications checking) Protected routes
     app.use(BASE_PATH, verifyUser, currentUserRoutes());
@@ -23,7 +22,7 @@ export function appRoutes(app:Application): void {
     //users
     app.use(BASE_PATH, verifyUser, customerRoutes());
     app.use(BASE_PATH, verifyUser, farmerRoutes());
-    app.use(BASE_PATH, verifyUser, productRoutes());
+    app.use(BASE_PATH, verifyUser, productRoutes()); 
     app.use(BASE_PATH, verifyUser, orderRoutes());
 }
 
@@ -34,5 +33,4 @@ export function appRoutes(app:Application): void {
 // //For others 
 // 'http://localhost:4000:/api/v1/auth/' //auth service for example (Signup route)
 // 'http://localhost:4000:/api/v1/auth/signup' //(Signup route)
-
 // 'http://localhost:4000:/api/v1/order/accept' //order service for example
