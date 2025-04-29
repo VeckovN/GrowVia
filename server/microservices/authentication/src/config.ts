@@ -8,8 +8,8 @@ interface Config {
     CLIENT_URL: string | undefined;
     API_GATEWAY_URL: string | undefined;
     ELASTICSEARCH_URL: string | undefined;
-    ELASTICSEARCH_APM_SERVER_URL: string | undefined;
-    ELASTICSEARCH_APM_TOKEN: string | undefined;
+    ELASTIC_APM_SERVER_URL: string | undefined;
+    ELASTIC_APM_SECRET_TOKEN: string | undefined;
     RABBITMQ_AMQP_ENDPOINT: string | undefined;
     REDIS_HOST: string | undefined;
     POSTGRESQL_HOST: string | undefined;
@@ -29,8 +29,8 @@ export const config: Config = {
     CLIENT_URL: process.env.CLIENT_URL || '',
     API_GATEWAY_URL: process.env.API_GATEWAY_URL || '',
     ELASTICSEARCH_URL: process.env.ELASTICSEARCH_URL || '', 
-    ELASTICSEARCH_APM_SERVER_URL: process.env.ELASTICSEARCH_APM_SERVER_URL || '',
-    ELASTICSEARCH_APM_TOKEN: process.env.ELASTICSEARCH_APM_TOKEN || '',
+    ELASTIC_APM_SERVER_URL: process.env.ELASTIC_APM_SERVER_URL || '',
+    ELASTIC_APM_SECRET_TOKEN: process.env.ELASTIC_APM_SECRET_TOKEN || '',
     RABBITMQ_AMQP_ENDPOINT: process.env.RABBITMQ_AMQP_ENDPOINT || '',
     REDIS_HOST: process.env.REDIS_HOST || '',
     POSTGRESQL_HOST: process.env.POSTGRESQL_HOST || '',
