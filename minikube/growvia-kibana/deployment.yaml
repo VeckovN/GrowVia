@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: growvia-kibana
-          image: docker.elastic.co/kibana/kibana:8.17.0
+          image: docker.elastic.co/kibana/kibana:8.18.0
           resources:
             limits:
               memory: "1Gi"
@@ -23,6 +23,9 @@ spec:
             requests:
               cpu: 250m
               memory: 1Gi
+          ports:
+            - name: growvia-kibana
+              containerPort: 5601    
           env:
             - name: ELASTICSEARCH_HOSTS
               #use elastic service name and specify 'production' namespace
@@ -31,14 +34,31 @@ spec:
                 secretKeyRef:
                   name: secret-data
                   key: growvia-elastic-hosts
-                
-            - name: ELASTICSEARCH_PASSWORD
-              #value: 'adminelastic'
+            - name: ELASTICSEARCH_KIBANA_USERNAME
+              #value: 'kibana_system'
               valueFrom:
                 secretKeyRef:
                   name: secret-data
-                  key: growvia-elastic-password
-                
-          ports:
-            - name: growvia-kibana
-              containerPort: 5601
+                  key: growvia-elastic-kibana-username
+            - name: ELASTICSEARCH_KIBANA_PASSWORD
+              #value: 'elastickibana'
+              valueFrom:
+                secretKeyRef:
+                  name: secret-data
+                  key: growvia-elastic-kibana-password
+            - name: ELASTICSEARCH_SERVICEACCOUNTTOKEN
+              #value: fresh generated 
+              valueFrom:
+                secretKeyRef:
+                  name: secret-data
+                  key: growvia-elastic-kibana-token
+          volumeMounts:
+            - name: kibana-config
+              mountPath: /usr/share/kibana/config
+      volumes:
+      #this must much name from volumeMounts (above)
+      - name: kibana-config 
+        configMap:
+        #this must match configMap.yaml name (in this situation is the same as volumeMount)
+          name: kibana-config 
+
