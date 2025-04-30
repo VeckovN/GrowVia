@@ -48,12 +48,12 @@ spec:
               secretKeyRef:
                 name: secret-data
                 key: growvia-elastic-url
-          - name: ELASTICSEARCH_APM_SERVER_URL
+          - name: ELASTIC_APM_SERVER_URL
             valueFrom:
               secretKeyRef:
                 name: secret-data
                 key: growvia-elastic-apm-server-url          
-          - name: ELASTICSEARCH_APM_TOKEN
+          - name: ELASTIC_APM_SECRET_TOKEN
             valueFrom:
               secretKeyRef:
                 name: secret-data
