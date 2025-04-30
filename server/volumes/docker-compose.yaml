@@ -1,8 +1,4 @@
-#docker -d ->detach mode : see all logs in console
-#docker compose up -d redis mongodb posgres rabbitmq elasticsearch kibana
-
 # version: '3.9'
-
 services:
   redis:
     container_name: redis_container #locally enter the contaier with this name
@@ -173,7 +169,7 @@ services:
         -E apm-server.kibana.protocol=http
         -E strict.perms=false
         -E apm-server.auth.anonymous.enabled=true
-
+        
   gateway:
     container_name: gateway_container
     build:
