@@ -32,6 +32,9 @@ pipeline {
         IMAGE_NAME = "veckovn/growvia-authentication" 
         //The BUILD_NUMBER is envinronemnt variable from Jenkins
         IMAGE_TAG = "stable-${BUILD_NUMBER}"
+        //token from npmrc
+        GITHUB_TOKEN  = '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'
+        NPM_REGISTRY = '"https://npm.pkg.github.com"'
 
     }
 
@@ -71,7 +74,21 @@ pipeline {
                 //Navigate to service directory
                 //dir("${microservicesRoot}/authentication") {
                 dir('server/microservices/authentication') {
-                    sh 'npm install'
+                     sh '''
+                        # Create secure .npmrc configuration
+                        cat > .npmrc <<EOF
+                        @VeckovN:registry=${NPM_REGISTRY}
+                        //npm.pkg.github.com/:_authToken=${GITHUB_TOKEN}
+                        EOF
+                        
+                        # Verify configuration
+                        echo "Generated .npmrc contents:"
+                        cat .npmrc | sed 's/${GITHUB_TOKEN}/[REDACTED]/g'
+                        
+                        npm install
+                    '''
+
+                    // sh 'npm install'
                 }
             }
         }
