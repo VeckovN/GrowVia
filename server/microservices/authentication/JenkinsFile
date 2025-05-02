@@ -75,16 +75,8 @@ pipeline {
                 //dir("${microservicesRoot}/authentication") {
                 dir('server/microservices/authentication') {
                      sh '''
-                        # Create secure .npmrc configuration
-                        cat > .npmrc <<EOF
-                        @VeckovN:registry=${NPM_REGISTRY}
-                        //npm.pkg.github.com/:_authToken=${GITHUB_TOKEN}
-                        EOF
-                        
-                        # Verify configuration
-                        echo "Generated .npmrc contents:"
-                        cat .npmrc | sed 's/${GITHUB_TOKEN}/[REDACTED]/g'
-                        
+                        echo "@VeckovN:registry=https://npm.pkg.github.com" > .npmrc
+                        echo "//npm.pkg.github.com/:_authToken=${GITHUB_TOKEN}" >> .npmrc
                         npm install
                     '''
 
