@@ -55,8 +55,9 @@ pipeline {
                 // git branch: 'main', credentials: 'github', url; "REPO OF 'authentication' BUT I HAVE WHOLE PROJECT REPO 'Growvia' THAT HAS SERVICES AS FOLDERS NOT REPOS"
                 
                 //So I'll clone whole "Growvia" Repo (that contain 'authentication' service folder(not repo))
-                git branch: 'main', credentials: 'github', url; 'https://github.com/VeckovN/GrowVia.git'
-            
+                git branch: 'main', 
+                    credentialsId: 'github', 
+                    url: 'https://github.com/VeckovN/GrowVia.git'
                 //NOW WE"RE IN /Growvia repo(folder)
 
                 // // // Load shared Groovy scripts from monorepo's jenkins-automation dir
