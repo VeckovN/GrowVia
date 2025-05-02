@@ -107,7 +107,7 @@ pipeline {
         stage("Build and Push") {
             steps {
                 dir('server/microservices/authentication') {
-                    sh 'docker login -u $DOCKERHUB_CREDENTIAL_USER --password $DOCKERHUB_CREDENTIALS_PSW' 
+                    sh 'docker login -u $DOCKERHUB_CREDENTIAL_USR --password $DOCKERHUB_CREDENTIALS_PSW' 
                     sh "docker build -t $IMAGE_NAME ." //we build the current image (everything that we have in git fetch ())
                     sh "docker tag $IMAGE_NAME $IMAGE_NAME:$IMAGE_TAG" 
                     sh "docker tag $IMAGE_NAME $IMAGE_NAME:stable" //add additional :stable to secure $IMAGE_NAME:stable failed
