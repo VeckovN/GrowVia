@@ -45,62 +45,84 @@ pipeline {
             }
         }
 
-        // stage("Prepare Environment") {
-        //     //git package is default installed in Jenkins (we can use git commands 'branch', 'push' etc.)
-        //     //uGo in github and find authentication service repository
-        //     //But i have Growvia repos there the autnetication service is folder in That repo (NOT SEPERATED REPOSITORY)
-        //     //I DON"T HAVE 'authenitaction' REPO
-        //     steps {
-        //         //I DON"T HAVE 'authenitaction' REPO
-        //         // git branch: 'main', credentials: 'github', url; "REPO OF 'authentication' BUT I HAVE WHOLE PROJECT REPO 'Growvia' THAT HAS SERVICES AS FOLDERS NOT REPOS"
+        stage("Prepare Environment") {
+            //git package is default installed in Jenkins (we can use git commands 'branch', 'push' etc.)
+            //uGo in github and find authentication service repository
+            //But i have Growvia repos there the autnetication service is folder in That repo (NOT SEPERATED REPOSITORY)
+            //I DON"T HAVE 'authenitaction' REPO
+            steps {
+                //I DON"T HAVE 'authenitaction' REPO
+                // git branch: 'main', credentials: 'github', url; "REPO OF 'authentication' BUT I HAVE WHOLE PROJECT REPO 'Growvia' THAT HAS SERVICES AS FOLDERS NOT REPOS"
                 
-        //         //So I'll clone whole "Growvia" Repo (that contain 'authentication' service folder(not repo))
-        //         git branch: 'main', credentials: 'github', url; 'https://github.com/VeckovN/GrowVia.git'
+                //So I'll clone whole "Growvia" Repo (that contain 'authentication' service folder(not repo))
+                git branch: 'main', credentials: 'github', url; 'https://github.com/VeckovN/GrowVia.git'
             
-        //         //NOW WE"RE IN /Growvia repo(folder)
+                //NOW WE"RE IN /Growvia repo(folder)
 
-        //         // // Load shared Groovy scripts from monorepo's jenkins-automation dir
-        //         // dir("${microservicesRoot}/jenkins-automation") {  // Assuming functions.groovy lives here
-        //         dir('server/microservices/jenkins-automation') {  // Assuming functions.groovy lives here
-        //             script {
-        //                 groovyMethods = load("functions.groovy")
-        //             }
-        //         }
+                // // // Load shared Groovy scripts from monorepo's jenkins-automation dir
+                // // dir("${microservicesRoot}/jenkins-automation") {  // Assuming functions.groovy lives here
+                // dir('server/microservices/jenkins-automation') {  // Assuming functions.groovy lives here
+                //     script {
+                //         groovyMethods = load("functions.groovy")
+                //     }
+                // }
 
-        //         //Navigate to service directory
-        //         //dir("${microservicesRoot}/authentication") {
-        //         dir('server/microservices/authentication') {
-        //             sh 'npm install'
-        //         }
-        //     }
-        // }
+                //Navigate to service directory
+                //dir("${microservicesRoot}/authentication") {
+                dir('server/microservices/authentication') {
+                    sh 'npm install'
+                }
+            }
+        }
 
 
-        //  //Run linter to check code quality
-        // stage("Lint Check") {
-        //     steps {
-        //         dir('server/microservices/authentication') {
-        //             sh 'npm run lint:check'  // run scrip lint:chekc -> ESLint or similar
-        //         }
-        //     }
-        // }
+         //Run linter to check code quality
+        stage("Lint Check") {
+            steps {
+                dir('server/microservices/authentication') {
+                    sh 'npm run lint:check'  // run scrip lint:chekc -> ESLint or similar
+                }
+            }
+        }
 
-        // stage("Code Format Check") {
-        //     steps {
-        //         dir('server/microservices/authentication') {
-        //             sh 'npm run prettier:check'  // Prettier formatting check
-        //         }
-        //     }
-        // }
+        stage("Code Format Check") {
+            steps {
+                dir('server/microservices/authentication') {
+                    sh 'npm run prettier:check'  // Prettier formatting check
+                }
+            }
+        }
 
-        // //Execute unit tests 
-        // //THe jenkins will execute unit test before pushing to the docker and github as well
-        // stage("Unit Test") {
-        //     steps {
-        //         dir(serviceDir) {
-        //             sh 'npm run test'  // Jest/Mocha/etc.
-        //         }
-        //     }
-        // }
+        //Execute unit tests 
+        //THe jenkins will execute unit test before pushing to the docker and github as well
+        stage("Unit Test") {
+            steps {
+                dir('server/microservices/authentication') {
+                    sh 'npm run test'  //Unit created test
+                }
+            }
+        }
+
+        stage("Build and Push") {
+            steps {
+                dir('server/microservices/authentication') {
+                    sh 'docker login -u $DOCKERHUB_CREDENTIAL_USER --password $DOCKERHUB_CREDENTIALS_PSW' 
+                    sh "docker build -t $IMAGE_NAME ." //we build the current image (everything that we have in git fetch ())
+                    sh "docker tag $IMAGE_NAME $IMAGE_NAME:$IMAGE_TAG" 
+                    sh "docker tag $IMAGE_NAME $IMAGE_NAME:stable" //add additional :stable to secure $IMAGE_NAME:stable failed
+                    //push seperatly the :$IMAGE_TAG and :stable
+                    sh "docker push $IMAGE_NAME:$IMAGE_TAG" 
+                    sh "docker push $IMAGE_NAME:stable" 
+                }
+            }
+        }
+
+        //Clean workspace
+        stage("Clean Artifacts") {
+            steps {
+                sh "docker rmi $IMAGE_NAME:$IMAGE_TAG" 
+                sh "docker rmi $IMAGE_NAME:stable" 
+            }
+        }
     }
 }
