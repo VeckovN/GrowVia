@@ -32,7 +32,6 @@ pipeline {
         IMAGE_NAME = "veckovn/growvia-authentication" 
         //The BUILD_NUMBER is envinronemnt variable from Jenkins
         IMAGE_TAG = "stable-${BUILD_NUMBER}"
-        GITHUB_TOKEN = 
     }
 
     stages {
@@ -77,7 +76,7 @@ pipeline {
         }
 
 
-        //  //Run linter to check code quality
+        //Run linter to check code quality
         // stage("Lint Check") {
         //     steps {
         //         dir('server/microservices/authentication') {
