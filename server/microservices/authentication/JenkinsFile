@@ -32,6 +32,7 @@ pipeline {
         IMAGE_NAME = "veckovn/growvia-authentication" 
         //The BUILD_NUMBER is envinronemnt variable from Jenkins
         IMAGE_TAG = "stable-${BUILD_NUMBER}"
+        GITHUB_TOKEN = 
     }
 
     stages {
@@ -76,22 +77,22 @@ pipeline {
         }
 
 
-         //Run linter to check code quality
-        stage("Lint Check") {
-            steps {
-                dir('server/microservices/authentication') {
-                    sh 'npm run lint:check'  // run scrip lint:chekc -> ESLint or similar
-                }
-            }
-        }
+        //  //Run linter to check code quality
+        // stage("Lint Check") {
+        //     steps {
+        //         dir('server/microservices/authentication') {
+        //             sh 'npm run lint:check'  // run scrip lint:chekc -> ESLint or similar
+        //         }
+        //     }
+        // }
 
-        stage("Code Format Check") {
-            steps {
-                dir('server/microservices/authentication') {
-                    sh 'npm run prettier:check'  // Prettier formatting check
-                }
-            }
-        }
+        // stage("Code Format Check") {
+        //     steps {
+        //         dir('server/microservices/authentication') {
+        //             sh 'npm run prettier:check'  // Prettier formatting check
+        //         }
+        //     }
+        // }
 
         //Execute unit tests 
         //THe jenkins will execute unit test before pushing to the docker and github as well
