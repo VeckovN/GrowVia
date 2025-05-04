@@ -27,7 +27,8 @@ pipeline {
     //env properties that we'll use in different stages('build','test','deploy')
     environment {
         //To get Docker credentials we'll use method credentials() - one of the docker plugins method
-        DOCKER_CREDENTIALS = credentials("dockerhub") //In ManageJenkins->Credentials we got 'dockerhub'
+        //Jenkins automatically create DOCKER_CREDENTIALS_USR and DOCKER_CREDENTIALS_PSW
+        DOCKERHUB_CREDENTIALS = credentials("dockerhub") //In ManageJenkins->Credentials we got 'dockerhub'
         //the service image that we want to push in dockerHub 
         IMAGE_NAME = "veckovn/growvia-authentication" 
         //The BUILD_NUMBER is envinronemnt variable from Jenkins
@@ -75,38 +76,10 @@ pipeline {
             }
         }
 
-
-        //Run linter to check code quality
-        // stage("Lint Check") {
-        //     steps {
-        //         dir('server/microservices/authentication') {
-        //             sh 'npm run lint:check'  // run scrip lint:chekc -> ESLint or similar
-        //         }
-        //     }
-        // }
-
-        // stage("Code Format Check") {
-        //     steps {
-        //         dir('server/microservices/authentication') {
-        //             sh 'npm run prettier:check'  // Prettier formatting check
-        //         }
-        //     }
-        // }
-
-        //Execute unit tests 
-        //THe jenkins will execute unit test before pushing to the docker and github as well
-        // stage("Unit Test") {
-        //     steps {
-        //         dir('server/microservices/authentication') {
-        //             sh 'npm run test'  //Unit created test
-        //         }
-        //     }
-        // }
-
         stage("Build and Push") {
             steps {
                 dir('server/microservices/authentication') {
-                    sh 'docker login -u $DOCKERHUB_CREDENTIAL_USR --password $DOCKERHUB_CREDENTIALS_PSW' 
+                    sh 'echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin'
                     sh "docker build -t $IMAGE_NAME ." //we build the current image (everything that we have in git fetch ())
                     sh "docker tag $IMAGE_NAME $IMAGE_NAME:$IMAGE_TAG" 
                     sh "docker tag $IMAGE_NAME $IMAGE_NAME:stable" //add additional :stable to secure $IMAGE_NAME:stable failed
