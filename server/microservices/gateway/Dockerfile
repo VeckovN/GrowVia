@@ -9,7 +9,7 @@ WORKDIR /app
 COPY package*.json ./  
 #COPY package.json ./ 
 COPY tsconfig.json ./
-COPY .npmrc ./
+# COPY .npmrc ./ #shared library become public
 COPY src ./src
 RUN npm install -g npm@latest 
 #when the 'npm i' and only copied package.json -> on every build the packages will reinstalled
@@ -25,7 +25,7 @@ RUN apk add --no-cache curl
 #COPY package.json ./ 
 COPY package*.json ./ 
 COPY tsconfig.json ./
-COPY .npmrc ./
+# COPY .npmrc ./
 RUN npm install -g pm2 npm@latest 
 RUN npm ci --production
 COPY --from=builder /app/build ./build

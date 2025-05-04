@@ -6,7 +6,7 @@ WORKDIR /app
 COPY package.json ./ 
 COPY tsconfig.json ./
 #for shared library -> copy .nmprc
-COPY .npmrc ./
+# COPY .npmrc ./
 COPY src ./src
 
 RUN ls -a
