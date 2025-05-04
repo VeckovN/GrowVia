@@ -23,7 +23,6 @@
     "@socket.io/redis-adapter": "^8.3.0",
     "@veckovn/growvia-shared": "^1.1.4",
     "axios": "^1.7.9",
-    "bcrypt": "^5.1.1",
     "compression": "^1.7.5",
     "cookie-session": "^2.1.0",
     "cors": "^2.8.5",

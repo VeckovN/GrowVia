@@ -1,5 +1,4 @@
-#downgrade from node:23 to node:20 to avoid bycrypt library error (because it isn't supported well in v.23)
-FROM node:20-alpine3.20 AS builder
+FROM node:23-alpine3.20 AS builder
 
 WORKDIR /app 
 
@@ -18,7 +17,7 @@ RUN npm install -g npm@latest
 #now use "ci" instead of 'i' -> because we copied the package-lock.json as well 
 RUN npm ci && npm run build
 
-FROM node:20-alpine3.20
+FROM node:23-alpine3.20
 
 WORKDIR /app
 RUN apk add --no-cache curl

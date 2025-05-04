@@ -1,0 +1,116 @@
+//We have one repo "growvia" with all microservices 
+//MONOREPO Jenkins 
+
+namespace = "production" 
+serviceName = 'growvia-gateway' //authentication Pod name
+service = "Growvia Gateway" //service name for slack notification
+//Repo = https://github.com/VeckovN/GrowVia.git
+microservicesRoot = 'server/microservices' //path to the aservices in monorep(Growvia)
+
+//create pipeline and create agent ('Jenkins-Agent' that we created in Jenkins dashboard)
+pipeline {
+    agent {
+        //Name of agent (from "Labels" in "Jenkins-AGent" configuration)
+        label 'Jenkins-Agent'
+    }
+
+    tools {
+        //The vallue is "Name" from ManageJEnkins > Tools :NodeJS installations
+        nodejs 'NodeJS'  //The vallue is "Name" from ManageJEnkins > Tools :NodeJS installations
+        dockerTool 'Docker' //Name from Tool Configuration as well
+    }
+
+    //env properties that we'll use in different stages('build','test','deploy')
+    environment {
+        //To get Docker credentials we'll use method credentials() - one of the docker plugins method
+        //Jenkins automatically create DOCKER_CREDENTIALS_USR and DOCKER_CREDENTIALS_PSW
+        DOCKERHUB_CREDENTIALS = credentials("dockerhub") //In ManageJenkins->Credentials we got 'dockerhub'
+        //the service image that we want to push in dockerHub 
+        IMAGE_NAME = "veckovn/growvia-gateway" 
+        //The BUILD_NUMBER is envinronemnt variable from Jenkins
+        IMAGE_TAG = "stable-${BUILD_NUMBER}"
+    }
+
+    stages {
+        //Cleanup workspace before any actual build
+        //Try only this state to check is jenkins setup correctly
+        stage("Cleanup Workspace"){
+            steps {
+                //This is Jenkins method for cleaning workspace
+                cleanWs()
+            }
+        }
+
+        stage("Prepare Environment") {
+            steps {
+                //So I'll clone whole "Growvia" Repo (that contain 'authentication' service folder(not repo))
+                git branch: 'main', 
+                    credentialsId: 'github', 
+                    url: 'https://github.com/VeckovN/GrowVia.git'
+        
+                //Navigate to service directory
+                dir('server/microservices/gateway') {
+                    sh 'npm install'
+                }
+            }
+        }
+
+        stage("Build and Push") {
+            //We have Monorepo(one "Growiva" repo that have services)
+            //add this to trigger only authentication service with webhook
+            when {
+                changeset "server/microservices/gateway/**"
+            }
+            steps {
+                dir('server/microservices/gateway') {
+                    sh 'docker login -u $DOCKERHUB_CREDENTIALS_USR -p $DOCKERHUB_CREDENTIALS_PSW'
+                    sh "docker build -t $IMAGE_NAME ." 
+                    sh "docker tag $IMAGE_NAME $IMAGE_NAME:$IMAGE_TAG" 
+                    sh "docker tag $IMAGE_NAME $IMAGE_NAME:stable" 
+                    sh "docker push $IMAGE_NAME:$IMAGE_TAG" 
+                    sh "docker push $IMAGE_NAME:stable" 
+                }
+            }
+        }
+
+        stage("Notify Slack") {
+            steps {
+                script {
+                    //Webhook URL
+                    def slackURL = 'https://hooks.slack.com/services/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'
+                    def jenkinsIcon = 'https://a.slack-edge.com/205a/img/services/jenkins-ci_72.png'
+                    def channel = 'growvia-jenkins'
+                    def text = "Build ${currentBuild.currentResult}: Job ${env.JOB_NAME} #${env.BUILD_NUMBER}"
+                    
+                    def attachments = [
+                        [
+                            title: "Build Details",
+                            title_link: "${env.BUILD_URL}",
+                            text: "Image: ${IMAGE_NAME}:${IMAGE_TAG}",
+                            color: currentBuild.currentResult == 'SUCCESS' ? 'good' : 'danger'
+                        ]
+                    ]
+
+                    def payload = groovy.json.JsonOutput.toJson([
+                        text: text,
+                        channel: channel,
+                        username: "jenkins",
+                        icon_url: jenkinsIcon,
+                        attachments: attachments
+                    ])
+
+                    sh "curl -s -X POST ${slackURL} -H 'Cache-Control: no-cache' -H 'Content-Type: application/json;charset=UTF-8' -d '${payload}'"
+                }
+            }
+        }
+
+
+        //Clean workspace
+        stage("Clean Artifacts") {
+            steps {
+                sh "docker rmi $IMAGE_NAME:$IMAGE_TAG" 
+                sh "docker rmi $IMAGE_NAME:stable" 
+            }
+        }
+    }
+}
