@@ -10,7 +10,6 @@ service = "Growvia Authentication" //service name for slack notification
 //Repo = https://github.com/VeckovN/GrowVia.git
 microservicesRoot = 'server/microservices' //path to the aservices in monorep(Growvia)
 
-
 //create pipeline and create agent ('Jenkins-Agent' that we created in Jenkins dashboard)
 pipeline {
     agent {
