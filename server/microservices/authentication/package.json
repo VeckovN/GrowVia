@@ -21,7 +21,7 @@
   "dependencies": {
     "@elastic/elasticsearch": "^8.17.0",
     "@faker-js/faker": "^9.4.0",
-    "@veckovn/growvia-shared": "^1.0.8",
+    "@veckovn/growvia-shared": "^1.1.4",
     "amqplib": "^0.10.3",
     "bcryptjs": "^2.4.3",
     "compression": "^1.7.5",

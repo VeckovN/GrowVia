@@ -1,3 +1,4 @@
+
 {
   "compilerOptions": {
     "target": "ES2015",
@@ -20,12 +21,50 @@
     "allowSyntheticDefaultImports": true,
     "pretty": true,
     "resolveJsonModule": true,
+    "skipLibCheck": true,  // NEW: Critical for shared library
     "plugins": [
       { "transform": "typescript-transform-paths" },
       { "transform": "typescript-transform-paths", "afterDeclarations": true },
     ],
     "paths": {
-      "@authentication/*": ["src/*"]
+      "@authentication/*": ["src/*"],
+      // "@veckovn/growvia-shared": ["node_modules/@veckovn/growvia-shared/build/src/index.d.ts"]
     }
-  }
+  },
+  "include": ["src/**/*"],  // NEW: Explicit inclusion
+  "exclude": ["node_modules", "build", "**/*.spec.ts"]  // NEW
+  
 }
+
+//When shared library was published in Github Package repository
+// {
+//   "compilerOptions": {
+//     "target": "ES2015",
+//     "lib": ["dom", "ES2015"],
+//     "module": "commonjs",
+//     "baseUrl": ".",
+//     "outDir": "./build",
+//     "rootDir": ".",
+//     "strict": true,
+//     "noImplicitAny": true, //Disallows variables or parameters being assigned any implicitly
+//     "noUnusedLocals": true, //trigger error if the defined variable is not used
+//     "noUnusedParameters": true, //trigger error if passed function parameters is not used in function
+//     "moduleResolution": "node",
+//     "esModuleInterop": true,
+//     "sourceMap": true,
+//     "alwaysStrict": true,
+//     "experimentalDecorators": true,
+//     "emitDecoratorMetadata": true,
+//     "forceConsistentCasingInFileNames": true,
+//     "allowSyntheticDefaultImports": true,
+//     "pretty": true,
+//     "resolveJsonModule": true,
+//     "plugins": [
+//       { "transform": "typescript-transform-paths" },
+//       { "transform": "typescript-transform-paths", "afterDeclarations": true },
+//     ],
+//     "paths": {
+//       "@authentication/*": ["src/*"]
+//     }
+//   }
+// }

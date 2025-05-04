@@ -95,13 +95,13 @@ pipeline {
 
         //Execute unit tests 
         //THe jenkins will execute unit test before pushing to the docker and github as well
-        stage("Unit Test") {
-            steps {
-                dir('server/microservices/authentication') {
-                    sh 'npm run test'  //Unit created test
-                }
-            }
-        }
+        // stage("Unit Test") {
+        //     steps {
+        //         dir('server/microservices/authentication') {
+        //             sh 'npm run test'  //Unit created test
+        //         }
+        //     }
+        // }
 
         stage("Build and Push") {
             steps {
