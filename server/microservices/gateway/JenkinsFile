@@ -7,27 +7,19 @@ service = "Growvia Gateway" //service name for slack notification
 //Repo = https://github.com/VeckovN/GrowVia.git
 microservicesRoot = 'server/microservices' //path to the aservices in monorep(Growvia)
 
-//create pipeline and create agent ('Jenkins-Agent' that we created in Jenkins dashboard)
 pipeline {
     agent {
-        //Name of agent (from "Labels" in "Jenkins-AGent" configuration)
         label 'Jenkins-Agent'
     }
 
     tools {
-        //The vallue is "Name" from ManageJEnkins > Tools :NodeJS installations
-        nodejs 'NodeJS'  //The vallue is "Name" from ManageJEnkins > Tools :NodeJS installations
-        dockerTool 'Docker' //Name from Tool Configuration as well
+        nodejs 'NodeJS'
+        dockerTool 'Docker'
     }
 
-    //env properties that we'll use in different stages('build','test','deploy')
     environment {
-        //To get Docker credentials we'll use method credentials() - one of the docker plugins method
-        //Jenkins automatically create DOCKER_CREDENTIALS_USR and DOCKER_CREDENTIALS_PSW
-        DOCKERHUB_CREDENTIALS = credentials("dockerhub") //In ManageJenkins->Credentials we got 'dockerhub'
-        //the service image that we want to push in dockerHub 
+        DOCKERHUB_CREDENTIALS = credentials("dockerhub") 
         IMAGE_NAME = "veckovn/growvia-gateway" 
-        //The BUILD_NUMBER is envinronemnt variable from Jenkins
         IMAGE_TAG = "stable-${BUILD_NUMBER}"
     }
 
