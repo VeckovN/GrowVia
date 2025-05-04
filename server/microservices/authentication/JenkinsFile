@@ -95,22 +95,37 @@ pipeline {
             }
         }
 
+        stage("Notify Slack") {
+            steps {
+                script {
+                    //Webhook URL
+                    def slackURL = 'https://hooks.slack.com/services/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'
+                    def jenkinsIcon = 'https://a.slack-edge.com/205a/img/services/jenkins-ci_72.png'
+                    def channel = '#your-channel-name' // Add your channel here
+                    def text = "Build ${currentBuild.currentResult}: Job ${env.JOB_NAME} #${env.BUILD_NUMBER}"
+                    
+                    def attachments = [
+                        [
+                            title: "Build Details",
+                            title_link: "${env.BUILD_URL}",
+                            text: "Image: ${IMAGE_NAME}:${IMAGE_TAG}",
+                            color: currentBuild.currentResult == 'SUCCESS' ? 'good' : 'danger'
+                        ]
+                    ]
 
-        //Notify Slack
+                    def payload = groovy.json.JsonOutput.toJson([
+                        text: text,
+                        channel: channel,
+                        username: "jenkins",
+                        icon_url: jenkinsIcon,
+                        attachments: attachments
+                    ])
 
-        //Webhook url
-        def slackURL = 'https://hooks.slack.com/services/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'
-        def jenkinsIcon = 'https://a.slack-edge.com/205a/img/services/jenkins-ci_72.png'
+                    sh "curl -s -X POST ${slackURL} -H 'Cache-Control: no-cache' -H 'Content-Type: application/json;charset=UTF-8' -d '${payload}'"
+                }
+            }
+        }
 
-        def payload = JsonOutput.toJson([
-            text: text,
-            channel: channel,
-            username: "jenkins",
-            icon_url: jenkinsIcon,
-            attachments: attachments
-        ])
-
-        sh "curl -s -X POST ${slackURL} -H 'Cache-Control: no-cache' -H 'Content-Type: application/json;charset=UTF-8' -d '${payload}'"
 
         //Clean workspace
         stage("Clean Artifacts") {
