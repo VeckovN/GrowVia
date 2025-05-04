@@ -77,6 +77,11 @@ pipeline {
         }
 
         stage("Build and Push") {
+            //We have Monorepo(one "Growiva" repo that have services)
+            //add this to trigger only authentication service with webhook
+            when {
+                changeset "server/microservices/authentication/**"
+            }
             steps {
                 dir('server/microservices/authentication') {
                     sh 'docker login -u $DOCKERHUB_CREDENTIALS_USR -p $DOCKERHUB_CREDENTIALS_PSW'
@@ -89,6 +94,23 @@ pipeline {
                 }
             }
         }
+
+
+        //Notify Slack
+
+        //Webhook url
+        def slackURL = 'https://hooks.slack.com/services/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'
+        def jenkinsIcon = 'https://a.slack-edge.com/205a/img/services/jenkins-ci_72.png'
+
+        def payload = JsonOutput.toJson([
+            text: text,
+            channel: channel,
+            username: "jenkins",
+            icon_url: jenkinsIcon,
+            attachments: attachments
+        ])
+
+        sh "curl -s -X POST ${slackURL} -H 'Cache-Control: no-cache' -H 'Content-Type: application/json;charset=UTF-8' -d '${payload}'"
 
         //Clean workspace
         stage("Clean Artifacts") {
