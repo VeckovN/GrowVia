@@ -77,14 +77,6 @@ pipeline {
                     url: 'https://github.com/VeckovN/GrowVia.git'
                 //NOW WE"RE IN /Growvia repo(folder)
 
-                // // // Load shared Groovy scripts from monorepo's jenkins-automation dir
-                // // dir("${microservicesRoot}/jenkins-automation") {  // Assuming functions.groovy lives here
-                // dir('server/microservices/jenkins-automation') {  // Assuming functions.groovy lives here
-                //     script {
-                //         groovyMethods = load("functions.groovy")
-                //     }
-                // }
-
                 //Navigate to service directory
                 //dir("${microservicesRoot}/authentication") {
                 dir('server/microservices/authentication') {
