@@ -21,6 +21,7 @@ pipeline {
                     expressionType: 'JSONPath'
                 ]
             ],
+            //Single Webhook for all changes that 
             token: 'GATEWAY_TRIGGER',  // Unique token for gateway service
             regexpFilterText: '$GIT_CHANGED_FILES',
             regexpFilterExpression: 'server/microservices/gateway/.*',
@@ -39,7 +40,6 @@ pipeline {
         IMAGE_NAME = "veckovn/growvia-gateway" 
         IMAGE_TAG = "stable-${BUILD_NUMBER}"
     }
-
 
     stages {
         //Cleanup workspace before any actual build
@@ -112,8 +112,6 @@ pipeline {
             }
         }
 
-
-        //Clean workspace
         stage("Clean Artifacts") {
             steps {
                 sh "docker rmi $IMAGE_NAME:$IMAGE_TAG" 
