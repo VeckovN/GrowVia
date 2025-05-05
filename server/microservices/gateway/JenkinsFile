@@ -46,7 +46,6 @@ pipeline {
         //Try only this state to check is jenkins setup correctly
         stage("Cleanup Workspace"){
             steps {
-                //This is Jenkins method for cleaning workspace
                 cleanWs()
             }
         }
@@ -102,7 +101,7 @@ pipeline {
                     def payload = groovy.json.JsonOutput.toJson([
                         text: text,
                         channel: channel,
-                        username: "jenkins",
+                        username: "growvia-jenkins",
                         icon_url: jenkinsIcon,
                         attachments: attachments
                     ])
