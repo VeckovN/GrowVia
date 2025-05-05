@@ -13,7 +13,6 @@ microservicesRoot = 'server/microservices' //path to the aservices in monorep(Gr
 //create pipeline and create agent ('Jenkins-Agent' that we created in Jenkins dashboard)
 pipeline {
     agent {
-        //Name of agent (from "Labels" in "Jenkins-AGent" configuration)
         label 'Jenkins-Agent'
     }
 
