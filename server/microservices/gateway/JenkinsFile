@@ -12,10 +12,6 @@ pipeline {
         label 'Jenkins-Agent'
     }
 
-    when {
-        changeset "server/microservices/gateway/**"
-    }
-
     tools {
         nodejs 'NodeJS'
         dockerTool 'Docker'
@@ -55,9 +51,7 @@ pipeline {
         stage("Build and Push") {
             //We have Monorepo(one "Growiva" repo that have services)
             //add this to trigger only authentication service with webhook
-            when {
-                changeset "server/microservices/gateway/**"
-            }
+           
             steps {
                 dir('server/microservices/gateway') {
                     sh 'docker login -u $DOCKERHUB_CREDENTIALS_USR -p $DOCKERHUB_CREDENTIALS_PSW'
