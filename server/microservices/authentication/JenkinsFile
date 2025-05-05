@@ -17,6 +17,10 @@ pipeline {
         label 'Jenkins-Agent'
     }
 
+    when {
+        changeset "server/microservices/authentication/**"
+    }
+
     tools {
         //The vallue is "Name" from ManageJEnkins > Tools :NodeJS installations
         nodejs 'NodeJS'  //The vallue is "Name" from ManageJEnkins > Tools :NodeJS installations
@@ -32,10 +36,6 @@ pipeline {
         IMAGE_NAME = "veckovn/growvia-authentication" 
         //The BUILD_NUMBER is envinronemnt variable from Jenkins
         IMAGE_TAG = "stable-${BUILD_NUMBER}"
-    }
-
-    when {
-        changeset "server/microservices/authentication/**"
     }
 
     stages {
