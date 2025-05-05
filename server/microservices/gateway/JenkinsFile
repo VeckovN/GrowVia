@@ -12,6 +12,23 @@ pipeline {
         label 'Jenkins-Agent'
     }
 
+    triggers {
+        GenericTrigger(
+            genericVariables: [
+                [
+                    key: 'GIT_CHANGED_FILES',
+                    value: '$.commits[*].modified[*]',
+                    expressionType: 'JSONPath'
+                ]
+            ],
+            token: 'GATEWAY_TRIGGER',  // Unique token for gateway service
+            regexpFilterText: '$GIT_CHANGED_FILES',
+            regexpFilterExpression: 'server/microservices/gateway/.*',
+            printContributedVariables: true,  
+            printPostContent: true           
+        )
+    }
+
     tools {
         nodejs 'NodeJS'
         dockerTool 'Docker'
