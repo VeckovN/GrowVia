@@ -42,7 +42,6 @@ function startPostgreSQL():void{
 }
 
 async function startRabbitmqQueue():Promise<void>{
-    //create authChannel
     authChannel = await createConnection() as Channel;
 }
 
