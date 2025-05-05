@@ -23,6 +23,10 @@ pipeline {
         IMAGE_TAG = "stable-${BUILD_NUMBER}"
     }
 
+    when {
+        changeset "server/microservices/gateway/**"
+    }
+
     stages {
         //Cleanup workspace before any actual build
         //Try only this state to check is jenkins setup correctly
