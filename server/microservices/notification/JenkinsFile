@@ -1,0 +1,120 @@
+//We have one repo "growvia" with all microservices 
+//MONOREPO Jenkins 
+
+namespace = "production" 
+serviceName = 'growvia-notification' //authentication Pod name
+service = "Growvia Notification" //service name for slack notification
+//Repo = https://github.com/VeckovN/GrowVia.git
+microservicesRoot = 'server/microservices' //path to the aservices in monorep(Growvia)
+
+pipeline {
+    agent {
+        label 'Jenkins-Agent'
+    }
+
+    triggers {
+        GenericTrigger(
+            genericVariables: [
+                [
+                    key: 'GIT_CHANGED_FILES',
+                    value: '$.commits[*].modified[*]',
+                    expressionType: 'JSONPath'
+                ]
+            ],
+            //Single Webhook for all changes that 
+            token: 'NOTIFICATION_TRIGGER',  // Unique token for notification service
+            regexpFilterText: '$GIT_CHANGED_FILES',
+            regexpFilterExpression: 'server/microservices/notification/.*',
+            printContributedVariables: true,  
+            printPostContent: true           
+        )
+    }
+
+    tools {
+        nodejs 'NodeJS'
+        dockerTool 'Docker'
+    }
+
+    environment {
+        DOCKERHUB_CREDENTIALS = credentials("dockerhub") 
+        IMAGE_NAME = "veckovn/growvia-notification" 
+        IMAGE_TAG = "stable-${BUILD_NUMBER}"
+    }
+
+    stages {
+        //Cleanup workspace before any actual build
+        //Try only this state to check is jenkins setup correctly
+        stage("Cleanup Workspace"){
+            steps {
+                cleanWs()
+            }
+        }
+
+        stage("Prepare Environment") {
+            steps {
+                //So I'll clone whole "Growvia" Repo (that contain 'authentication' service folder(not repo))
+                git branch: 'main', 
+                    credentialsId: 'github', 
+                    url: 'https://github.com/VeckovN/GrowVia.git'
+        
+                //Navigate to service directory
+                dir('server/microservices/notification') {
+                    sh 'npm install'
+                }
+            }
+        }
+
+        stage("Build and Push") {
+            //We have Monorepo(one "Growiva" repo that have services)
+            //add this to trigger only authentication service with webhook
+           
+            steps {
+                dir('server/microservices/notification') {
+                    sh 'docker login -u $DOCKERHUB_CREDENTIALS_USR -p $DOCKERHUB_CREDENTIALS_PSW'
+                    sh "docker build -t $IMAGE_NAME ." 
+                    sh "docker tag $IMAGE_NAME $IMAGE_NAME:$IMAGE_TAG" 
+                    sh "docker tag $IMAGE_NAME $IMAGE_NAME:stable" 
+                    sh "docker push $IMAGE_NAME:$IMAGE_TAG" 
+                    sh "docker push $IMAGE_NAME:stable" 
+                }
+            }
+        }
+
+        stage("Notify Slack") {
+            steps {
+                script {
+                    def slackURL = 'https://hooks.slack.com/services/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'
+                    def jenkinsIcon = 'https://a.slack-edge.com/205a/img/services/jenkins-ci_72.png'
+                    def channel = 'growvia-jenkins'
+                    def text = "Build ${currentBuild.currentResult}: Job ${env.JOB_NAME} #${env.BUILD_NUMBER}"
+                    
+                    def attachments = [
+                        [
+                            title: "Build Details",
+                            title_link: "${env.BUILD_URL}",
+                            text: "Image: ${IMAGE_NAME}:${IMAGE_TAG}",
+                            color: currentBuild.currentResult == 'SUCCESS' ? 'good' : 'danger'
+                        ]
+                    ]
+
+                    def payload = groovy.json.JsonOutput.toJson([
+                        text: text,
+                        channel: channel,
+                        username: "growvia-jenkins",
+                        icon_url: jenkinsIcon,
+                        attachments: attachments
+                    ])
+
+                    sh "curl -s -X POST ${slackURL} -H 'Cache-Control: no-cache' -H 'Content-Type: application/json;charset=UTF-8' -d '${payload}'"
+                }
+            }
+        }
+
+        stage("Clean Artifacts") {
+            steps {
+                sh "docker rmi $IMAGE_NAME:$IMAGE_TAG" 
+                sh "docker rmi $IMAGE_NAME:stable" 
+            }
+        }
+    }
+}
