@@ -8,14 +8,16 @@ spec:
   selector:
     matchLabels:
       app: growvia-elastic
+  strategy:
+    type: Recreate
   minReadySeconds: 10
+  revisionHistoryLimit: 10
   progressDeadlineSeconds: 600
   template:
     metadata:
       labels:
         app: growvia-elastic
     spec:
-      terminationGracePeriodSeconds: 10
       initContainers:
       - name: busybox
         image: busybox #tthe image that we can use to execute cmd
@@ -28,14 +30,18 @@ spec:
       containers:
         - name: growvia-elastic
           image: docker.elastic.co/elasticsearch/elasticsearch:8.18.0 #Image that is used in local Docker
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
+          lifecycle:
+            preStop:
+              exec:
+                command: ["/bin/sh", "-c", "sleep 30"]  # Graceful shutdown period
           resources:
             limits:
               cpu: 1500m
-              memory: 4Gi
+              memory: 3Gi
             requests:
               cpu: 250m
-              memory: 2Gi
+              memory: 1Gi
           env:
             - name: discovery.type
               value: single-node

@@ -22,7 +22,8 @@ spec:
               cpu: "1250m"
             requests:
               cpu: 250m
-              memory: 1Gi
+              # memory: 1Gi
+              memory: 500Mi
           ports:
             - name: growvia-kibana
               containerPort: 5601    
