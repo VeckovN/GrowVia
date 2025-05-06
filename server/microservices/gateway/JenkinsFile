@@ -83,7 +83,7 @@ pipeline {
         stage("Notify Slack") {
             steps {
                 script {
-                    def slackURL = 'https://hooks.slack.com/services/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'
+                    def slackURL = 'https://hooks.slack.com/services/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'
                     def jenkinsIcon = 'https://a.slack-edge.com/205a/img/services/jenkins-ci_72.png'
                     def channel = 'growvia-jenkins'
                     def text = "Build ${currentBuild.currentResult}: Job ${env.JOB_NAME} #${env.BUILD_NUMBER}"
