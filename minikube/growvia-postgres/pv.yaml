@@ -4,16 +4,16 @@ metadata:
   name: postgres-pv
   #applied only to production namespace not to whole cluster
   namespace: production 
-
 spec:
   # Value of metadata:name from storageClass.yaml
   storageClassName: postgres-storage
   capacity:
-    storage: 1Gi
+    storage: 2Gi
   accessModes:
     - ReadWriteOnce
   hostPath:
-    path: "/var/lib/postgresql/data"
+    # path: "/var/lib/postgresql/data"
+    path: "/data/postgresql/data"
     type: DirectoryOrCreate
 
 ---
@@ -27,7 +27,7 @@ spec:
   storageClassName: postgres-storage
   resources:
     requests:
-      storage: 1Gi
+      storage: 2Gi
   volumeMode: Filesystem
   accessModes:
     - ReadWriteOnce
