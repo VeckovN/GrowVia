@@ -1,16 +1,12 @@
 //We have one repo "growvia" with all microservices 
 //MONOREPO Jenkins 
 
-
-
-//namespace that Pods use
 namespace = "production" 
 serviceName = 'growvia-authentication' //authentication Pod name
 service = "Growvia Authentication" //service name for slack notification
 //Repo = https://github.com/VeckovN/GrowVia.git
 microservicesRoot = 'server/microservices' //path to the aservices in monorep(Growvia)
 
-//create pipeline and create agent ('Jenkins-Agent' that we created in Jenkins dashboard)
 pipeline {
     agent {
         label 'Jenkins-Agent'
@@ -35,28 +31,20 @@ pipeline {
 
 
     tools {
-        //The vallue is "Name" from ManageJEnkins > Tools :NodeJS installations
-        nodejs 'NodeJS'  //The vallue is "Name" from ManageJEnkins > Tools :NodeJS installations
-        dockerTool 'Docker' //Name from Tool Configuration as well
+        nodejs 'NodeJS'  
+        dockerTool 'Docker' 
     }
 
-    //env properties that we'll use in different stages('build','test','deploy')
     environment {
-        //To get Docker credentials we'll use method credentials() - one of the docker plugins method
-        //Jenkins automatically create DOCKER_CREDENTIALS_USR and DOCKER_CREDENTIALS_PSW
-        DOCKERHUB_CREDENTIALS = credentials("dockerhub") //In ManageJenkins->Credentials we got 'dockerhub'
-        //the service image that we want to push in dockerHub 
+        DOCKERHUB_CREDENTIALS = credentials("dockerhub") //In ManageJenkins->Credentials we got 'dockerhub'"
+        SLACK_WEBHOOK_URL = credentials("slack-webhook-url");
         IMAGE_NAME = "veckovn/growvia-authentication" 
-        //The BUILD_NUMBER is envinronemnt variable from Jenkins
         IMAGE_TAG = "stable-${BUILD_NUMBER}"
     }
 
     stages {
-        //Cleanup workspace before any actual build
-        //Try only this state to check is jenkins setup correctly
         stage("Cleanup Workspace"){
             steps {
-                //This is Jenkins method for cleaning workspace
                 cleanWs()
             }
         }
@@ -75,9 +63,6 @@ pipeline {
                     credentialsId: 'github', 
                     url: 'https://github.com/VeckovN/GrowVia.git'
                 //NOW WE"RE IN /Growvia repo(folder)
-
-                //Navigate to service directory
-                //dir("${microservicesRoot}/authentication") {
                 dir('server/microservices/authentication') {
                     sh 'npm install'
                 }
@@ -103,8 +88,6 @@ pipeline {
         stage("Notify Slack") {
             steps {
                 script {
-                    //Webhook URL
-                    def slackURL = 'https://hooks.slack.com/services/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'
                     def jenkinsIcon = 'https://a.slack-edge.com/205a/img/services/jenkins-ci_72.png'
                     def channel = 'growvia-jenkins'
                     def text = "Build ${currentBuild.currentResult}: Job ${env.JOB_NAME} #${env.BUILD_NUMBER}"
@@ -126,7 +109,11 @@ pipeline {
                         attachments: attachments
                     ])
 
-                    sh "curl -s -X POST ${slackURL} -H 'Cache-Control: no-cache' -H 'Content-Type: application/json;charset=UTF-8' -d '${payload}'"
+                    sh """
+                        curl -s -X POST ${SLACK_WEBHOOK_URL} \
+                        -H 'Content-Type: application/json' \
+                        -d '${payload}'
+                    """
                 }
             }
         }
