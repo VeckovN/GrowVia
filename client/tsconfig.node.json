@@ -1,0 +1,20 @@
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "composite": true,
+    "skipLibCheck": true,
+    "module": "ESNext",
+    "outDir": "dist",
+    "moduleResolution": "bundler",
+    "allowSyntheticDefaultImports": true,
+    "paths": {
+      //It won't be part to different folders, 
+      //We'll add path only to the source /src 
+      "src/*": ["./src/*"] 
+      //If we're in components and we want to import file from another component 
+      //the path will always start with /src
+    },
+    "types": ["vite/client"]
+  },
+  "include": ["vite.config.ts"]
+}
