@@ -1,7 +1,6 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import tscongPaths from 'vite-tsconfig-paths';
-import tailwindcss from '@tailwindcss/vite';
 
 // https://vite.dev/config/
 export default defineConfig({
@@ -14,7 +13,6 @@ export default defineConfig({
     }),
     //and every time we have changes, we want to have automatical reload
     tscongPaths(),
-    tailwindcss() //Tailwind plugin (for the latest docs)
   ],
   resolve: {
     alias: {
