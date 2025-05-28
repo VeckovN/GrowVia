@@ -13,7 +13,7 @@ const ShopCategories: FC = (): ReactElement => {
     }) 
 
     return (
-        <section className='bg-white pt-10'>
+        <section className='pt-10'>
             <h2 className='pb-5 font-bold text-xl text-center sm:text-2xl'>
                 Shop Category
             </h2>

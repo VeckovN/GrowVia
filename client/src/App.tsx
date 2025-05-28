@@ -8,7 +8,7 @@ const App: FC =(): ReactElement => {
   return (
     <>
       <BrowserRouter>
-        <div className='mx-auto max-w-[1320px] bg-white min-h-screen'> 
+        <div className='mx-auto max-w-[1320px] 0 min-h-screen bg-mainBackground'> 
           <AppRouter />
         </div>
       </BrowserRouter>
