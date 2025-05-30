@@ -2,9 +2,7 @@ import {FC, ReactElement } from 'react';
 import { ProductItemInterface } from '../utils/data';
 
 import { VscHeart } from "react-icons/vsc";
-//<VscHeart />
 import { VscHeartFilled } from "react-icons/vsc";
-{/* <VscHeartFilled /> */}
 
 const ProductSlideItem: FC<ProductItemInterface> = ({
     id, 
@@ -15,9 +13,13 @@ const ProductSlideItem: FC<ProductItemInterface> = ({
     farmerLocation,
     price,
     favorite,
-    image
+    image,
+    addFavorite
 }): ReactElement => {
+    console.log("ProdcutSlideItem: " + id);
     return (
+        // This component will be reused in other components so the hardcoded width/height aren't good options -> 
+        //i'ts better to leaft to the parrents (to controll widht/height)
         <div key={id} className='
             group flex flex-col my-4 justify-centers items-center
             border-2 border-greyB rounded-lg sm:w-full sm:max-w-[320px] lg:mx-1 bg-white 
@@ -26,12 +28,13 @@ const ProductSlideItem: FC<ProductItemInterface> = ({
             <div className='relative w-full h-[170px]  sm:h- bg-cover bg-center'
                 style={{backgroundImage: `url(${image})`}}>
                 
+                {/* use relative instead of abosulte to be able to achive hover effect */}
                 <div className='
-                    hidden w-24 h-14 absolute top-[-2px] left-[-2px] bg-white opacity-80
-                    text-lg font-semibold font-lato rounded flex justify-center items-center
-                    group-hover:flex
-
+                    hidden w-24 h-14 relative top-[-2px] left-[-2px] bg-white opacity-80
+                    text-lg font-semibold font-lato rounded flex justify-center items-center 
+                    group-hover:flex cursor-pointer hover:bg-grey hover:border-r-2 hover:border-b-2 hover:border-greyB 
                 '
+                    onClick={() => addFavorite(id)}
                 >
                     {favorite 
                     ? <VscHeartFilled className='text-3xl text-red-500'/>

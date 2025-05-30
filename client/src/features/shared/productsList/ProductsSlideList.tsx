@@ -1,4 +1,4 @@
-import { FC, ReactElement } from 'react';
+import { FC, ReactElement, useCallback } from 'react';
 import useVisibleCount from '../../hooks/useVisibleCount';
 import { SlideListInterface, productsList  } from '../utils/data';
 import ProductSlideItem from './ProductSlideItem';
@@ -15,6 +15,21 @@ const ProductsSlideList: FC<SlideListInterface> = ({title}): ReactElement => {
         tablet:2,
         desktop:5
     }) 
+
+    //Prevent func recreating on every render 
+    const addFavoriteHandler = useCallback((productID: string): void =>{
+        // if(!isCustomer){
+        //     toast.error("Please log in to add favorites");
+        //     return;
+        // }
+
+        //add to the list with redux tollkit
+        //dispatch(AddProductToFavorites(productID)); //This will change favorite state as favorite/unfavorite - true/false
+
+        alert(`Add Favorite Product: ${productID}`);
+
+    }, []);
+    // }, [isCustomer]); //on auth implementation -> re-create function on user auth action
 
     return (
         <section className='container mx-auto px-7 pt-10 max-w-[400px] sm:max-w-[700px] lg:max-w-[1320px] '>
@@ -63,6 +78,9 @@ const ProductsSlideList: FC<SlideListInterface> = ({title}): ReactElement => {
                         price={product.price}
                         favorite={product.favorite}
                         image={product.image}
+                        // //reference should be passed as () => ,not result of the fucntion
+                        addFavorite={() => addFavoriteHandler(product.id)} 
+                        
                     />
                 ))}
             </div>
