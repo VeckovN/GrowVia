@@ -1,5 +1,4 @@
 import {FC, ReactElement } from 'react';
-
 import WelcomeBGImage from '../../assets/WelcomeBGImage.jpg';
 
 const WelcomeMessage: FC = (): ReactElement => {
@@ -9,7 +8,7 @@ const WelcomeMessage: FC = (): ReactElement => {
             backgroundImage: `url(${WelcomeBGImage})`
         }}
         >
-        <div className='text-center text-white '>
+        <div className='font-poppins text-center text-white'>
             <div className='font-bold text-xl sm:text-3xl md:text-4xl'>
                 Shop Directly from Local Farmers
             </div>
