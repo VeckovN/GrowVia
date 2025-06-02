@@ -50,9 +50,8 @@ const SuggestedFarmers: FC<SlideListInterface> = ({title}): ReactElement => {
             <div className='
                 grid grid-cols-1 gap-4        
                 sm:grid-cols-2 sm:grid-rows-3 sm:gap-2 sm:w-full    
-                lg:grid-cols-3 sm:grid-rows-2 lg:gap-2 lg:w-full  
+                lg:grid-cols-3 lg:grid-rows-2 lg:gap-2 lg:w-full  
                 justify-items-center
-                  
             '>
                 {/* {productsList.slice(0,4).map((product) => ( */}
                 {farmersList.slice(0, visibleCount).map((product) => (
