@@ -1,19 +1,24 @@
 import {FC, Suspense } from 'react';
 import { RouteObject, useRoutes } from 'react-router-dom';
 
-// import MainPage from './features/MainPage';
 import Index from './features/index/Index';
+import MainLayout from './layouts/MainLayout';
+import Market from './features/market/Market';
 
 const AppRouter: FC = () => {
     const routes: RouteObject[] = [
-        // {
-        //     path: '/',
-        //     element: <MainPage /> //This return Index(for Guest -NotLoggedUser) or Home page (for logged customer) based on auth value
-        // },
         {
             path: '/',
-            element: <Index />
+            element: <MainLayout> <Index/> </MainLayout>
         },
+        {
+            path: '/market',
+            element: <MainLayout> <Market/> </MainLayout>
+        },
+        {
+            path: '/farmers',
+            element: <MainLayout> <Market/> </MainLayout>
+        }
         
     ]
 
