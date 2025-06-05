@@ -2,6 +2,7 @@
 
 import { Request, Response } from "express";
 import { SignUp, SignIn, verifyEmail, forgotPassword, resetPassword} from "@gateway/services/auth.service";
+import { getCustomerDetailsByUsername, getFarmerDetailsByUsername } from "@gateway/services/user.service";
 import { setLoggedUser } from "@gateway/redis";
 import { AxiosResponse } from "axios";
 
@@ -27,6 +28,15 @@ export async function login(req:Request, res:Response):Promise<void>{
     await setLoggedUser('loggedUsers', req.body?.usernameOrEmail);
     res.status(200).json({ message:response.data.message, user:response.data.user});
 }
+
+
+//without requesting '/signup' Authentication Service 
+//the current user session with req.session will be reseted 
+export async function logout(req:Request, res:Response):Promise<void>{
+    req.session = null
+    res.status(200).json({ message:"Logout successful", user:{} });
+}
+
 
 export async function userEmailVerification(req:Request, res:Response):Promise<void>{
     const { userID } = req.body;
