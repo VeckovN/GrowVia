@@ -1,8 +1,15 @@
 import {FC, ReactElement } from 'react';
-import { Link, NavLink } from 'react-router-dom';
+import { Link, NavLink, useNavigate } from 'react-router-dom';
+import toast from 'react-hot-toast';
+import { useDispatch } from 'react-redux';
+import { useAppSelector } from '../../../store/store';
+import { clearAuth } from '../../auth/auth.reducers';
+import { removeUserFromSessionStorage } from '../utils/utilsFunctions';
 
-import { HeaderInterface } from '../interfaces';
 import  HeaderIconBadge  from "./HeaderIconBadge";
+import  Search from './Search';
+
+import { ReduxStateInterface } from '../../../store/store.interface';
 
 import LogoIcon from '../../../assets/header/LogoIcon.svg';
 import Cart from '../../../assets/header/ShoppingCart.svg';
@@ -11,13 +18,19 @@ import Bell from '../../../assets/header/Bell.svg';
 import Heart from '../../../assets/header/Heart.svg';
 import CustomerTestIcon from '../../../assets/header/CustomerTest.svg';
 
-import Search from './Search';
+const Header: FC = (): ReactElement => {
+    const navigate = useNavigate();
+    const dispatch = useDispatch();
+    const authUser = useAppSelector((state:ReduxStateInterface) => state.authUser) 
+    const isCustomer:boolean = authUser.userType === 'customer'; 
+    const isVerified = !authUser.verificationEmailToken;
 
-
-const Header: FC<HeaderInterface> = ({userType, user}): ReactElement => {
-    const isCustomer = userType == "Customer" 
-    // const isVerified = user.verification; 
-    const isVerified = false; 
+    const logoutHanlder = () =>{
+        dispatch(clearAuth());
+        removeUserFromSessionStorage();
+        toast.success("You're logged out");
+        navigate('/signin');
+    }
 
     return (
         <header>
@@ -38,7 +51,6 @@ const Header: FC<HeaderInterface> = ({userType, user}): ReactElement => {
                             </Link>
                         </div>
                     </div>
-
 
                     <div className='w-[50%] max-w-[500px] hidden sm:flex justify-center items-center'>
                         {/* SelectCategory-SearchProduct */}
@@ -63,7 +75,8 @@ const Header: FC<HeaderInterface> = ({userType, user}): ReactElement => {
                                 alt="user"
                                 text="Signup/Signin"
                                 textClassName='xs:flex'
-                                onClick={() => alert("User Badge")}
+                                // onClick={() => alert("User Badge")}
+                                onClick={() => navigate('/signin')}
                             />
                         </>
                         :
@@ -89,10 +102,10 @@ const Header: FC<HeaderInterface> = ({userType, user}): ReactElement => {
                             <HeaderIconBadge 
                                 icon={CustomerTestIcon}
                                 alt="avatar"
-                                // text={user.username}
-                                text="Nveckov"
+                                text={authUser.username}
                                 textClassName='md:flex'
-                                onClick={() => alert("Avatar Icon Badge")}
+                                // onClick={() => alert("Avatar icon")}
+                                onClick={logoutHanlder}
                             />
                         </>
                         }
@@ -150,7 +163,7 @@ const Header: FC<HeaderInterface> = ({userType, user}): ReactElement => {
                 </div>
 
                 {!isVerified &&
-                <div className='w-full h-16 flex justify-center items-center  bg-green5'>
+                <div className='w-full h-16 flex justify-center items-center bg-yellowVerification'>
                     <h3 className='text-md text-white font-semibold text-center'> Verify your account to be able do orders</h3>
                 </div>
                 }

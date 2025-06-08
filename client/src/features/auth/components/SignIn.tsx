@@ -3,7 +3,8 @@ import { Link, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import TextField from '../../shared/inputs/TextField';
 import { useAppDispatch } from '../../../store/store';
-import { setAuthUser } from '../auth.reducers';
+import { setAuthUser, clearAuth } from '../auth.reducers';
+import { saveDataToSessionStorage } from '../../shared/utils/utilsFunctions';
 
 import GoogleIcon from '../../../assets/google.svg';
 import BackGroundImage from '../../../assets/AuthBackground.jpg';
@@ -12,14 +13,11 @@ import { FaRegEyeSlash } from "react-icons/fa";
 
 import { useSignInMutation } from '../auth.service';
 import { SignInPayloadInterface } from '../auth.interfaces';
-// import { AuthUserInterface } from '../auth.interfaces';
 import { ResponseInterface } from '../auth.interfaces';
 import { useAuthValidation } from '../hooks/useAuthValidation';
 
 import { signInSchema } from '../auth.schema';
 
-
-// const HeaderAuth: FC<string> = (type :string): ReactElement => {
 const SignIn: FC = (): ReactElement => {
     const navigate = useNavigate();
     const dispatch = useAppDispatch();
@@ -40,16 +38,20 @@ const SignIn: FC = (): ReactElement => {
 
     const onLoginHandler = async(): Promise<void> => {
         try{
-            const isValid = await schemaValidation();
-            console.log("isValid: ", isValid);
+            // const isValid = await schemaValidation();
+            await schemaValidation();
 
             //signUp method result is AuthUserInterface
             //we must to .unwrap() result to get raw data -> without it we won't get correct result
             const result:ResponseInterface = await signIn(userData).unwrap();
-            console.log("Login result", result);
+
             dispatch(setAuthUser(result.user));
+            const isLoggedIn = JSON.stringify(true);
+            const username = JSON.stringify(result.user?.username);
+            saveDataToSessionStorage(isLoggedIn, username);
+
             toast.success("Successfully logged in");
-            // navigate('/');
+            navigate('/');
         }
         catch(error){
             console.log("error", error);
