@@ -11,7 +11,7 @@ export type ValidationErrorsType = { field:string; message: string};
 
 export type ValidationErrorMap = Record<string, string>;
 
-const useAuthValidation =({ schema, userData }:useAuthValidationInterface): [() => Promise<boolean>, ValidationErrorMap] => {
+const useAuthValidation =({ schema, userData }:useAuthValidationInterface): [() => Promise<boolean>, ValidationErrorMap, () => void] => {
     const [validationErrors, setValidationErrors] = useState<ValidationErrorMap>({});
 
     const schemaValidation = async (): Promise<boolean> => {
@@ -25,7 +25,9 @@ const useAuthValidation =({ schema, userData }:useAuthValidationInterface): [() 
                 //use reduce and put everyting in accomulator {}
                 const errorMap = err.inner.reduce<ValidationErrorMap>((acc, curr) => {
                     if (curr.path){
-                        acc[curr.path] = Object.values(curr.message)[0];
+                        console.log("curr.messsage: ", curr.message);
+                        // acc[curr.path] = Object.values(curr.message)[0];
+                        acc[curr.path] = curr.message;
                     }
                     return acc;
                 }, {} as ValidationErrorMap); 
@@ -38,8 +40,12 @@ const useAuthValidation =({ schema, userData }:useAuthValidationInterface): [() 
             return false;
         }
     };
+
+    const resetValidationError = (): void => {
+        setValidationErrors({} as ValidationErrorMap);
+    }
     
-    return [schemaValidation, validationErrors];
+    return [schemaValidation, validationErrors, resetValidationError];
 };
 
 export { useAuthValidation }
