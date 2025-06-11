@@ -1,13 +1,12 @@
-import {FC, ReactElement } from 'react';
+import { FC, ReactElement } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import LogoIcon from '../../../assets/header/LogoIcon.svg';
 
 const HeaderAuth: FC = (): ReactElement => {
-    //based on visited signup/signin page we'll display different text context
+    //Sign-up context now only appears on the sign-in page
     const navigate = useNavigate();
     const location = useLocation();
-    const isSignup = location.pathname === '/signup';
-    const isSignin = location.pathname === '/signin';
+    const isSignIn = location.pathname === '/signin';
 
     return (
         <header>
@@ -27,17 +26,17 @@ const HeaderAuth: FC = (): ReactElement => {
                                 className='font-poppins font-medium text-xl pl-2 '
                                 to='/'
                             >
-                                Growvia    
+                                Growvia
                             </Link>
                         </div>
                     </div>
 
                     <div className='flex text-center py-2 sm:pr-2 font-poppins font-medium'>
-                        {isSignup &&
-                            <div>Welcome back! <span className='text-green6 font-semibold cursor-pointer hover:text-green7' onClick={() => navigate('/signin')}>Sign in</span> to your account</div>
-                        }
-                        {isSignin &&
+                        {isSignIn
+                            ?
                             <div>Start your journey with us. <span className='text-green6 font-semibold cursor-pointer hover:text-green7' onClick={() => navigate('/signup')}>Sign up</span></div>
+                            :
+                            <div>Welcome back! <span className='text-green6 font-semibold cursor-pointer hover:text-green7' onClick={() => navigate('/signin')}>Sign in</span> to your account</div>
                         }
                     </div>
                 </div>
