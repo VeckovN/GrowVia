@@ -96,7 +96,7 @@ export async function userEmailVerification(req:Request, res:Response):Promise<v
 export async function userForgotPassword(req:Request, res:Response):Promise<void>{
     const { email } = req.body;
     const response: AxiosResponse = await forgotPassword(email);
-    res.status(200).json({message:response.data.messag});
+    res.status(200).json({message:response.data.message});
 }
 
 export async function resetUserPassword(req:Request, res:Response):Promise<void>{
