@@ -1,6 +1,6 @@
 import { ObjectSchema, object, string, array, mixed, ref } from 'yup';
 
-import { SignUpFormInterface, SignInPayloadInterface } from './auth.interfaces';
+import { SignUpFormInterface, SignInPayloadInterface, ResetPasswordFormInterface } from './auth.interfaces';
 import { LocationInterface, FarmerLocationInterface } from './auth.interfaces';
 
 const signUpSchema: ObjectSchema<SignUpFormInterface> = object({
@@ -54,4 +54,19 @@ const signInSchema: ObjectSchema<SignInPayloadInterface> = object({
     password: string().required('Password is required' ).min(5, 'Password must be at least 5 characters')
 })
 
-export { signUpSchema, signInSchema }
+//Omit TS utility type that remove one of more properties from type or interface
+//i want to remove 'token' from ResetPasswordPayloadInterface
+// const resetPasswordSchema: ObjectSchema<
+//     Omit<ResetPasswordPayloadInterface, 'token'>
+// > = object({
+const resetPasswordSchema: ObjectSchema<ResetPasswordFormInterface> = object({
+    password: string()
+        .required('Password is required')
+        .min(5, 'Password must be at least 5 characters'),
+
+    confirmPassword: string()
+        .required('Please confirm your password')
+        .oneOf([ref('password')], 'Passwords must match'),
+});
+
+export { signUpSchema, signInSchema, resetPasswordSchema }
