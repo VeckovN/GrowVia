@@ -1,5 +1,5 @@
 import { api } from "../../store/api";
-import { AuthUserInterface, SignUpPayloadInterface, SignInPayloadInterface} from "./auth.interfaces";
+import { AuthUserInterface, SignUpPayloadInterface, SignInPayloadInterface, ResetPasswordPayloadInterface } from "./auth.interfaces";
 import { ResponseInterface } from '../shared/interfaces';
 
 //api -> already created (use same instance)
@@ -39,14 +39,41 @@ const authApi = api.injectEndpoints({ //in api(createApi) we'we created endpoint
                 };
             },
             invalidatesTags: ['Auth']
+        }),
+        forgotPassword: build.mutation<ResponseInterface, string>({
+            query(email) {
+                return {
+                    url: '/auth/forgot-password',
+                    method: 'PUT',
+                    body: { email }
+                };
+            },
+            invalidatesTags: ['Auth']
+        }),
+        //request Data: {password, confirmPassword, token -> taken from url} -> 
+        resetPassword: build.mutation<ResponseInterface, ResetPasswordPayloadInterface>({
+            query({password, confirmPassword, token}) { //data in object
+                return {
+                    url: `/auth/reset-password/${token}`,
+                    method: 'PUT',
+                    body: {
+                        password,
+                        repeatedPassword: confirmPassword, // match backend field
+                    }
+                };
+            },
+            invalidatesTags: ['Auth']
         })
+        
     })
 })
 
 export const {
     useSignUpMutation,
     useSignInMutation,
-    useLogoutMutation
+    useLogoutMutation,
+    useForgotPasswordMutation,
+    useResetPasswordMutation
 } = authApi;
 
 //with http we have get,post,put delete
