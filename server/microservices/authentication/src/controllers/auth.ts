@@ -154,7 +154,7 @@ export async function forgotPassword(req:Request, res:Response):Promise<void>{
     
     //generate token for resetLink
     const resetToken = crypto.randomBytes(32).toString("hex");
-    const resetLinkWithToken = `${config.CLIENT_URL}/reset_password?token=${resetToken}`;
+    const resetLinkWithToken = `${config.CLIENT_URL}/reset-password?token=${resetToken}`;
     //date for expirespasswordLink
     const date:Date = new Date();
     date.setHours(date.getHours() + 1); //get 1 hour as expires time 
@@ -178,7 +178,7 @@ export async function forgotPassword(req:Request, res:Response):Promise<void>{
         JSON.stringify(messageForgotPasswordEmail)
     );
 
-    res.status(200).json({message:"Forgot message successfully sent"});
+    res.status(200).json({message:"Password reset link sent to your email."});
 }
 
 export async function resetPassword(req:Request, res:Response):Promise<void>{
