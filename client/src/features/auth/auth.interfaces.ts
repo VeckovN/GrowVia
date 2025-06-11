@@ -84,14 +84,25 @@ export interface SignInPayloadInterface {
     password: string;
 }
 
-export interface ResetPasswordPayloadInterface {
-    email: string;
+export interface ResetPasswordFormInterface{
+    password: string;
+    confirmPassword: string;
+}
+
+//For Api request (includes token from URL)
+export interface ResetPasswordPayloadInterface  extends ResetPasswordFormInterface{
+    token: string;
+}
+
+//without token
+export interface ResetPasswordSchemaInterface{
+
 }
 
 export interface useAuthValidationInterface{
     //allow only auth related schemas
-    schema: ObjectSchema<SignInPayloadInterface | SignUpPayloadInterface | ResetPasswordPayloadInterface>; //specific schema
-    userData: SignInPayloadInterface | SignUpPayloadInterface | ResetPasswordPayloadInterface;
+    schema: ObjectSchema<SignInPayloadInterface | SignUpPayloadInterface | ResetPasswordFormInterface>; //specific schema
+    userData: SignInPayloadInterface | SignUpPayloadInterface | ResetPasswordFormInterface;
 }
 
 export interface RoleOptionInterface {
