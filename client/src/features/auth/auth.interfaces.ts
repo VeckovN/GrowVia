@@ -94,9 +94,14 @@ export interface ResetPasswordPayloadInterface  extends ResetPasswordFormInterfa
     token: string;
 }
 
-//without token
-export interface ResetPasswordSchemaInterface{
+export interface PasswordInvisibility {
+    password: boolean;
+    confirmPassword: boolean;
+}
 
+export interface VerifyEmailInterface {
+    userID: string,
+    token: string
 }
 
 export interface useAuthValidationInterface{

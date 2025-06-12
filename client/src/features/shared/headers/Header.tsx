@@ -1,14 +1,13 @@
-import {FC, ReactElement } from 'react';
+import {FC, ReactElement, useState } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { useDispatch } from 'react-redux';
 import { useAppSelector } from '../../../store/store';
 import { clearAuth } from '../../auth/auth.reducers';
 import { removeUserFromSessionStorage } from '../utils/utilsFunctions';
-
+import { useResentEmailVerificationMutation } from '../../auth/auth.service';
 import  HeaderIconBadge  from "./HeaderIconBadge";
 import  Search from './Search';
-
 import { ReduxStateInterface } from '../../../store/store.interface';
 
 import LogoIcon from '../../../assets/header/LogoIcon.svg';
@@ -24,12 +23,28 @@ const Header: FC = (): ReactElement => {
     const authUser = useAppSelector((state:ReduxStateInterface) => state.authUser) 
     const isCustomer:boolean = authUser.userType === 'customer'; 
     const isVerified = !authUser.verificationEmailToken;
+    const [resentEmailVerification] = useResentEmailVerificationMutation();
+    const [isEmailSent, setIsEmailSent] = useState<boolean>(false);
 
     const logoutHanlder = () =>{
         dispatch(clearAuth());
         removeUserFromSessionStorage();
         toast.success("You're logged out");
         navigate('/signin');
+    }
+
+    console.log("HEaderrrrrr");
+
+    const onResentVerification = async():Promise<void> => {
+        try{
+            const result = await resentEmailVerification().unwrap();
+            setIsEmailSent(true);
+            toast.success(`${result.message}`);
+        }
+        catch(error){
+            console.log("error");
+            toast.error("Resnt Email Verficication error");
+        }
     }
 
     return (
@@ -58,8 +73,7 @@ const Header: FC = (): ReactElement => {
                     </div>
 
                     {/* Icons  */}
-                    <div className={`flex justify-center items-center xs:gap-4 lg:gap-5 ${!isCustomer && 'gap-2'}`}>
-                        
+                    <div className={`flex justify-center items-center xs:gap-4 lg:gap-5 ${!isCustomer && 'gap-2'}`}>     
                         {!isCustomer ?
                         <>
                             <HeaderIconBadge 
@@ -75,7 +89,6 @@ const Header: FC = (): ReactElement => {
                                 alt="user"
                                 text="Signup/Signin"
                                 textClassName='xs:flex'
-                                // onClick={() => alert("User Badge")}
                                 onClick={() => navigate('/signin')}
                             />
                         </>
@@ -162,11 +175,23 @@ const Header: FC = (): ReactElement => {
                         </NavLink>
                 </div>
 
-                {!isVerified &&
-                <div className='w-full h-16 flex justify-center items-center bg-yellowVerification'>
-                    <h3 className='text-md text-white font-semibold text-center'> Verify your account to be able do orders</h3>
-                </div>
-                }
+                {!isVerified && (
+                    <div className='w-full h-16 flex justify-center items-center bg-yellowVerification'>
+
+                        {isEmailSent ? (
+                            <span className='text-gray-800 cursor-default font-bold'>
+                                Verification email sent! Check your email
+                            </span>
+                        ): (
+                            <button
+                                onClick={onResentVerification}
+                                className='text-md text-white font-semibold text-center cursor-pointer hover:font-bold hover:text-gray-600'
+                            >
+                                Verify your account to be able to order. Here
+                            </button>
+                        )}
+                    </div>
+                )}
             </nav>
         </header>
     )

@@ -38,14 +38,18 @@ const authSlice: Slice = createSlice({
         },
         clearAuth: ()=> {
             return initialAuthUser 
+        },
+        verifyUserEmail: (state) =>{
+            state.verificationEmailToken = null;
         }     
     }
 });
 
-export const { setAuthUser } = authSlice.actions;
+export const { setAuthUser, } = authSlice.actions;
 
 //thus export type fix type probelm with missing 1 argument
 export const clearAuth = authSlice.actions.clearAuth as () => PayloadAction<undefined>;
+export const verifyUserEmail = authSlice.actions.verifyUserEmail as () => PayloadAction<undefined>;
 
 export default authSlice.reducer;
 
