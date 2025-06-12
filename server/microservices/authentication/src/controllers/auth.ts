@@ -52,7 +52,7 @@ export async function create(req:Request, res:Response):Promise<void>{
     //create Publish Message for email-verification
     //Create random values as our Verification Link
     const verificationToken = crypto.randomBytes(32).toString("hex");
-    const verificationLink = `${config.CLIENT_URL}/confirm_email?v_token=${verificationToken}`
+    const verificationLink = `${config.CLIENT_URL}/confirm-email?token=${verificationToken}`
     // const createUserData: AuthUserInterface = {
     const userAuthData: AuthUserInterface = {
         username: username,
@@ -127,7 +127,8 @@ export async function login(req:Request, res:Response):Promise<void>{
 }
 
 export async function verifyEmail(req:Request, res:Response):Promise<void>{
-    const {userID} = req.body;
+    const {userID, token } = req.body;
+    console.log("token: ", token);
     const authUser = await getUserByID(userID);
     if(!authUser)
         throw BadRequestError("User invalid, you can't verify email", "verifyEmail function error");
@@ -136,11 +137,19 @@ export async function verifyEmail(req:Request, res:Response):Promise<void>{
     if(!authUser.verificationEmailToken)
         throw BadRequestError("User is already verified!", "verifyEmail function error");
     
-    
+
+    //this will be last check if user token is valid (same sa given)
+    // if(!crypto.timingSafeEqual(
+    //     Buffer.from(authUser.verificationEmailToken),
+    //     Buffer.from(token)
+    // )){
+    //     throw BadRequestError("Invalid verification token", "verifyEmail function error")
+    // }
+
     await updateEmailVerification(userID, null);
     const updatedUser:AuthUserInterface = await getUserByID(userID) as AuthUserInterface;
     console.log("User after email verification: ", updatedUser);  
-    res.status(200).json({message:"User has successfully verified the email", user:updatedUser})
+    res.status(200).json({message:"Email has successfully verified", user:updatedUser})
     //or just return message (and change verification status on the frontend)
     // res.status(200).json({message:"User has successfully verified the email"})
 }
@@ -215,7 +224,7 @@ export async function resetPassword(req:Request, res:Response):Promise<void>{
         JSON.stringify(messageResetPasswordSuccessEmail)
     );
 
-    res.status(200).json({message:"Password successfully sent"});
+    res.status(200).json({message:"Password changed successfully"});
 }   
 
 export async function userByID(req:Request, res:Response):Promise<void>{

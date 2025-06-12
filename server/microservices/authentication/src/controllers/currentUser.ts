@@ -35,7 +35,7 @@ export async function resendVerificationEmail(req:Request, res:Response):Promise
     //the user id can be get from the req.currentUser
     const { id, email } = req.currentUser!; //it's ok to use ! because the req.currentUser surely exist (passed the middleware)
     const verificationToken = crypto.randomBytes(32).toString("hex");
-    const verificationLink = `${config.CLIENT_URL}/confirm_email?v_token=${verificationToken}`
+    const verificationLink = `${config.CLIENT_URL}/confirm-email?token=${verificationToken}`
     await updateEmailVerification(id, verificationToken);
 
     const messageVerificationEmail: AuthEmailVerificationInterface = {
