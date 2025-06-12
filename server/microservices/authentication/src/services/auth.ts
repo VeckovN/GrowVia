@@ -142,6 +142,8 @@ export async function getUserByID(userID:number): Promise<AuthUserInterface | un
         // ` SELECT * FROM public.auths WHERE id = $1 `, [userID]
         ` SELECT * FROM public.auths_user_without_password WHERE id = $1 `, [userID]
         );
+        console.log("rows", rows);
+        console.log('\b row[0]: ', rows[0]);
         // if (rows.length === 0)
         //     return undefined
         // const mappedAuthUser = mapAuthUser(rows[0]);
@@ -158,6 +160,7 @@ export async function getUserByEmail(email:string): Promise<AuthUserInterface | 
         const { rows } = await pool.query(
         ` SELECT * FROM public.auths WHERE LOWER(email) = LOWER($1) `, [email]
         );
+
         return rows.length > 0 ? (mapAuthUser(rows[0])) : undefined;
     }
     catch(error){
@@ -170,8 +173,8 @@ export async function getUserByUsername(username:string): Promise<AuthUserInterf
         const { rows } = await pool.query(
         ` SELECT * FROM public.auths WHERE LOWER(username) = LOWER($1) `, [username]
         );
-
-        return rows.length > 0 ? (rows[0] as AuthUserInterface) : undefined;
+        // return rows.length > 0 ? (rows[0] as AuthUserInterface) : undefined;
+        return rows.length > 0 ? (mapAuthUser(rows[0])) : undefined;
     }
     catch(error){
         log.log("error", "Authentication service can't get the user by id. Error: ", error);
@@ -184,7 +187,20 @@ export async function getUserByPasswordToken(token:string): Promise<AuthUserInte
         ` SELECT * FROM public.auths WHERE resetpasswordtoken = LOWER($1) `, [token] 
         );
 
-        return rows.length > 0 ? (rows[0] as AuthUserInterface) : undefined;
+        return rows.length > 0 ? (mapAuthUser(rows[0])) : undefined;
+    }
+    catch(error){
+        log.log("error", "Authentication service can't get the user by id. Error: ", error);
+    }
+}
+
+export async function getUserByVerificationEmailToken(token:string): Promise<AuthUserInterface | undefined>{
+    try{
+        const { rows } = await pool.query(
+        ` SELECT * FROM public.auths WHERE verificationEmailToken = LOWER($1) `, [token] 
+        );
+
+        return rows.length > 0 ? (mapAuthUser(rows[0])) : undefined;
     }
     catch(error){
         log.log("error", "Authentication service can't get the user by id. Error: ", error);
