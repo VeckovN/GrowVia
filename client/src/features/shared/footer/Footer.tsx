@@ -15,7 +15,7 @@ import LogoIcon from '../../../assets/header/LogoIcon.svg';
 const Footer:FC = (): ReactElement => {
 
     return (
-        <footer className='w-full border-t border-greyB'>
+        <footer className='w-full border-t border-greyB bg-white'>
             <div className='
                 pt-12 pb-8
                 mx-auto grid 
@@ -23,7 +23,6 @@ const Footer:FC = (): ReactElement => {
                 xs:w-[80%]
                 sm:grid-cols-4
                 justify-items-center
-                
             '>
                 {/* Categories */}
                 <div className="w-28">
