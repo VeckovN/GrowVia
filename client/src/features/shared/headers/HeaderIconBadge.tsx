@@ -8,6 +8,7 @@ const HeaderIconBadge: FC<HeaderIconBadgeInterface> = ({
     text,
     className,
     textClassName,
+    hiddenText = true,
     onClick
 }): ReactElement => {
     return (
@@ -30,7 +31,7 @@ const HeaderIconBadge: FC<HeaderIconBadgeInterface> = ({
             </div>
 
             {text && 
-            <div className={`hidden md:flex md:ml-1 group-hover:text-gray-700 ${textClassName}`}>
+            <div className={`${hiddenText ? 'hidden' : 'flex'} md:flex md:ml-1 group-hover:text-gray-700 ${textClassName}`}>
                 {/* user.username */}
                 {text}
             </div>
