@@ -1,6 +1,6 @@
 import { FC } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { AuthUserInterface } from '../../auth/auth.interfaces';
+import { ProfileDropdownProps } from '../interfaces';
 import { useDispatch } from 'react-redux';
 import { useLogoutMutation } from '../../auth/auth.service';
 import { removeUserFromSessionStorage } from '../utils/utilsFunctions';
@@ -8,7 +8,7 @@ import { clearAuth } from '../../auth/auth.reducers';
 import { toast } from 'react-hot-toast';
 
 //get userAuth from header (or get it here with selector)
-const ProfileDropdown: FC<{ authUser: AuthUserInterface }> = ({ authUser }) => {
+const ProfileDropdown: FC<ProfileDropdownProps> = ({ authUser, closeProfileDropdown }) => {
     const navigate = useNavigate();
     const dispatch = useDispatch();
     const [logout] = useLogoutMutation();
@@ -37,24 +37,75 @@ const ProfileDropdown: FC<{ authUser: AuthUserInterface }> = ({ authUser }) => {
 
             <ul className='w-full border-y border-greyB flex flex-col cursor-pointer'>
 
+                { authUser.userType === 'farmer' ?
+                <>
+                    <li className='w-full p-2 px-3 hover:bg-gray-100 transition-colors duration-200'>
+                        <Link
+                            //customer/account or farmer/customer 
+                            to={`/farmer `}
+                            onClick={closeProfileDropdown}
+                        >
+                            Dashboard
+                        </Link>
+                    </li>
+
+                    <li className='w-full p-2 px-3 hover:bg-gray-100 transition-colors duration-200'>
+                        <Link
+                            //customer/account or farmer/customer 
+                            to={`/farmer/profile`}
+                            onClick={closeProfileDropdown}
+                        >
+                            Profile
+                        </Link>
+                    </li>
+
+                    <li className='w-full p-2 px-3 hover:bg-gray-100 transition-colors duration-200'>
+                        <Link
+                            //customer/account or farmer/customer 
+                            to={`/farmer/products`}
+                            onClick={closeProfileDropdown}
+                        >
+                            Products
+                        </Link>
+                    </li>
+
+                    <li className='w-full p-2 px-3 disabled text-gray-300'>
+                        <Link
+                            //customer/account or farmer/customer 
+                            to={`/farmer/products `}
+                            onClick={closeProfileDropdown}
+                        >
+                            Iot Management
+                        </Link>
+                    </li>
+                </>
+                :
+                //not farmer -> its customer
                 <li className='w-full p-2 px-3 hover:bg-gray-100 transition-colors duration-200'>
                     <Link
                         //customer/account or farmer/customer 
                         to={`/${authUser.userType}/account `}
+                        onClick={closeProfileDropdown}
                     >
                         Account
                     </Link>
                 </li>
+
+                }
+                
                 <li className='p-2 px-3 hover:bg-gray-100 transition-colors duration-200'>
                     <Link
                         to={`/${authUser.userType}/orders `}
+                        onClick={closeProfileDropdown}
                     >
                         Orders
                     </Link>
                 </li>
+
                 <li className='p-2 px-3 hover:bg-gray-100 transition-colors duration-200'>
                     <Link
                         to={`/${authUser.userType}/settings `}
+                        onClick={closeProfileDropdown}
                     > 
                         Settings
                     </Link>
