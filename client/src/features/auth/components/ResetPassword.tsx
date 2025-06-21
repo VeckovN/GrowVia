@@ -2,15 +2,14 @@ import { FC, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { useResetPasswordMutation } from '../auth.service';
-import { useAuthValidation } from '../hooks/useAuthValidation';
+import { useSchemaValidation } from '../../shared/hooks/useSchemaValidation';
 import { resetPasswordSchema } from '../auth.schema';
-
 import TextField from '../../shared/inputs/TextField';
+import { ResetPasswordPayloadInterface, PasswordInvisibility } from '../auth.interfaces';
 
 import BackGroundImage from '../../../assets/AuthBackground.jpg';
 import { FaRegEye } from "react-icons/fa";
 import { FaRegEyeSlash } from "react-icons/fa";
-import { ResetPasswordPayloadInterface, PasswordInvisibility } from '../auth.interfaces';
 
 const ResetPassword:FC = () => {
     const [userInfo, setUserInfo] = useState<{password:string, confirmPassword:string}>({
@@ -22,7 +21,7 @@ const ResetPassword:FC = () => {
         confirmPassword:false
     });
     const [responseMessage, setResponseMessage] = useState<{message?:string, error?:string}>({});
-    const [schemaValidation, validationErrors] = useAuthValidation({schema: resetPasswordSchema, userData: userInfo});
+    const [schemaValidation, validationErrors] = useSchemaValidation ({schema: resetPasswordSchema, userData: userInfo});
     const [resetPassword] = useResetPasswordMutation();
     
     const [searchParams] = useSearchParams();
