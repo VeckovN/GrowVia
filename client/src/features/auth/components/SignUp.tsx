@@ -1,7 +1,7 @@
 import {FC, ReactElement, lazy, Suspense, useState} from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSignUpMutation } from '../auth.service';
-import { useAuthValidation } from '../hooks/useAuthValidation'; 
+import { useSchemaValidation } from '../../shared/hooks/useSchemaValidation';
 import { signUpSchema } from '../auth.schema';
 import { initalSignupUserData } from '../../shared/utils/data';
 
@@ -21,11 +21,9 @@ const SignUp: FC = (): ReactElement => {
     const navigate = useNavigate();
     const [selectedOption, setSelectOption] = useState<string>('customer');
     const [userInfo, setUserInfo] = useState<SignUpFormInterface>({...initalSignupUserData })
-    const [schemaValidation, validationErrors, resetValidationErrors] = useAuthValidation({schema: signUpSchema, userData: userInfo});
+    const [schemaValidation, validationErrors, resetValidationErrors] = useSchemaValidation({schema: signUpSchema, userData: userInfo});
     const [actionError, setActionError] = useState<string>('');
     const [signUp ] = useSignUpMutation();
-
-    console.log("SIGN UPPPPP ");
 
     const onSignUpHandler = async(): Promise<void> => {
         try{    

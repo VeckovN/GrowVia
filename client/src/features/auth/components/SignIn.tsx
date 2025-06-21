@@ -14,7 +14,7 @@ import { FaRegEyeSlash } from "react-icons/fa";
 import { useSignInMutation } from '../auth.service';
 import { SignInPayloadInterface } from '../auth.interfaces';
 import { ResponseInterface } from '../auth.interfaces';
-import { useAuthValidation } from '../hooks/useAuthValidation';
+import { useSchemaValidation } from '../../shared/hooks/useSchemaValidation';
 
 import { signInSchema } from '../auth.schema';
 
@@ -26,43 +26,45 @@ const SignIn: FC = (): ReactElement => {
         password: ''
     });
     const [showPassword, setShowPassword] = useState(false);
-    // const [actionError, setActionError] = useState('');
+    const [actionError, setActionError] = useState('');
 
-    const [schemaValidation, validationErrors] = useAuthValidation({schema: signInSchema, userData});
-
-    //want to get function "signUp" trhgout useSignInMutation hook
-
+    const [schemaValidation, validationErrors] = useSchemaValidation({schema: signInSchema, userData});
     //the first property is function 'signIn' 
     //other properties are (included in RTK) as 'isLoading','isSuccess','isError' status props -> status based on that 'signIn' execution
     const [signIn, { isLoading }] = useSignInMutation();
 
+    const getFieldError = (fieldName: string) => validationErrors[fieldName];
+
     const onLoginHandler = async(): Promise<void> => {
         try{
-            // const isValid = await schemaValidation();
-            await schemaValidation();
+            const isValid = await schemaValidation();
+            if(isValid){
+                //we must to .unwrap() result to get raw data -> without it we won't get correct result
+                const result:ResponseInterface = await signIn(userData).unwrap();
+                dispatch(setAuthUser(result.user));
+                const isLoggedIn = JSON.stringify(true);
+                const username = JSON.stringify(result.user?.username);
+                saveDataToSessionStorage(isLoggedIn, username);
 
-            //signUp method result is AuthUserInterface
-            //we must to .unwrap() result to get raw data -> without it we won't get correct result
-            const result:ResponseInterface = await signIn(userData).unwrap();
+                // toast.success("Successfully logged in");
+                toast.success(`${result.message}`);
 
-            dispatch(setAuthUser(result.user));
-            const isLoggedIn = JSON.stringify(true);
-            const username = JSON.stringify(result.user?.username);
-            saveDataToSessionStorage(isLoggedIn, username);
-
-            toast.success("Successfully logged in");
-            navigate('/');
+                if (result.user?.userType === 'farmer'){
+                    // navigate('/farmer/dashboard');
+                    navigate('/farmer');
+                }
+                else{
+                    navigate('/');
+                }
+            }
         }
         catch(error){
             console.log("error", error);
             console.log("errorDataM", error?.data.message);
             //signIn error catch (ApiGateway error handler ERROR)
             if(error.originalStatus === 404){
-                console.log("SAAAAAAAAAAA");
-                // setActionError("")
-
+                setActionError("User not found. Please try again");
             } 
-
             console.log("VAL ERR: ", validationErrors);
         }
     }
@@ -96,13 +98,22 @@ const SignIn: FC = (): ReactElement => {
                     <div className='flex-grow h-[1px] bg-greyB'></div>
                 </div>
 
+                {actionError &&
+                <div className='w-full flex justify-center'>
+                    <label className='text-red-600 text-md font-medium pb-2'>{actionError}</label>
+                </div>
+                }
+
                 <div className='w-full flex flex-col gap-2 font-lato'>
                     <div className='w-full flex flex-col'>
                         {/* Input will have forwardRef that allows this 'parent' component to get ref to <input> in it */}
                         {/* For example if we use inputRef.current?.focus here in parrent component - it won't work without forwardRef */}
                         <label className='text-md py-1'>Username or Email</label>
                         <TextField
-                            className='p-2 pl-4 border-2 border-greyB rounded-md'
+                            className={`
+                                p-2 pl-4 border-2 border-greyB rounded-md 
+                                ${(actionError || getFieldError('usernameOrEmail')) && 'border-0 border-b-4 border-red-400' }`
+                            }
                             id="usernameoremail"
                             name="usernameoremail"
                             type="text"
@@ -112,8 +123,8 @@ const SignIn: FC = (): ReactElement => {
                                 setUserData({ ...userData, usernameOrEmail: e.target.value})
                             }}
                         />
-                        {validationErrors.usernameOrEmail &&
-                        <label className='text-red-600'> {validationErrors.usernameOrEmail}</label>
+                        {getFieldError('usernameOrEmail') &&
+                        <label className='text-red-600'> {getFieldError('usernameOrEmail')}</label>
                         }
                     </div>
 
@@ -121,7 +132,7 @@ const SignIn: FC = (): ReactElement => {
                         <label className='my-1'>Password</label>
 
                         <div className='relative'>
-                            <div className='absolute right-0 transform top-1/4 pr-3 text-2xl cursor-pointer '>
+                            <div className='absolute right-0 transform top-2.5 pr-3 text-2xl cursor-pointer '>
                                 {showPassword 
                                     ?
                                     <FaRegEyeSlash className="text-black" onClick={() => setShowPassword(false)} />
@@ -131,7 +142,10 @@ const SignIn: FC = (): ReactElement => {
                             </div>
 
                             <TextField
-                                className='w-full p-2 pl-4 border-2 border-greyB rounded-md'
+                                className={`
+                                    w-full p-2 pl-4 border-2 border-greyB rounded-md
+                                    ${(actionError || getFieldError('password')) && 'border-0 border-b-4 border-red-400' }
+                                `}
                                 id='usernamOrEmail'
                                 name='usernameOrEmail'
                                 type={showPassword ? 'text' : 'password'}
@@ -141,8 +155,8 @@ const SignIn: FC = (): ReactElement => {
                                     setUserData({ ...userData, password: e.target.value})
                                 }}
                             />
-                            {validationErrors.password &&
-                            <label className='text-red-600'> {validationErrors.password}</label>
+                            {getFieldError('password') &&
+                            <label className='text-red-600'> {getFieldError('password')}</label>
                             }
                         </div>
                     </div>
