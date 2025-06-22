@@ -63,21 +63,21 @@ Guests may explore the marketplace but must register to complete purchases.
 - **Backend**: NodeJS, Express
 - **Architecture**: Microservices, Event-Driven
 - **Databases**:
-  - MongoDB, Redis, Neo4j, PostgreSQL, MySQL
+  - MongoDB, Redis, PostgreSQL
   - Elasticsearch + Kibana (for logging & analytics)
 - **Real-Time**: Socket.IO
 - **Payment Integration**: Stripe
+- **DevOps**: Docker, Kubernetes
 - **Design**: Figma
-- **DevOps**: Docker, Kubernetes 
 
 ---
 
 ## User Types
 
+- Guest
 - Farmer
 - Customer
-- Guest
-
+  
 ---
 
 ## Core Features
