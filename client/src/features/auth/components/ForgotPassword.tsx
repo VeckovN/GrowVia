@@ -22,6 +22,7 @@ const ForgotPassword: FC = (): ReactElement => {
 
             const result:ResponseInterface = await forgotPassword(email).unwrap();
             setResponseMessage({message: result.message});
+
         }
         catch (error){
             console.log("Error, ", error)

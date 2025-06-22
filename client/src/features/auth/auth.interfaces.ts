@@ -1,5 +1,5 @@
 import { ObjectSchema } from "yup";
-import { ValidationErrorMap } from "./hooks/useAuthValidation";
+import { ValidationErrorMap } from "../shared/hooks/useSchemaValidation";
 
 // import {} //from user feature
 export interface LocationInterface {
@@ -16,7 +16,8 @@ export interface FarmerLocationInterface extends LocationInterface {
 export interface AuthUserInterface {
 
     //with RTK Query reqeust we got props in camelCase (on testing with RESTClient .http we got lowcase props)
-    id: string,
+    // id: string, //it's number IN Authentication Service
+    id: number | null, //it's number IN Authentication Service
     username: string,
     email: string,
     userType: string,
@@ -100,7 +101,7 @@ export interface PasswordInvisibility {
 }
 
 export interface VerifyEmailInterface {
-    userID: string,
+    userID: number,
     token: string
 }
 

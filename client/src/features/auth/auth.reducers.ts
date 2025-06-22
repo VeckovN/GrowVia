@@ -8,7 +8,7 @@ import { LocationInterface } from "./auth.interfaces";
 // -side Effects (to dispatch multiple actions (eg. setAuthUser + resetCart on logout)
 
 export const initialAuthUser: AuthUserInterface = {
-    id: '',
+    id: null,
     username: '',
     email: '',
     userType: '',
