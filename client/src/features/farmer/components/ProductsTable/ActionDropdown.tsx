@@ -1,17 +1,17 @@
 import { useModal } from '../../../shared/context/ModalContext';
-
+import { ProductDocumentInterface } from '../../../product/product.interface';
 import EyeIcon from '../../../../assets/farmers/eye.svg';
 import EditIcon from '../../../../assets/farmers/edit.svg';
 import TrashIcon from '../../../../assets/farmers/trash.svg';
 
-const ActionDropdown = () => {
+const ActionDropdown = ( {product} : { product: ProductDocumentInterface }) => {
     const { openModal } = useModal();
     
     return (
         <div className='flex flex-col w-32 bg-gray-50 w-full border-2 border-grey rounded-md font-normal'>
             <div 
                 className='relative p-1 items-center flex hover:bg-gray-100 cursor-pointer'
-                onClick={() => openModal('view')}
+                onClick={() => openModal('view', {product})}
             >
                 <img
                     className=' ml-1 w-6 h-6'
@@ -23,7 +23,7 @@ const ActionDropdown = () => {
 
             <div 
                 className='relative p-1 items-center flex hover:bg-gray-100 cursor-pointer'
-                onClick={() => openModal('edit')}
+                onClick={() => openModal('edit', {product})}
             >
                 <img
                     className=' ml-2 w-4 h-4'
@@ -35,7 +35,7 @@ const ActionDropdown = () => {
 
             <div 
                 className='relative p-1 items-center flex hover:bg-red-50 cursor-pointer'
-                onClick={() => openModal('delete')}
+                onClick={() => openModal('delete', {product})}
             >
                 <img
                     className='ml-2 w-4 h-4'

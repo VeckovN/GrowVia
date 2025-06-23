@@ -1,12 +1,14 @@
 import { createContext, ReactNode, useContext, useState, useEffect } from 'react';
+import { ProductDocumentInterface } from '../../product/product.interface';
 
 //Ony one model open at a time 
 type ModalType = 'add' | 'edit' | 'view' | 'delete' | null;
 
 interface ModalContextInterface  {
     isOpen: boolean;
+    modalData: { productID?: string, product?: ProductDocumentInterface}; //additional modal data (optional)
     activeModal: ModalType;
-    openModal: (type: ModalType) => void;
+    openModal: (type: ModalType, data?: Record<string, unknown>) => void; 
     closeModal: () => void;
 }
 
@@ -14,13 +16,17 @@ const ModalContext = createContext<ModalContextInterface | undefined>(undefined)
 
 export const ModalProvider = ({children}: {children: ReactNode}) => {
     const [activeModal, setActiveModal] = useState<ModalType>(null);
+    const [modalData, setModalData] = useState({}); 
 
-    const openModal = (type: ModalType):void => {
+    const openModal = (type: ModalType, data?: Record<string, unknown>):void => {
       setActiveModal(type);
+      if(data)
+        setModalData(data);
     }
 
     const closeModal = ():void =>{
       setActiveModal(null);
+      setModalData({});
     }
 
     useEffect(() =>{
@@ -44,6 +50,7 @@ export const ModalProvider = ({children}: {children: ReactNode}) => {
           closeModal,
           isOpen: activeModal !== null,
           activeModal,
+          modalData
         }}
       >
         {children}

@@ -1,29 +1,44 @@
-import { Suspense, lazy } from 'react';
+import { Suspense, lazy, FC } from 'react';
 import { useAppSelector } from '../../../store/store';
 import { useModal } from '../../shared/context/ModalContext';
 import { FarmerProductsTableInterface } from '../farmer.interface';
 import { ReduxStateInterface } from '../../../store/store.interface';
 import FarmerProductsTable from './ProductsTable/FarmerProductsTable';
+import ViewProductModal from '../../product/components/ViewProductModal';
+import { useGetProductByFarmerIDQuery } from '../../product/product.service';
 
 // import AddProductModal from './Modals/AddProductModal';
 import Modal from '../../shared/Modal';
 import LoadingSpinner from '../../shared/page/LoadingSpinner';
+import { CreateProductInterface, ProductDocumentInterface } from '../../product/product.interface';
+import DeleteProductModal from '../../product/components/DeleteProductModal';
 
 // const ProductForm = lazy() => import('../../product/components/ProductForm');
 
 const ProductForm = lazy(() => import('../../product/components/ProductForm'));
 
-const FarmerProducts = () => {
-    const products: FarmerProductsTableInterface[] = [
-        { id: '1312', name: 'Organic Apples', category: 'Fruits', price: 2.99, stock: 150, unit: 'kg' },
-        { id: '1313', name: 'Carrots', category: 'Vegetables', price: 1.49, stock: 200, unit: 'kg' },
-        { id: '1314', name: 'Milk', category: 'Dairy', price: 3.50, stock: 50, unit: 'l' },
-        { id: '1315', name: 'Eggs', category: 'Poultry', price: 4.99, stock: 120, unit: 'dozen' },
-        { id: '1316', name: 'Wheat Flour', category: 'Grains', price: 2.20, stock: 80, unit: 'kg' }
-    ]
+const FarmerProducts:FC = () => {
     const authUser = useAppSelector((state: ReduxStateInterface) => state.authUser)
-    const { isOpen, activeModal, openModal, closeModal } = useModal();
+    const { isOpen, activeModal, modalData, openModal, closeModal } = useModal();
+    const {data, isLoading, isError} = useGetProductByFarmerIDQuery(authUser.id!);
+    console.log("Data:" ,data);
+    console.log("modalData");;
 
+    const transformEditData = (productData: ProductDocumentInterface):Partial<CreateProductInterface> =>{
+        const data = {
+            name: productData.name,
+            description: productData.description,
+            shortDescription: productData.shortDescription,
+            category: productData.category,
+            subCategories: productData.subCategories,
+            price: productData.price,
+            stock: productData.stock,
+            unit: productData.unit,
+            tags: productData.tags,
+        }
+        return data;
+    }
+    
     return (     
         <div className='w-full'>
             <h2 className='hidden sm:block text-2xl font-medium'>
@@ -53,52 +68,57 @@ const FarmerProducts = () => {
             </div>
 
             <div className='w-full bg-red-4001'>
-                {products.length > 0
-                    ?
-                    <div className='overflow-x-autoa'>
-                        <FarmerProductsTable
-                            products={products}
-                        />
-                    </div>
-                    :
-                    <div className=''>
-                        You don't have products
-                    </div>
-                }
+                {isLoading ? (
+                    <div>Loading...</div>
+                )
+                : data?.products && data.products.length > 0
+                    ? (
+                        <div className='overflow-x-auto'>
+                            <FarmerProductsTable
+                                products={
+                                    data.products
+                                }
+                            />
+                        </div>
+                    ) : (
+                        <div className=''>
+                            You don't have any products
+                        </div>
+                    )}
 
                 {activeModal === 'add' &&
-                <>
                     <Modal closeModal={closeModal}>
                         <Suspense fallback={<LoadingSpinner/>}>
-                            {/* <AddProductModal farmerID={authUser.id} onCloseModal={closeModal} /> */}
                             <ProductForm mode='create' farmerID={authUser.id!} onCloseModal={closeModal} / >
                         </Suspense>
                     </Modal>
-                </>
                 }
 
                 {activeModal === 'edit' &&
-                <>
                     <Modal closeModal={closeModal}>
                         <Suspense fallback={<LoadingSpinner/>}>
-                            {/* <AddProductModal farmerID={authUser.id} onCloseModal={closeModal} /> */}
-                            <ProductForm mode='edit'  farmerID={authUser.id!} onCloseModal={closeModal} / >
+                            <ProductForm mode='edit' initialData={transformEditData(modalData.product!)} farmerID={authUser.id!} onCloseModal={closeModal} / >
                         </Suspense>
                     </Modal>
-                </>
                 }
                 
-                {/* {activeModal == 'view' &&
-                <>
+                {activeModal == 'view' &&
                     <Modal closeModal={closeModal}>
                         <Suspense fallback={<LoadingSpinner/>}>
-                            <ViewProductModal onCloseModal={closeModal} />
+                            {modalData.product &&
+                                <ViewProductModal product={modalData.product} onCloseModal={closeModal} />
+                            }
                         </Suspense>
                     </Modal>
-                </>
-                } */}
-            
-                
+                }
+
+                {activeModal == 'delete' &&  
+                    <Modal closeModal={closeModal}>
+                        <Suspense fallback={<LoadingSpinner/>}>
+                            <DeleteProductModal product={modalData.product} onCloseModal={closeModal} />
+                        </Suspense>
+                    </Modal>
+                }    
             </div>
         </div>
     )
