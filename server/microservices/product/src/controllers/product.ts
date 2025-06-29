@@ -9,17 +9,24 @@ import { sortBy } from 'lodash';
 
 const productCreate = async (req: Request, res: Response): Promise<void> => {
     try{
-        //validate zod schema
         ProductCreateZodSchema.parse(req.body);
-        
-        //upload images to cloudinary
+
+        const images = req.body.images;
+        if (!images || !Array.isArray(images) || images.length === 0) {
+            throw BadRequestError("At least one image is required", "Product Service");
+        }
+
+        // Validate each image is a proper base64 string
+        images.forEach(img => {
+            if (!img.match(/^data:image\/(jpeg|png|gif);base64,/)) {
+                throw BadRequestError("Invalid image format", "Product Service");
+            }
+        });
 
         //only logged user can create product
         const product: ProductCreateInterface = {
-            //consider to put username, email of farmer
             farmerID: req.body.farmerID,
             name: req.body.name,
-            // images: `${uploadImg.secure_url}, //already uploaded images
             images: req.body.images, //for test *array of {url, publicID}
             description: req.body.description,
             shortDescription: req.body.shortDescription,

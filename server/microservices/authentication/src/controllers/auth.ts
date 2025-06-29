@@ -49,11 +49,8 @@ export async function create(req:Request, res:Response):Promise<void>{
         throw ConflictError("User exist, cant be created again", "create/signup function error");
     }
 
-    //create Publish Message for email-verification
-    //Create random values as our Verification Link
     const verificationToken = crypto.randomBytes(32).toString("hex");
     const verificationLink = `${config.CLIENT_URL}/confirm-email?token=${verificationToken}`
-    // const createUserData: AuthUserInterface = {
     const userAuthData: AuthUserInterface = {
         username: username,
         password: password,
@@ -64,13 +61,10 @@ export async function create(req:Request, res:Response):Promise<void>{
         // expiresResetPassword
     }
     
-
     //!watch on parameter order
     const userTypeData = factoryCreateUserData(userType, username, email, othersUsersData);
 
-    const userID: number = await createUser(userAuthData, userTypeData);
-    // const user:AuthUserInterface = await createUser(req.body);
-
+    const userID = await createUser(userAuthData, userTypeData);
     //publishMessage
     //send verificationLink with email to the user (with Notification email feature) -> MessageQueue
     const messageVerificationEmail: AuthEmailVerificationInterface = {

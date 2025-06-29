@@ -71,7 +71,8 @@ describe('getCustomerByUsername and getCustomerByEmail', () => {
 });
 
 describe('updateCustomerDataByID', () => {
-    const mockCustomerID = '67ab171a53bc80962a3686fd';
+    // const mockCustomerID = '67ab171a53bc80962a3686fd';
+    const mockCustomerID = '4';
     const mockUpdateData:CustomerDocumentInterface = {
         username:"newUsername",
         location:{
@@ -89,7 +90,8 @@ describe('updateCustomerDataByID', () => {
         (CustomerModel.findOneAndUpdate as jest.Mock).mockResolvedValue(mockUpdateData);
         const result = await updateCustomerDataByID(mockCustomerID, mockUpdateData);
         expect(CustomerModel.findOneAndUpdate).toHaveBeenCalledWith(
-            { _id: mockCustomerID },
+            // { _id: mockCustomerID },
+            { userID: mockCustomerID },
             { $set: mockUpdateData },
             { new:true }
         );
@@ -116,7 +118,8 @@ describe('updateCustomerWishlist and updateCustomerWishlist', () => {
         //not returning any value, just calling the method
         await updateCustomerWishlist(mockCustomerID, mockProductID, 'add');
         expect(CustomerModel.updateOne).toHaveBeenCalledWith(
-            { _id: mockCustomerID },
+            // { _id: mockCustomerID },
+            { userID: mockCustomerID },
             { $addToSet: { wishlist: mockProductID } }
         )
     })
@@ -124,7 +127,8 @@ describe('updateCustomerWishlist and updateCustomerWishlist', () => {
     it('should remove a product from the wishlist', async() => {
         await updateCustomerWishlist(mockCustomerID, mockProductID, 'remove');
         expect(CustomerModel.updateOne).toHaveBeenCalledWith(
-            { _id: mockCustomerID },
+            // { _id: mockCustomerID },
+            { userID: mockCustomerID },
             { $pull: { wishlist: mockProductID } }
         )
     })
@@ -132,7 +136,8 @@ describe('updateCustomerWishlist and updateCustomerWishlist', () => {
     it('should add a farmer to the saved list', async () => {
         await updateCustomerSavedFarmers(mockCustomerID, mockFarmerID, 'add');
         expect(CustomerModel.updateOne).toHaveBeenCalledWith(
-            { _id: mockCustomerID },
+            // { _id: mockCustomerID },
+            { userID: mockCustomerID },
             { $addToSet: { savedFarmes: mockFarmerID } }
         )
     })
@@ -140,7 +145,8 @@ describe('updateCustomerWishlist and updateCustomerWishlist', () => {
     it('should remove a farmer from the saved list', async () => {
         await updateCustomerSavedFarmers(mockCustomerID, mockFarmerID, 'remove');
         expect(CustomerModel.updateOne).toHaveBeenCalledWith(
-            { _id: mockCustomerID },
+            // { _id: mockCustomerID },
+            { userID: mockCustomerID },
             { $pull: { savedFarmes: mockFarmerID } }
         )
     })

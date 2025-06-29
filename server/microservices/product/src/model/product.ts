@@ -3,7 +3,7 @@ import { ProductDocumentInterface, UNIT_TYPES } from '@veckovn/growvia-shared';
 
 const ProductSchema: Schema = new Schema(
     {
-        farmerID: { type: mongoose.Schema.Types.ObjectId, index:true, require:true}, //Farmer user id  from Users Service DB (mongoDB as well)
+        farmerID: { type: String, index:true, require:true}, //Farmer user id  from Users Service DB (mongoDB as well)
         name: { type: String, required: true },
         images: [{
             url: { type: String, required: true },
@@ -40,32 +40,3 @@ ProductSchema.virtual('id').get(function() {
 
 const ProductModel: Model<ProductDocumentInterface> =  mongoose.model<ProductDocumentInterface>("Product", ProductSchema, "Product");
 export { ProductModel }
-
-
-// Create Product 
-// const newProduct = new ProductModel({
-//     name: "Organic Wheat Flour",
-//     price: 3.5, // Price per kg
-//     stock: 100, // 100 kg available
-//     unit: "kg",
-//     farmer: farmerId, // Reference to the farmer selling it
-//     ...
-//   });
-
-// or with stock obj with 'quantity' and 'unit' props
-// const newProduct = new ProductModel({
-//     name: "Organic Wheat Flour",
-//     price: 3.5, // Price per kg
-//     stock:{
-//         quantity: 100,
-//         unit: 'kg'
-//     }
-//     farmer: farmerId, // Reference to the farmer selling it
-//     ...
-//   });
-
-// Update stock after a purchases
-// When a customer buys 5 kg of wheat:
-
-// await ProductModel.findByIdAndUpdate(productId, { $inc: { stockQuantity: -5 } }
-//This will reduce the stock by 5 kg.

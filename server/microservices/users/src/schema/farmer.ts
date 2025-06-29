@@ -14,6 +14,12 @@ const LocationSchema = new Schema<FarmLocation>(
 
 const FarmerSchema: Schema = new Schema(
     {
+        userID: {
+            type: String, 
+            require:true,
+            index:true, 
+            unique: true,
+        },
         username: { 
             type: String, 
             require:true,

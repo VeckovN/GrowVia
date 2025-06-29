@@ -4,28 +4,37 @@ import { ProductModel } from "@product/model/product";
 import { uploadProductImageToCloudinary } from "@product/helper";
 import { productsSerachByFarmerID, productsSerachByCategory } from "@product/services/search";
 
-
 const createProduct = async(product:ProductCreateInterface):Promise<ProductDocumentInterface> =>{
     
     const images = product.images as string[];
     if (!images || images.length === 0) {
         throw BadRequestError("At least one image is required", "Product Service");
     }
-    
+
     const uploadedImages = await uploadProductImageToCloudinary(images); 
+    if (uploadedImages.length === 0) {
+        throw BadRequestError("Failed to upload images", "Product Service");
+    }
+    
     const createProductData: ProductCreateInterface = {
         ...product,
         images: uploadedImages
     }
     
-    const createdDocument = await ProductModel.create(createProductData);
+    let createdDocument;
+    try {
+        createdDocument = await ProductModel.create(createProductData);
+    } 
+    catch (mongoError) {
+        console.error("MongoDB creation failed:", mongoError);
+        throw new Error("Product database persistence failed");
+    }
 
     //Store it in ELasticSearch (JSON object should be stored) -> Transform _id to id 
     if(createdDocument){ 
         //if the products is created, the toJSON (that transform _id to id) will be added to every object 
         const data =  createdDocument.toJSON?.() as ProductDocumentInterface; //Convert Mongoose Obj(_doc) to the JSON Object 
-        console.log("createdDocument JSON: ", data);
-        const productID = createdDocument._id;
+        const productID = createdDocument._id; 
         await addDataToIndex('products', `${productID}`, data);  
         //Produce message to the User Service (for adding new product) if is implemented in USER SERVICE
     }
@@ -64,7 +73,6 @@ const updateProduct = async(productID: string, product:ProductDocumentInterface)
 
 
 const deleteProduct = async(productID: string):Promise<void> =>{
-// const deleteProduct = async(productID: string, farmerID: string):Promise<void> =>{
     await ProductModel.deleteOne({ _id:productID }).exec();
     //produce message to farmer (based on farmeriD)
     await deleteDataIndex('products', productID);
@@ -78,7 +86,6 @@ const getProductById = async(productID: string): Promise<ProductDocumentInterfac
 }
 
 // //using search feature to get Farmers products
-// const getFarmersProducts = async(farmerID): Promise<ProductDocumentInterface> => { 
 const getFarmerProducts = async(farmerID: string): Promise<ProductDocumentInterface[]> => {
     const productsHits = await productsSerachByFarmerID(farmerID);
     const productsResult: ProductDocumentInterface[] = [];

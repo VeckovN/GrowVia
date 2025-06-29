@@ -5,7 +5,7 @@ import { z } from 'zod';
 const ProductCreateZodSchema = z.object({
     farmerID: z.string().min(1, "Farmer ID is required"),
     name: z.string().min(3, "Product name must be at least 3 characters"),
-    images: z.array(z.string().url("Invalid image URL")).min(1, "At least one image is required"),
+    images: z.array(z.string()).min(1, "At least one image is required"),
     description: z.string().min(10, "Description must be at least 10 characters"),
     shortDescription: z.string().min(5, "Short description must be at least 5 characters"),
     category: z.string().min(1, "Category is required"),

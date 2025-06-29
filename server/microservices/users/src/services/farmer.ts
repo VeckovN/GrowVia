@@ -26,7 +26,7 @@ const getFarmerByEmail = async(email: string): Promise<FarmerDocumentInterface |
 
 const updateFarmerDataByID = async(farmerID: string, farmerData:FarmerDocumentInterface) =>{
     const updatedUser = FarmerModel.findOneAndUpdate(
-        { _id: farmerID },
+        { userID: farmerID },
         {
             $set: {
                 username: farmerData.username, 

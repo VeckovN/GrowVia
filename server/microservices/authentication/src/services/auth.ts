@@ -9,12 +9,10 @@ import { mapAuthUser, getExchangeNameAndRoutingKey } from "@authentication/helpe
 
 const log: Logger = winstonLogger(`${config.ELASTICSEARCH_URL}`, 'authenticationService', 'debug');
 
-//signup
-// export async function createUser(userData:AuthUserInterface): Promise<AuthUserInterface> {
 export async function createUser(
     userData:AuthUserInterface, 
     userTypeData: CustomerDocumentInterface | FarmerDocumentInterface
-): Promise<number> {
+): Promise<string> {
     const {
         username,
         password,
@@ -52,18 +50,16 @@ export async function createUser(
 
     try {
         const { rows } = await pool.query(query, values);
-        // const {password, ...userData} = rows[0]; 
-        // console.log("User Data ,excluded Password: ", userData);
         console.log("\n User Specific Data: ", userTypeData);
         const createdUser = rows[0];
-        const userID:number = createdUser.id ;
+        const userID = createdUser.id;
 
         if(userType !== 'customer' && userType !== 'farmer')
             throw BadRequestError("Invalid user Type", "Authentication create user seeder function error");
 
         const messagePayload: AuthUserTypeMessageInterface = {
             type:'authCreate',
-            data: userTypeData
+            data: {userID:userID, ...userTypeData} 
         }
         const {exchangeName, routingKey} = getExchangeNameAndRoutingKey(userType);
 
@@ -88,7 +84,7 @@ export async function createUser(
 }
 
 //validate Email (set verificatioEmailToken to null )
-export async function updateEmailVerification(userID:number, token:string | null):Promise<boolean>{
+export async function updateEmailVerification(userID:string, token:string | null):Promise<boolean>{
     try{
         const {rowCount} = await pool.query(
             `UPDATE public.auths SET verificationEmailToken = $2 WHERE id = $1 `, [userID, token]
@@ -102,7 +98,7 @@ export async function updateEmailVerification(userID:number, token:string | null
 }
 
 //update password, resetPasswordToken and expiresResetPassword 
-export async function updatePassword(userID: number, password:string):Promise<boolean>{
+export async function updatePassword(userID: string, password:string):Promise<boolean>{
     try{
         const {rowCount} = await pool.query(
             `UPDATE public.auths 
@@ -119,7 +115,7 @@ export async function updatePassword(userID: number, password:string):Promise<bo
 }
 
 // //on sending email the experation token time must be set.
-export async function updatePasswordTokenExpiration(userID: number, resetToken:string, date:Date):Promise<boolean>{
+export async function updatePasswordTokenExpiration(userID: string, resetToken:string, date:Date):Promise<boolean>{
     try{
         const {rowCount} = await pool.query(
             `UPDATE public.auths 
@@ -135,7 +131,7 @@ export async function updatePasswordTokenExpiration(userID: number, resetToken:s
     }
 }
 
-export async function getUserByID(userID:number): Promise<AuthUserInterface | undefined>{
+export async function getUserByID(userID:string): Promise<AuthUserInterface | undefined>{
     try{
         //Instead of run select to get all data excluding password, we use previous created VIEW with exlcuded password
         const { rows } = await pool.query(
@@ -207,7 +203,7 @@ export async function getUserByVerificationEmailToken(token:string): Promise<Aut
     }
 }
 
-export async function getUserVerificationEmailToken(userID: number): Promise<string | undefined>{
+export async function getUserVerificationEmailToken(userID: string): Promise<string | undefined>{
     try{
     const { rows } = await pool.query(
         ` SELECT verificationEmailToken FROM public.auths WHERE id = $1 `, [userID]

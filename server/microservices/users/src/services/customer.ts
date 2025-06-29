@@ -24,8 +24,14 @@ const getCustomerByEmail = async(email: string): Promise<CustomerDocumentInterfa
     return customerUser;
 }
 
+// const getCustomerByUserID = async(userID: string): Promise<CustomerDocumentInterface | null> =>{
+//     const customerUser: CustomerDocumentInterface | null = await CustomerModel.findOne({ userID }).exec();
+//     return customerUser;
+// }
+
 const updateCustomerDataByID = async(customerID: string, customerData:CustomerDocumentInterface) =>{
-    const existingCustomerData: CustomerDocumentInterface | null = await CustomerModel.findOne({ _id:customerID }).exec();
+    // const existingCustomerData: CustomerDocumentInterface | null = await CustomerModel.findOne({ _id:customerID }).exec();
+    const existingCustomerData: CustomerDocumentInterface | null = await CustomerModel.findOne({ userID:customerID }).exec();
     console.log("ExistingCUstomerDatA: ", existingCustomerData);
 
     if(existingCustomerData)
@@ -42,9 +48,10 @@ const updateCustomerDataByID = async(customerID: string, customerData:CustomerDo
             }
         }
 
+        //CHANGE THIS  to 'userID' prop
         //to update and return newUpdated document -> findOnAndUpdate
         const updatedUser = CustomerModel.findOneAndUpdate(
-            { _id: customerID },
+            { userID: customerID },
             {
                 $set: {
                     username: customerData.username, 
@@ -69,7 +76,7 @@ const updateCustomerDataByID = async(customerID: string, customerData:CustomerDo
 
 const updateCustomerWishlist = async(customerID: string, productID: string, action: 'add' | 'remove'):Promise<void> =>{
     await CustomerModel.updateOne(
-        {_id: customerID},
+        { userID: customerID },
         action === 'add'
             ? { $addToSet: {wishlist: productID}}
             : { $pull: { wishlist: productID}}
@@ -78,7 +85,7 @@ const updateCustomerWishlist = async(customerID: string, productID: string, acti
 
 const updateCustomerSavedFarmers = async(customerID: string, farmerID: string, action: 'add' | 'remove'):Promise<void> =>{
     await CustomerModel.updateOne(
-        { _id: customerID },
+        { userID: customerID },
         action === 'add'
             ? { $addToSet: { savedFarmes: farmerID } }
             : { $pull: { savedFarmes: farmerID } }
@@ -92,7 +99,7 @@ const updateCustomerOrderHistory = async(customerID: string, orderID: string):Pr
     // }
 
     await CustomerModel.updateOne(
-        { _id: customerID },
+        { userID: customerID },
         { $addToSet: { orderHistory: orderID } }
     ).exec();
 }

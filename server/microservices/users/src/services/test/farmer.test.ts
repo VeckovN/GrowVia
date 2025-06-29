@@ -50,7 +50,8 @@ describe('getFarmerByUsername and getFarmerByEmail', () => {
 });
 
 describe('updateCustomerDataByID', () => {
-    const mockFarmerID = '67ab171a53bc80962a3686fd';
+    const mockFarmerID = '5';
+    // const mockFarmerID = '67ab171a53bc80962a3686fd';
     const mockUpdateData:FarmerDocumentInterface = {
         username:"newUsername",
         farmName:"newFarmName"
@@ -64,7 +65,8 @@ describe('updateCustomerDataByID', () => {
         (FarmerModel.findOneAndUpdate as jest.Mock).mockResolvedValue(mockUpdateData);
         const result = await updateFarmerDataByID(mockFarmerID, mockUpdateData);
         expect(FarmerModel.findOneAndUpdate).toHaveBeenCalledWith(
-            { _id: mockFarmerID },
+            // { _id: mockFarmerID },
+            { userID: mockFarmerID },
             { $set: mockUpdateData },
             { new:true }
         );

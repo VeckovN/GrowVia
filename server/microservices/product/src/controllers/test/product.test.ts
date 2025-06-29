@@ -56,7 +56,7 @@ const mockResponse = () =>{
 
 //mock new product data
 export const mockNewProduct: ProductCreateInterface = {
-    farmerID: '67ab173453bc80962a36871e', //from the user service (passed from frontend)
+    farmerID: '4', //from the user service (passed from frontend)
     name: 'Fresh Strawberries',
     images: [
         "https://example.com/images/fresh-strawberries.jpg"
@@ -74,7 +74,7 @@ export const mockNewProduct: ProductCreateInterface = {
 //after the product created(additional _id, id, createdAt, toJSON)
 export const mockProduct: ProductDocumentInterface = {
     _id: '67b6f6a07ff1e08e36f31e63',
-    farmerID: '67ab173453bc80962a36871e', //from the user service (passed from frontend)
+    farmerID: '4', //from the user service (passed from frontend)
     name: 'Fresh Strawberries',
     images: [
         {
@@ -153,7 +153,7 @@ describe('productByID', () =>{
 })
 
 describe('farmerProductsByID', () =>{
-    const mockFarmerID = '67ab173453bc80962a36871e';
+    const mockFarmerID = '4';
 
     //results are from  elasticsearch (this structure)
     const mockProductsResults = [
@@ -259,7 +259,7 @@ describe('productUpdate', () =>{
     }
 
     const mockNewUpdatedProduct = { 
-        farmerID: '67ab173453bc80962a36871e', //from the user service (passed from frontend)
+        farmerID: '4', //from the user service (passed from frontend)
         name: 'Fresh Strawberries',
         images: [
             "https://example.com/images/fresh-strawberries.jpg"
