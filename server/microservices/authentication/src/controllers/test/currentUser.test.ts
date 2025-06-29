@@ -5,7 +5,7 @@ import * as authService from "@authentication/services/auth";
 
 //Mock user data that getUserByID function returns
 export const mockAuthUser: AuthUserInterface = {
-    id: 1,
+    id: '1',
     username: 'novak12',
     email: "novak12@gmail.com",
     cloudinaryProfilePublicId: "12312312CLPID",
@@ -32,7 +32,7 @@ describe("GetCurrentUser", () =>{
         //put currentUSer to the request (as logged user)
         req = {
             currentUser: {
-                id: 1,
+                id: '1',
                 username:"novak12",
                 email:"novak12@gmail.com"
             }
@@ -88,7 +88,7 @@ describe('resendVerificationEmail method', () => {
         //when the user is logged in (that means the currentUser must be in the request)
         req = {
             currentUser: {
-                id: 1,
+                id: '1',
                 username:"novak12",
                 email:"novak12@gmail.com"
             } as AuthPayloadInterface
@@ -113,7 +113,7 @@ describe('resendVerificationEmail method', () => {
 
         expect(authService.updateEmailVerification).toHaveBeenCalled();        
         expect(publishMessageSpy).toHaveBeenCalled();
-        expect(authService.getUserByID).toHaveBeenCalledWith(1); //userID = 1
+        expect(authService.getUserByID).toHaveBeenCalledWith('1'); //userID = 1
             
         expect(res.status).toHaveBeenCalledWith(200);
         expect(res.json).toHaveBeenCalledWith({ message:"The verification email has been sent successfully", user:mockAuthUser});

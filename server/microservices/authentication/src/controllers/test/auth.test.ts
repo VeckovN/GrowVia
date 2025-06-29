@@ -8,7 +8,7 @@ import { sign } from 'jsonwebtoken';
 import { compare } from 'bcryptjs';
 
 export const mockNewUser: AuthUserInterface = {
-    id: 4,
+    id: '4',
     username: 'newUsername',
     // password?: 'tokenVPassword';
     email: "newemail@gmail.com",
@@ -16,7 +16,7 @@ export const mockNewUser: AuthUserInterface = {
 }
 
 export const mockAuthUser: AuthUserInterface = {
-    id: 1,
+    id: '1',
     username: 'authUsername', 
     // password: 'hashedPassword', //some getUser function doesn't return password
     email: "useremail@gmail.com",
@@ -140,7 +140,7 @@ describe('login', () =>{
         //getUserBYEmail returns password as property -> mockAuthUser.password actually exists
         expect(compare).toHaveBeenCalledWith("password", mockAuthUser.password);
         expect(sign).toHaveBeenCalledWith(
-            {id: 1, email: "useremail@gmail.com", username: "authUsername"},
+            {id: '1', email: "useremail@gmail.com", username: "authUsername"},
             expect.any(String) //for token
         );
 
@@ -208,7 +208,7 @@ describe('getUserData by ID ', () => {
 
     beforeEach(() =>{
         req = mockRequest({
-            userID: 1,
+            userID: '1',
         })
         res = mockResponse();
     })
@@ -220,7 +220,7 @@ describe('getUserData by ID ', () => {
     it('should return user date feched by id ', async () =>{
         (getUserByID as jest.Mock).mockResolvedValue(mockAuthUser);
         await userByID(req,res);
-        expect(getUserByID).toHaveBeenCalledWith({userID: 1});
+        expect(getUserByID).toHaveBeenCalledWith({userID: '1'});
         
         expect(res.status).toHaveBeenCalledWith(200);
         expect(res.json).toHaveBeenCalledWith({
