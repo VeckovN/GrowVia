@@ -1,4 +1,4 @@
-import mongoose, { Schema } from 'mongoose';
+import { Schema } from 'mongoose';
 import { UserLocation } from "@veckovn/growvia-shared" 
 
 const LocationSchema = new Schema<UserLocation>(
@@ -11,6 +11,12 @@ const LocationSchema = new Schema<UserLocation>(
 
 const CustomerSchema: Schema = new Schema(
     {
+        userID: {
+            type: String, 
+            require:true,
+            index:true, 
+            unique: true,
+        },
         username: { 
             type: String, 
             require:true,
@@ -52,12 +58,19 @@ const CustomerSchema: Schema = new Schema(
             default: "", 
             trim: true,
         }, 
-
-        // 'Product' Reference to Another Products MongoDB  
-        //Product DB is the mongoDB as well , so the product Id is same type
-        purchasedProducts: [{type: mongoose.Schema.Types.ObjectId, ref: 'Product'}],
-        wishlist: [{type: mongoose.Schema.Types.ObjectId, ref: 'Product'}], //array of products type (From Product Interface) string[Product]
-        savedFarmers: [{ type: mongoose.Schema.Types.ObjectId, ref: "Farmer" }], // 'Farmers' Reference to Farmers -> same MongoDB
+        purchasedProducts: [{
+            type: String
+        }],
+        wishlist: [{ 
+            type: String
+        }],
+        savedFarmers: [{
+            type: String,
+            validate: {
+                validator: (v: string) => /^[a-zA-Z0-9_-]+$/.test(v),
+                message: "Invalid farmerID format."
+            }
+        }],
         orderHistory: [{  // PostgreSQL order IDs stored as UUID strings
             type: String,
             validate: {
