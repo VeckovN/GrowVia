@@ -1,55 +1,61 @@
-import {winstonLogger, uploadImage, CustomerDocumentInterface, FarmerDocumentInterface } from "@veckovn/growvia-shared";
+// import {winstonLogger, uploadImage, CustomerDocumentInterface, FarmerDocumentInterface } from "@veckovn/growvia-shared";
+import {winstonLogger, uploadImage } from "@veckovn/growvia-shared";
 import { Logger } from "winston";
 import { config } from "@users/config";
 import { v4 as uuidv4 } from 'uuid';
 import { UploadApiResponse } from "cloudinary";
 
 const log: Logger = winstonLogger(`${config.ELASTICSEARCH_URL}`, 'userService', 'debug');
+//enter customer imageFile instead of whole customerData object
 export const uploadImageToCloudinary = async ( 
-    userData: CustomerDocumentInterface | FarmerDocumentInterface 
-): Promise<{ profilePublicID: string, profilePicture: string }> =>{
-    let profilePublicID = "";
-    let profilePicture = "";
+    imageFile: string
+): Promise<{ imageUrl: string, imagePublicID: string }> =>{
+    let imageUrl = "";
+    let imagePublicID = "";
 
-    if(userData.profilePicture)
+    if(imageFile)
     {
         try{
-            profilePublicID = uuidv4();
-            const result = await uploadImage(userData.profilePicture, profilePublicID, true, true) as UploadApiResponse;
+            imagePublicID = uuidv4();
+            // const result = await uploadImage(userData.profileImageFile, imagePublicID, true, true) as UploadApiResponse;
+            const result = await uploadImage(imageFile, imagePublicID, true, true) as UploadApiResponse;
             
             if(result.public_id){
-                profilePicture = result?.secure_url;
+                console.log("result.public_id")
+                imageUrl = result?.secure_url;
                 log.info("User service: Image successfully uploaded to cloudinary");
             } else{
-                profilePublicID = "";
+                console.log("FAILED result.public_id")
+                imagePublicID = "";
             }
         }
         catch(err){
-            //on error profilePublicID and profilePicture will be ""
-            profilePublicID = "";
+            //on error imagePublicID and profilePicture will be ""
+            imagePublicID = "";
             log.log("error", "User service: image didn't upload to cloudinary");   
         }
     }
 
     return { 
-        profilePublicID,
-        profilePicture 
+        imageUrl,
+        imagePublicID 
     } 
 }
 
 export const updateImageInCloudinary = async (
-    newProfilePicture: string,
+    newProfilePictureFile: string,
     existingPublicID: string // The current `public_id` to overwrite
-  ): Promise<{ profilePicture: string }> => {
-        let profilePublicID = existingPublicID;
-        let profilePicture = "";
-
+): Promise<{ imageUrl: string }> => {
+        let imagePublicID = existingPublicID;
+        let imageUrl = "";
         try{
             // invalidate = true (purge CDN cache), overwrite = true (replace existing image)
-            const result = await uploadImage(newProfilePicture, profilePublicID, true, true) as UploadApiResponse;
+            // const result = await uploadImage(newProfilePicture, imagePublicID, true, true) as UploadApiResponse;
+            const result = await uploadImage(newProfilePictureFile, imagePublicID, true, true) as UploadApiResponse;
             
             if(result.public_id){
-                profilePicture = result?.secure_url;
+                // profilePicture = result?.secure_url;
+                imageUrl = result?.secure_url;
                 log.info("User service: Image successfully uploaded to cloudinary");
             } 
         }
@@ -58,6 +64,7 @@ export const updateImageInCloudinary = async (
         }
 
     return { 
-        profilePicture 
+        // profilePicture 
+        imageUrl 
     } 
 }

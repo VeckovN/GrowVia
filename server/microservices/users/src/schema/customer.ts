@@ -47,17 +47,18 @@ const CustomerSchema: Schema = new Schema(
             type:LocationSchema, 
             require:true
         },
-        profilePicture: { 
-            type: String,
-            default: "",
-            trim: true,
-            // match: /^https?:\/\/.+\.(jpg|jpeg|png|gif)$/, // Only allow valid image URLs
-        }, 
-        profilePublicID: {  //cloudinary image id
-            type: String,
-            default: "", 
-            trim: true,
-        }, 
+        profileAvatar: {
+            url: {
+                type: String,
+                default: "",
+                trim: true
+            },
+            publicID: {
+                 type: String,
+                default: "", 
+                trim: true,
+            }
+        },
         purchasedProducts: [{
             type: String
         }],

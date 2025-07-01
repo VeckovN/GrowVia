@@ -16,6 +16,7 @@ export const uploadProductImageToCloudinary = async (
             try{
                 const imagePublicID = uuidv4();
                 const result = await uploadImage(image, imagePublicID, true, true) as UploadApiResponse;
+                console.log("Resultt: ", result);
 
                 if(result.public_id){
                     uploadedImages.push({
@@ -30,5 +31,6 @@ export const uploadProductImageToCloudinary = async (
         }
     }
 
+    console.log("upladedIm: ", uploadedImages);
     return uploadedImages;
 }

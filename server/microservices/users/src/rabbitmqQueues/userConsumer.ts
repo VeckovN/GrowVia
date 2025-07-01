@@ -15,7 +15,7 @@ const customerDirectConsumer = async (channel:Channel):Promise<void> => {
     try{
         const exchangeName = 'auth-user-customer';
         const queueName = 'auth-user-customer-queue';
-        const routingKey = 'auth-user-customer-key'
+        const routingKey = 'auth-user-customer-key';
   
         //Asserts an exchange into existence (set direct) --- set durable to true(makes queue survive)
         await channel.assertExchange(exchangeName, 'direct', {durable:true});
@@ -36,12 +36,9 @@ const customerDirectConsumer = async (channel:Channel):Promise<void> => {
             try{
                 //msg! garante that msg is not null or undefined
                 const {type, data} = JSON.parse(msg!.content.toString());
-                
                 if(type == 'authCreate'){            
-                    console.log("\n Create Auth Data: ", data);
                     await createCustomer(data); //from Service
-                    console.log("Create customer user AFTER");
-                    log.info("User Service Data recieved from Authentication service");
+                    log.info("User Service recieved data from Authentication and user successfully created");
                 }
 
                 channel.ack(msg!); //Ack after successful processing 
@@ -64,7 +61,7 @@ const farmerDirectConsumer = async (channel:Channel):Promise<void> => {
     try{
         const exchangeName = 'auth-user-farmer';
         const queueName = 'auth-user-farmer-queue';
-        const routingKey = 'auth-user-farmer-key'
+        const routingKey = 'auth-user-farmer-key';
 
         //Asserts an exchange into existence (set direct) --- set durable to true(makes queue survive)
         await channel.assertExchange(exchangeName, 'direct', {durable:true});
@@ -87,10 +84,8 @@ const farmerDirectConsumer = async (channel:Channel):Promise<void> => {
                 const {type, data} = JSON.parse(msg!.content.toString());
                 
                 if(type == 'authCreate'){            
-                    console.log("\n Create Auth Data: ", data);
                     await createFarmer(data);
-                    console.log("Create farmer user AFTER");
-                    log.info("User Service Data recieved from Authentication service");
+                    log.info("User Service recieved data from Authentication and user successfully created");
                 }
 
                 channel.ack(msg!); //Ack after successful processing 

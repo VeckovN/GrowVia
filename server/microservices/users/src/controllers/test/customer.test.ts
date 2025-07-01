@@ -37,11 +37,13 @@ jest.mock('@users/services/customer', () =>({
 
 //expected returned customer data
 const mockedCustomer: CustomerDocumentInterface = {
-    id: "67ab171a53bc80962a3686fd",
+    // id: "67ab171a53bc80962a3686fd",
+    userID:'4',
     username: "Dusty6476",
     email: "victor.cronin@hotmail.com",
     fullName: "Sharon Feest",
-    profilePicture:"https://picsum.photos/seed/YnsHp/3569/3990?blur=10",
+    // profilePicture:"https://picsum.photos/seed/YnsHp/3569/3990?blur=10",
+    profileAvatarFile:"https://picsum.photos/seed/YnsHp/3569/3990?blur=10",
     wishlist: [],
 }
 
@@ -157,9 +159,13 @@ describe('addProduct to wishlist', () => {
 
     beforeEach(() =>{
         req = mockRequest({
+            // body:{
+            //     customerID: '67ab171a53bc80962a3686fd', //mockedCustomer.id
+            //     productID: '17ab171b53bc50912a3686ah'
+            // }
             body:{
-                customerID: '67ab171a53bc80962a3686fd', //mockedCustomer.id
-                productID: '17ab171b53bc50912a3686ah'
+                customerID: '4', //mockedCustomer.id
+                productID: '5'
             }
         })
         res = mockResponse();
@@ -174,7 +180,8 @@ describe('addProduct to wishlist', () => {
         //SO it will return 'TRUE'
         (updateCustomerWishlist as jest.Mock).mockResolvedValue(true);
         await addProductToWishlist(req,res);
-        expect(updateCustomerWishlist).toHaveBeenCalledWith('67ab171a53bc80962a3686fd', '17ab171b53bc50912a3686ah', 'add');
+        // expect(updateCustomerWishlist).toHaveBeenCalledWith('67ab171a53bc80962a3686fd', '17ab171b53bc50912a3686ah', 'add');
+        expect(updateCustomerWishlist).toHaveBeenCalledWith('4', '5', 'add');
 
         expect(res.status).toHaveBeenCalledWith(200);
         expect(res.json).toHaveBeenCalledWith({
@@ -189,9 +196,13 @@ describe('removeProduct to wishlist', () => {
 
     beforeEach(() =>{
         req = mockRequest({
+            // params:{
+            //     customerID: '67ab171a53bc80962a3686fd', //mockedCustomer.id
+            //     productID: '17ab171b53bc50912a3686ah'
+            // }
             params:{
-                customerID: '67ab171a53bc80962a3686fd', //mockedCustomer.id
-                productID: '17ab171b53bc50912a3686ah'
+                customerID: '4', //mockedCustomer.id
+                productID: '5'
             }
         })
         res = mockResponse();
@@ -204,7 +215,8 @@ describe('removeProduct to wishlist', () => {
     it('should decrease wishlist', async () =>{
         (updateCustomerWishlist as jest.Mock).mockResolvedValue(true);
         await removeProductToWishlist(req,res);
-        expect(updateCustomerWishlist).toHaveBeenCalledWith('67ab171a53bc80962a3686fd', '17ab171b53bc50912a3686ah', 'remove');
+        // expect(updateCustomerWishlist).toHaveBeenCalledWith('67ab171a53bc80962a3686fd', '17ab171b53bc50912a3686ah', 'remove');
+        expect(updateCustomerWishlist).toHaveBeenCalledWith('4', '5', 'remove');
 
         expect(res.status).toHaveBeenCalledWith(200);
         expect(res.json).toHaveBeenCalledWith({
@@ -220,9 +232,13 @@ describe('addFarmer to savedlist', () => {
     beforeEach(() =>{
         //data from the client request (body)
         req = mockRequest({
+            // body: {
+            //     customerID: '67ab171a53bc80962a3686fd', //mockedCustomer.id
+            //     farmerID: '67ab173453bc80962a36871e', 
+            // }
             body: {
-                customerID: '67ab171a53bc80962a3686fd', //mockedCustomer.id
-                farmerID: '67ab173453bc80962a36871e', 
+                customerID: '4', //mockedCustomer.id
+                farmerID: '5', 
             }
         })
         res = mockResponse();
@@ -235,7 +251,8 @@ describe('addFarmer to savedlist', () => {
     it('should increase wishlist with new product', async () =>{
         (updateCustomerSavedFarmers as jest.Mock).mockResolvedValue(true);
         await addFarmerToSavedList(req,res);
-        expect(updateCustomerSavedFarmers).toHaveBeenCalledWith('67ab171a53bc80962a3686fd', '67ab173453bc80962a36871e', 'add');
+        // expect(updateCustomerSavedFarmers).toHaveBeenCalledWith('67ab171a53bc80962a3686fd', '67ab173453bc80962a36871e', 'add');
+        expect(updateCustomerSavedFarmers).toHaveBeenCalledWith('4', '5', 'add');
         expect(res.status).toHaveBeenCalledWith(200);
         expect(res.json).toHaveBeenCalledWith({
             message: "Customer saved list increased",
@@ -250,9 +267,13 @@ describe('addOrder to historyList', () => {
     beforeEach(() =>{
         req = mockRequest({
             body:{
-                customerID: '67ab171a53bc80962a3686fd', //mockedCustomer.id
-                orderID: '66ab172453bc80962a12871g', 
+                customerID: '4', //mockedCustomer.id
+                orderID: '31221', 
             }
+            // body:{
+            //     customerID: '67ab171a53bc80962a3686fd', //mockedCustomer.id
+            //     orderID: '66ab172453bc80962a12871g', 
+            // }
         })
         res = mockResponse();
     })
@@ -264,7 +285,8 @@ describe('addOrder to historyList', () => {
     it('should increase wishlist with new product', async () =>{
         (updateCustomerOrderHistory as jest.Mock).mockResolvedValue(true);
         await addOrderToHistory(req,res);
-        expect(updateCustomerOrderHistory).toHaveBeenCalledWith('67ab171a53bc80962a3686fd', '66ab172453bc80962a12871g');
+        // expect(updateCustomerOrderHistory).toHaveBeenCalledWith('67ab171a53bc80962a3686fd', '66ab172453bc80962a12871g');
+        expect(updateCustomerOrderHistory).toHaveBeenCalledWith('4', '31221');
         expect(res.status).toHaveBeenCalledWith(200);
         expect(res.json).toHaveBeenCalledWith({
             message: "Customer History increased",

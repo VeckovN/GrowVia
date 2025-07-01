@@ -5,11 +5,10 @@ import { CustomerModel } from "@users/models/customer";
 const createCustomer = async(customerData: CustomerDocumentInterface):Promise<void> =>{
     const checkCustomerUser:CustomerDocumentInterface = await CustomerModel.findOne({username: `${customerData.username}`})
         .exec() as CustomerDocumentInterface; 
+
     if(!checkCustomerUser){
-
-        const { profilePublicID, profilePicture } = await uploadImageToCloudinary(customerData); 
-        const customerCreateData = { ...customerData, profilePicture, profilePublicID };
-
+        const { imageUrl, imagePublicID } = await uploadImageToCloudinary(customerData.profileAvatarFile!); 
+        const customerCreateData = { ...customerData, profileAvatar: { url:imageUrl, publicID:imagePublicID} };
         await CustomerModel.create(customerCreateData);
     }
 }
@@ -34,44 +33,48 @@ const updateCustomerDataByID = async(customerID: string, customerData:CustomerDo
     const existingCustomerData: CustomerDocumentInterface | null = await CustomerModel.findOne({ userID:customerID }).exec();
     console.log("ExistingCUstomerDatA: ", existingCustomerData);
 
-    if(existingCustomerData)
-    {
-        let newProfilePicture = customerData?.profilePicture;
-        //if customerData contains profilePicture (new picture) FIle
-        if(customerData.profilePicture && customerData.profilePublicID){
-            try{
-                const { profilePicture } = await updateImageInCloudinary(customerData.profilePicture, customerData.profilePublicID);
-                newProfilePicture = profilePicture;
-            }
-            catch(error){
-                newProfilePicture = existingCustomerData?.profilePicture;
+    if(!existingCustomerData){
+        return null
+    }
+
+    let newProfileAvatar = existingCustomerData.profileAvatar ?? { url: "", publicID: "" };
+    if(customerData.profileAvatarFile && customerData.profileAvatar?.publicID){
+        try{
+            const { imageUrl } = await updateImageInCloudinary(customerData.profileAvatarFile, customerData.profileAvatar.publicID);
+            newProfileAvatar = {
+                url: imageUrl,
+                publicID: newProfileAvatar.publicID 
             }
         }
+        catch(error){
+            newProfileAvatar = existingCustomerData?.profileAvatar || newProfileAvatar;
+        }
+    }
 
-        //CHANGE THIS  to 'userID' prop
-        //to update and return newUpdated document -> findOnAndUpdate
-        const updatedUser = CustomerModel.findOneAndUpdate(
-            { userID: customerID },
-            {
-                $set: {
-                    username: customerData.username, 
-                    email: customerData.email, 
-                    fullName: customerData.fullName, 
-                    location: customerData.location, 
-                    profilePicture: newProfilePicture,
-                    purchasedProducts: customerData.purchasedProducts,
-                    wishlist: customerData.wishlist, 
-                    savedFarmers: customerData.savedFarmes, 
-                    orderHistory: customerData.orderHistroy
-                }
-            },
-            { new: true } //return new updated document
-        );
-        return updatedUser;
-    }
-    else{
-        return null;
-    }
+    //CHANGE THIS  to 'userID' prop
+    //to update and return newUpdated document -> findOnAndUpdate
+    const updatedUser = CustomerModel.findOneAndUpdate(
+        { userID: customerID },
+        {
+            $set: {
+                username: customerData.username, 
+                email: customerData.email, 
+                fullName: customerData.fullName, 
+                location: customerData.location, 
+                // profilePicture: newProfilePicture,
+                // profileImage: newProfileImage,
+                profileAvatar: newProfileAvatar,
+                purchasedProducts: customerData.purchasedProducts,
+                wishlist: customerData.wishlist, 
+                savedFarmers: customerData.savedFarmes, 
+                orderHistory: customerData.orderHistroy
+            }
+        },
+        { new: true } //return new updated document
+    );
+    return updatedUser;
+
+
 }
 
 const updateCustomerWishlist = async(customerID: string, productID: string, action: 'add' | 'remove'):Promise<void> =>{
@@ -116,3 +119,31 @@ export {
     updateCustomerSavedFarmers,
     updateCustomerOrderHistory
 }
+
+
+
+
+
+// So that means i should have for all farmers' images?
+// xport interface FarmerDocumentInterface {
+//     userID?: string;
+//     username?: string;
+//     email?: string;
+
+//     profilePicture?: string;
+//     profilePublicID?: string;
+
+//     profileAvatar?: {
+//         url: string,
+//         publicID: string,
+//     };
+//     backgroundImage?: {
+//         url: string,
+//         publicID: string,
+//     };
+//     profileImages?: [
+//         {
+//             url: string,
+//             publicID: string,
+//         }
+//     ];

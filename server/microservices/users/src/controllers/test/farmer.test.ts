@@ -17,7 +17,8 @@ jest.mock('@users/services/farmer', () =>({
 
 //expected returned customer data
 const mockedFarmer: FarmerDocumentInterface = {
-    id: "67ab173453bc80962a36871e",    
+    // id: "67ab173453bc80962a36871e",    
+    userID: "5",    
     username: "Marieann4367",
     email: "madie.mertz-gislason38@hotmail.com",
     fullName: "Arnaldo Stracke",
@@ -29,7 +30,14 @@ const mockedFarmer: FarmerDocumentInterface = {
         latitude: '',
         longitude: '',
     },
-    profilePicture: "https://picsum.photos/seed/dXBWE/1985/3546?blur=4",
+    profileAvatar: { 
+        url: "https://picsum.photos/seed/dXBWE/1985/3546?blur=4",
+        publicID: '12312'
+    },
+    backgroundImage: { 
+        url: "https://picsum.photos/seed/dXBWE/1985/3546?blur=4",
+        publicID: '123123'
+    },
     socialLinks: []
 }
 

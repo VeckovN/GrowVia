@@ -59,21 +59,48 @@ const FarmerSchema: Schema = new Schema(
             type:LocationSchema, 
             require:true
         },
-        profilePicture: { 
-            type: String,
-            default: "",
-            trim: true,
-            //match: /^https?:\/\/.+\.(jpg|jpeg|png|gif)$/, // Only allow valid image URLs
-        }, 
-        profilePublicID: {  //cloudinary image id
-            type: String,
-            default: "", 
-            trim: true,
-        }, 
+        profileAvatar: {
+            url: {
+                type: String,
+                default: "",
+                trim: true
+            },
+            publicID: {
+                 type: String,
+                default: "", 
+                trim: true,
+            }
+        },
+        backgroundImage: {
+            url: {
+                type: String,
+                default: "",
+                trim: true
+            },
+            publicID: {
+                 type: String,
+                default: "", 
+                trim: true,
+            }
+        },
+        profileImages: [
+            {
+                url: {
+                    type: String,
+                    default: "",
+                    trim: true
+                },
+                publicID: {
+                    type: String,
+                    default: "", 
+                    trim: true,
+                }
+            }
+        ],
         description: {
             type: String,
             trim: true,
-            maxlength: 500, // Limit description length
+            maxlength: 800, // Limit description length
         },
         socialLinks: [
             {

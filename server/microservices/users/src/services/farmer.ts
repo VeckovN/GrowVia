@@ -2,13 +2,25 @@ import { FarmerDocumentInterface } from "@veckovn/growvia-shared";
 import { FarmerModel } from "@users/models/farmer";
 import { uploadImageToCloudinary } from "@users/helper";
 
+
 const createFarmer = async(farmerData: FarmerDocumentInterface):Promise<void> =>{
     const checkCustomerUser:FarmerDocumentInterface = await FarmerModel.findOne({username: `${farmerData.username}`})
         .exec() as FarmerDocumentInterface; 
     if(!checkCustomerUser){
+        //we got two images to upload
+        //profileAvatarFile
+        //backgroundImageFile
         
-        const { profilePublicID, profilePicture } = await uploadImageToCloudinary(farmerData); 
-        const farmerCreateData = { ...farmerData, profilePicture, profilePublicID };
+        const [profileUpload, backgroundUpload] = await Promise.all([
+            uploadImageToCloudinary(farmerData.profileAvatarFile!),
+            uploadImageToCloudinary(farmerData.backgroundImageFile!)
+        ])
+
+        const farmerCreateData = { 
+            ...farmerData, 
+            profileAvatar:{ url: profileUpload.imageUrl, publicID:profileUpload.imagePublicID },
+            backgroundImage:{ url: backgroundUpload.imageUrl, publicID:backgroundUpload.imagePublicID },
+         };
         
         await FarmerModel.create(farmerCreateData);
     }
@@ -34,7 +46,9 @@ const updateFarmerDataByID = async(farmerID: string, farmerData:FarmerDocumentIn
                 fullName: farmerData.fullName, 
                 farmName: farmerData.farmName, 
                 location: farmerData.location, 
-                profilePicture: farmerData.profilePicture,
+                // profilePicture: farmerData.profilePicture,
+                profileAvatar: farmerData.profileAvatar,
+                backgroundImage: farmerData.backgroundImage
             }
         },
         { new: true }
