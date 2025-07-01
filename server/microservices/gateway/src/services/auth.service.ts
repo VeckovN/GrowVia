@@ -27,8 +27,8 @@ async function SignIn(body: AuthBodyRequestInterface):Promise<AxiosResponse> {
     return res;
 }
 
-async function verifyEmail(userID: number):Promise<AxiosResponse> {
-    const res: AxiosResponse = await authAxiosInstance.put('/verify-email', { userID });
+async function verifyEmail(userID: string, token:string):Promise<AxiosResponse> {
+    const res: AxiosResponse = await authAxiosInstance.put('/verify-email', { userID, token });
     return res;
 }
 
@@ -83,4 +83,3 @@ export {
     refreshToken,
     seedAuthUser
 }
-
