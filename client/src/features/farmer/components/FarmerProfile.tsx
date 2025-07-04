@@ -11,7 +11,7 @@ import { ReduxStateInterface } from '../../../store/store.interface';
 import { useAppSelector } from '../../../store/store';
 import { useAppDispatch } from '../../../store/store';
 import { useSchemaValidation } from '../../shared/hooks/useSchemaValidation';
-import { useUpdateProductMutation } from '../farmer.service';
+import { useUpdateFarmerMutation } from '../farmer.service';
 import { CITIES, SOCIAL } from '../../shared/utils/data';
 import { readAsBase64 } from '../../shared/utils/utilsFunctions';
 
@@ -24,7 +24,7 @@ const FarmerProfile = () => {
     const backgroundInputRef = useRef<HTMLInputElement>(null);
     const avatarInputRef = useRef<HTMLInputElement>(null);
 
-    const [ updateProduct ] = useUpdateProductMutation();
+    const [ updateFarmer ] = useUpdateFarmerMutation();
 
     const [userData, setUserData] = useState<FarmerProfileInterface>({
         farmName: authUser.farmName,
@@ -175,7 +175,7 @@ const FarmerProfile = () => {
                 return
             }
             const farmerID = authUser.id.toString();
-            const result = await updateProduct({farmerID, updateData:newData})
+            const result = await updateFarmer({farmerID, updateData:newData})
             console.log("update product result: ", result);
 
             dispatch(updateAuthUser(newData));
