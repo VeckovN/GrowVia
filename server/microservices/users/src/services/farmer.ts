@@ -45,10 +45,12 @@ const updateFarmerDataByID = async(farmerID: string, farmerData:FarmerDocumentIn
                 email: farmerData.email, 
                 fullName: farmerData.fullName, 
                 farmName: farmerData.farmName, 
+                phoneNumber: farmerData.phoneNumber,
                 location: farmerData.location, 
-                // profilePicture: farmerData.profilePicture,
+                description: farmerData.description,
                 profileAvatar: farmerData.profileAvatar,
-                backgroundImage: farmerData.backgroundImage
+                backgroundImage: farmerData.backgroundImage,
+                socialLinks: farmerData.socialLinks
             }
         },
         { new: true }

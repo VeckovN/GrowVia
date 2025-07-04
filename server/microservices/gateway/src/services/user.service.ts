@@ -17,7 +17,7 @@ async function getCustomerDetailsByEmail(email: string):Promise<AxiosResponse> {
 }
 
 async function updateCustomerData(customerID: string, newData: CustomerDocumentInterface):Promise<AxiosResponse> {
-    const res: AxiosResponse = await usersAxiosInstance.put(`/customer/id/${customerID}`, newData);
+    const res: AxiosResponse = await usersAxiosInstance.patch(`/customer/id/${customerID}`, newData);
     //newData is structured as obj with new Data props
     return res;
 }
@@ -61,7 +61,7 @@ async function getFarmerDetailsByEmail(email: string):Promise<AxiosResponse> {
 }
 
 async function updateFarmerData(farmerID: string, newData: FarmerDocumentInterface):Promise<AxiosResponse> {
-    const res: AxiosResponse = await usersAxiosInstance.put(`/farmer/id/${farmerID}`, newData);
+    const res: AxiosResponse = await usersAxiosInstance.patch(`/farmer/id/${farmerID}`, newData);
     return res;
 }
 

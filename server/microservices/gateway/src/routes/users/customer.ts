@@ -12,7 +12,7 @@ const customerRoutes = (): Router => {
     //api/gatewy/v1/users/customer/username/:username
     router.get('/users/customer/username/:username', checkUserAuth, getByUsername);
     router.get('/users/customer/email/:email', checkUserAuth, getByEmail);
-    router.put('/users/customer/id/:customerID', checkUserAuth, updateByID);
+    router.patch('/users/customer/id/:customerID', checkUserAuth, updateByID);
     router.post('/users/customer/wishlist', checkUserAuth, addToWishlist);
     router.delete('/users/customer/:customerID/wishlist/:productID', removeFromWishlist); //customer/1231/wishlist/321
     router.post('/users/customer/savedlist', addToSavedList);

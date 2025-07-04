@@ -10,6 +10,6 @@ const router:Router = express.Router();
 export function farmerRoutes():Router {
     router.get('/username/:username', getFarmerDetailsByUsername);
     router.get('/email/:email', getFarmerDetailsByEmail);
-    router.put('/id/:farmerID', updateFarmerData);
+    router.patch('/id/:farmerID', updateFarmerData);
     return router;
 }

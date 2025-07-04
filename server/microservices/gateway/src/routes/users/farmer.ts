@@ -9,7 +9,7 @@ const farmerRoutes = (): Router => {
     //api/gatewy/v1/users/farmer/username/:username
     router.get('/users/farmer/username/:username', checkUserAuth, getByUsername);
     router.get('/users/farmer/email/:email', checkUserAuth, getByEmail);
-    router.put('/users/farmer/id/:farmerID', checkUserAuth, updateByID);
+    router.patch('/users/farmer/id/:farmerID', checkUserAuth, updateByID);
 
     return router;
 };
