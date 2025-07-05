@@ -1,5 +1,6 @@
 import { ObjectSchema } from "yup";
 import { ValidationErrorMap } from "../shared/hooks/useSchemaValidation";
+// import { ProductDocumentInterface } from "../product/product.interface";
 
 // import {} //from user feature
 export interface LocationInterface {
@@ -14,12 +15,10 @@ export interface FarmerLocationInterface extends LocationInterface {
 }
 
 export interface AuthUserInterface {
-
-    //with RTK Query reqeust we got props in camelCase (on testing with RESTClient .http we got lowcase props)
-    // id: string, //it's number IN Authentication Service
-    id: number | null, //it's number IN Authentication Service
+    id: string | null, //it's number IN Authentication Service
     username: string,
     email: string,
+    phoneNumber: string,
     userType: string,
     verificationEmailToken: string | null,
     resetPasswordToken: string | null,
@@ -27,23 +26,30 @@ export interface AuthUserInterface {
     createdAt: string, //redux toolkit use serializable data -> this have to be cast to string 
     fullName: string,
     location: LocationInterface | FarmerLocationInterface,
-    profilePicture: string,
-    profilePublicID: string,
+    profileAvatarFile: string;
+    profileAvatar?: {
+        url: string,
+        publicID: string
+    },
+    backgroundImageFile?:string;
+    backgroundImage?: { //onyl for farmer
+        url: string,
+        publicID: string
+    },
+    profileImages?: [{ //onyl for farmer
+        url: string,
+        publicID: string
+    }],
+
     //customer's related
     purchasedProducts?: string[],
     wishlist?: string[],
     savedFarmers?: string[],
     orderHistory?: string[],
     //farmer's related
+    farmName?:string,
     description?: string,
     socialLinks?: string[],
-}
-
-
-//on RTQ query HTTP request we should get a lot of different props
-export interface ResponseInterface{
-    message?: string,
-    user?: AuthUserInterface
 }
 
 export interface SignUpPayloadInterface {
@@ -53,8 +59,12 @@ export interface SignUpPayloadInterface {
     repeatPassword: string,
     phoneNumber: string,
     userType: 'customer' | 'farmer';
-    profilePicture: string;
-    backgroundImage?: string; //for farmers
+    // profilePicture: string;
+    avatarImageFile?: string;
+    backgroundImageFile?: string;
+    // profileImages?: string[];
+    profileImagesFile?: string[];
+    // backgroundImage?: string; //for farmers
     fullName: string; 
     location?: LocationInterface | FarmerLocationInterface;
     farmName?: string;
@@ -62,23 +72,56 @@ export interface SignUpPayloadInterface {
     socialLlinks?: string[];
 }
 
-//fullname is actually firstName + LastName 
-export interface SignUpFormInterface {
+export interface BaseSignUpFormInterface {
     username: string;
     email: string;
     password: string;
-    repeatPassword: string,
-    phoneNumber: string,
-    userType: 'customer' | 'farmer';
-    profilePicture: string;
-    backgroundImage?: string; //for farmers
+    repeatPassword: string;
+    phoneNumber: string;
     firstName: string;
     lastName: string;
-    location?: LocationInterface | FarmerLocationInterface;
+    location?: LocationInterface;
+    profileAvatarFile?: string;
+}
+
+export interface SignUpCustomerFormInterface extends BaseSignUpFormInterface {
+    userType: 'customer';
+    // No additional fields needed
+}
+
+// //Same as SignUpFormInterface
+// export interface SignUpCustomerFormInterface extends SignUpFormInterface {
+// }
+
+export interface SignUpFarmerFormInterface extends BaseSignUpFormInterface {
+    userType: 'farmer';
     farmName?: string;
+    // profileAvatarFile: string;
+    backgroundImageFile?: string;
+    // profileImagesFile?: string[]; //adding profile images will be allowed in user profil
     description?: string;
     socialLlinks?: string[];
 }
+
+//Union for userInfo SignUp state
+export interface SignUpFormUnionInterface {
+    username: string;
+    email: string;
+    password: string;
+    repeatPassword: string;
+    phoneNumber: string;
+    firstName: string;
+    lastName: string;
+    location?: LocationInterface;
+    profileAvatarFile?: string;
+    userType: 'customer | farmer';
+    farmName?: string;
+    backgroundImageFile?: string;
+    // profileImagesFile?: string[]; //adding profile images will be allowed in user profil
+    description?: string;
+    socialLlinks?: string[];
+} 
+
 
 export interface SignInPayloadInterface {
     usernameOrEmail: string;
@@ -95,14 +138,21 @@ export interface ResetPasswordPayloadInterface  extends ResetPasswordFormInterfa
     token: string;
 }
 
+
 export interface PasswordInvisibility {
     password: boolean;
     confirmPassword: boolean;
 }
 
 export interface VerifyEmailInterface {
-    userID: number,
+    // userID: number,
+    userID: string,
     token: string
+}
+
+export interface ChangePasswordPayloadInterface {
+    currentPassword: string,
+    newPassword: string
 }
 
 export interface useAuthValidationInterface{
@@ -120,8 +170,10 @@ export interface RoleOptionInterface {
 }
 
 export interface CustomerFormOptionPropsInterface {
-    userInfo: SignUpFormInterface;
-    setUserInfo: React.Dispatch<React.SetStateAction<SignUpFormInterface>>;
+    // userInfo: SignUpFormInterface;
+    userInfo: SignUpFormUnionInterface;
+    // setUserInfo: React.Dispatch<React.SetStateAction<SignUpFormInterface>>;
+    setUserInfo: React.Dispatch<React.SetStateAction<SignUpFormUnionInterface>>;
     validationErrors: ValidationErrorMap; //-> Record<string,string> -> the useAuthValidation validation hook return value
     actionError: string;
 }

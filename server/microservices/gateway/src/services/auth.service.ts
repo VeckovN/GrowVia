@@ -32,9 +32,8 @@ async function verifyEmail(userID: string, token:string):Promise<AxiosResponse> 
     return res;
 }
 
-async function changePassword(newPassword:string):Promise<AxiosResponse> {
-    //make request with newPassword in body to the Authentication servcice
-    const res: AxiosResponse = await authAxiosInstance.put('/change-password', { newPassword });
+async function changePassword(currentPassword:string, newPassword:string):Promise<AxiosResponse> {
+    const res: AxiosResponse = await authAxiosInstance.patch('/change-password', { currentPassword, newPassword });
     return res;
 }
 

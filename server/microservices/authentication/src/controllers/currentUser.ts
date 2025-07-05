@@ -6,7 +6,7 @@ import { authChannel } from "@authentication/server";
 import { AuthEmailVerificationInterface, EmailLocalsInterface } from "@veckovn/growvia-shared";
 import { getUserByID, updateEmailVerification, updatePassword } from "@authentication/services/auth";
 import { config } from '@authentication/config';
-import { hash } from 'bcryptjs';
+import { hash, compare } from 'bcryptjs';
 import crypto from 'crypto';
 import { sign } from 'jsonwebtoken';
 
@@ -17,7 +17,6 @@ import { sign } from 'jsonwebtoken';
 
 //More clearly about it will be the use case In React app (Used to check is user still authenticated -.etc on his new request)
 
-
 // in Gateway/routes.ts the verifyUser and in Gateway/routes/currentUser.ts the ChechAuthUser middleware is used
 //that made the protected route (only for logged/authenticated users)
 
@@ -27,6 +26,7 @@ import { sign } from 'jsonwebtoken';
 export async function getCurrentUser(req:Request, res:Response):Promise<void> {
     const userID = req.currentUser?.id;
     const user = userID ? await getUserByID(userID) : undefined;
+    console.log("current User: ", user)
     res.status(200).json({message:"Authenticated user data:", user});
 }   
 
@@ -59,17 +59,22 @@ export async function resendVerificationEmail(req:Request, res:Response):Promise
 
 //user must be logged in (currentUser is passed in requset)
 export async function changePassword(req:Request, res:Response):Promise<void>{
-    const { newPassword } = req.body;
+    const { currentPassword, newPassword } = req.body;
     const userID = req.currentUser?.id;
-
+    
     if (userID === undefined)
         throw new Error("User id is missing!");
-
-    //AVOID using ! : DON'T userID!
-    const user = await getUserByID(userID);
+    
+    const user = await getUserByID(userID, true);
     if(!user)
-      throw new Error("Invalid password")
+        throw new Error("User not found. Not authenticated")
+    
+    console.log("userPAssword: ", user.password);
 
+    const isMatch = await compare(currentPassword, user.password!);
+    if(!isMatch)
+        throw new Error("Current password is incorrect.");
+    
     const SALT_ROUND = 10;
     const hashedPassoword = await hash(newPassword as string, SALT_ROUND);
 

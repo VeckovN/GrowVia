@@ -10,7 +10,7 @@ const currentUserRoutes = (): Router => {
     router.get('/auth/logged-users', checkUserAuth, getLoggedUsersList);
     router.delete('/auth/logged-user/:username', checkUserAuth, removeLoggedUserFromList);
     router.put('/auth/resend-verification', checkUserAuth, resendVerification);
-    router.put('/auth/change-password', changeAuthUserPassword);
+    router.patch('/auth/change-password', changeAuthUserPassword);
     router.get('/auth/refresh-token', refreshUserToken);
     return router;
 };

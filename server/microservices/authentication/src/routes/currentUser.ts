@@ -6,7 +6,7 @@ const router: Router = express.Router();
 const currentUserRoutes = (): Router => {
     router.get('/current-user', getCurrentUser);
     router.put('/resend-verification', resendVerificationEmail);
-    router.put('/change-password', changePassword);
+    router.patch('/change-password', changePassword);
     router.get('/refresh-token', refreshToken);
     return router;
 };

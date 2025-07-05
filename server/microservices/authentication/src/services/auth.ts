@@ -63,6 +63,8 @@ export async function createUser(
         }
         const {exchangeName, routingKey} = getExchangeNameAndRoutingKey(userType);
 
+        console.log("Message Payload: ", messagePayload);
+
         await publishMessage(
             authChannel,
             exchangeName,
@@ -131,19 +133,14 @@ export async function updatePasswordTokenExpiration(userID: string, resetToken:s
     }
 }
 
-export async function getUserByID(userID:string): Promise<AuthUserInterface | undefined>{
+
+export async function getUserByID(userID:string, withPassword = false): Promise<AuthUserInterface | undefined>{
     try{
-        //Instead of run select to get all data excluding password, we use previous created VIEW with exlcuded password
-        const { rows } = await pool.query(
-        // ` SELECT * FROM public.auths WHERE id = $1 `, [userID]
-        ` SELECT * FROM public.auths_user_without_password WHERE id = $1 `, [userID]
-        );
-        console.log("rows", rows);
-        console.log('\b row[0]: ', rows[0]);
-        // if (rows.length === 0)
-        //     return undefined
-        // const mappedAuthUser = mapAuthUser(rows[0]);
-        // return mappedAuthUser   
+        const query = withPassword
+            ? `SELECT * FROM public.auths WHERE id = $1`
+            : `SELECT * FROM public.auths_user_without_password WHERE id = $1`;
+    
+        const { rows } = await pool.query(query, [userID]);
         return rows.length > 0 ? (mapAuthUser(rows[0])) : undefined;
     }
     catch(error){

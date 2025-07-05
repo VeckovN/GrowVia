@@ -1,5 +1,5 @@
 import { api } from "../../store/api";
-import { SignUpPayloadInterface, SignInPayloadInterface, ResetPasswordPayloadInterface, VerifyEmailInterface } from "./auth.interfaces";
+import { SignUpPayloadInterface, SignInPayloadInterface, ResetPasswordPayloadInterface, VerifyEmailInterface, ChangePasswordPayloadInterface } from "./auth.interfaces";
 import { ResponseInterface } from '../shared/interfaces';
 
 //api -> already created (use same instance)
@@ -85,8 +85,23 @@ const authApi = api.injectEndpoints({ //in api(createApi) we'we created endpoint
                     }
                 }
             }
-        }) 
-        
+        }),
+        changePassword: build.mutation<ResponseInterface, ChangePasswordPayloadInterface>({
+            query({currentPassword, newPassword}){
+                return {
+                    url: 'auth/change-password',
+                    method: 'PATCH',
+                    body: {
+                        currentPassword,
+                        newPassword
+                    }
+                }
+            }
+        }),
+        getCurrentUser: build.query<ResponseInterface, void>({
+            query: () => 'auth/current-user',
+            providesTags: ['Auth']
+        })
     })
 })
 
@@ -97,7 +112,9 @@ export const {
     useForgotPasswordMutation,
     useResetPasswordMutation,
     useResentEmailVerificationMutation,
-    useVerifyEmailMutation
+    useVerifyEmailMutation,
+    useChangePasswordMutation,
+    useGetCurrentUserQuery
 } = authApi;
 
 //with http we have get,post,put delete

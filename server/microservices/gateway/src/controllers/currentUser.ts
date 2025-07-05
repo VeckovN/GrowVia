@@ -34,8 +34,10 @@ export async function resendVerification(_req:Request, res:Response):Promise<voi
 
 export async function changeAuthUserPassword(req:Request, res:Response):Promise<void>{
     //get only new password (for this request user must be logged in -> req.currentUser will be set on Auth Service )
-    const {newPassword} = req.body;
-    const response: AxiosResponse = await changePassword(newPassword);
+    // const {newPassword} = req.body;
+    const {currentPassword, newPassword} = req.body;
+    // const response: AxiosResponse = await changePassword(newPassword);
+    const response: AxiosResponse = await changePassword(currentPassword, newPassword);
     res.status(200).json({message:response.data.message});
 }
 
