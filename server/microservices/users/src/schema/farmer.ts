@@ -54,6 +54,15 @@ const FarmerSchema: Schema = new Schema(
             minlength: 3,
             maxlength: 50,
             match: /^[a-zA-Z\s,.'\-&]+$/
+        },
+        phoneNumber: {
+            type: String,
+            required: false,
+            trim: true,
+            match: [
+                /^(?:\+3816\d{7,8}|06\d{7,8})$/,
+                'Enter a valid Serbian phone number',
+            ]
         }, 
         location: { 
             type:LocationSchema, 
