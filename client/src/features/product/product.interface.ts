@@ -2,6 +2,12 @@ import { UnitType } from "../shared/utils/data"
 
 export interface CreateProductInterface {
     farmerID: string;
+    farmName?: string;
+    farmerLocation?: {
+        country: string;
+        city: string;
+        address: string;
+    };
     name: string;
     images?: string[];
     description: string;
@@ -17,10 +23,14 @@ export interface CreateProductInterface {
 export interface ProductDocumentInterface {
     // _id?: string | ObjectId; 
     _id?: string  
-    // id?: string | ObjectId;
     id?: string;
-    // farmerID?: string | ObjectId;
     farmerID?: string;
+    farmName?: string;
+    farmerLocation?:{
+        country: string;
+        city: string;
+        address: string;
+    };
     name: string;
     images?: [
         {
@@ -44,16 +54,25 @@ export interface ProductFormInterface {
     mode: 'create' | 'edit';
     // initialData: Omit<CreateProductInterface, 'farmerID' >; //Intial(add Form) or fetched(edit Form)
     initialData?: Partial<CreateProductInterface>; // Optional for edit mode
-    farmerID: number; //number type got from Authentication service Login -> Redux state
+    // farmerID: number; //number type got from Authentication service Login -> Redux state
+    farmerID: string; 
+    farmName?: string;
+    farmerLocation?: {
+        country: string;
+        city: string;
+        address: string;
+    }
     onCloseModal: () => void;
+    refetchProducts: () => Promise<any>;
 }
 
 export interface ProductViewModalInterface {
-    onCloseModal: ()=> void,
-    product?: ProductDocumentInterface, 
+    onCloseModal: ()=> void;
+    product?: ProductDocumentInterface; 
 }
 
 export interface DeleteViewModalInterface {
-    onCloseModal: ()=> void,
-    product?: ProductDocumentInterface, 
+    onCloseModal: ()=> void;
+    product?: ProductDocumentInterface; 
+    refetchProducts: () => void;
 }

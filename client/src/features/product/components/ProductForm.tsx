@@ -10,17 +10,21 @@ import { productSchema } from '../../product/product.schema';
 import { ProductFormInterface } from '../../product/product.interface';
 
 import uploadImage from '../../../assets/upload.svg';
+import LoadingSpinner from '../../shared/page/LoadingSpinner';
 
-import { useCreateProductMutation, useGetProductByFarmerIDQuery } from '../../product/product.service';
- 
+import { useCreateProductMutation, useGetProductByFarmerIDQuery } from '../../product/product.service'; 
 
-const ProductForm = ({mode, initialData, farmerID, onCloseModal}:ProductFormInterface) => {
+const ProductForm = ({mode, initialData, farmerID, farmName, farmerLocation, onCloseModal, refetchProducts}:ProductFormInterface) => {
     const categories = productCategories.map(prod => ({value:prod.name, label: prod.name}));
     const units = UNIT_TYPES.map(unit => ({value:unit, label: unit})); 
     console.log("FARMERID: ", farmerID); 
     console.log("FarmerID type: ", typeof(farmerID));
 
     console.log("INITAL DATA:" ,initialData);
+
+    console.log("farmName:" ,farmName);
+    console.log("farmerLocation:" ,farmerLocation);
+    
     
     const defaultValues = {
         name: '',
@@ -36,7 +40,7 @@ const ProductForm = ({mode, initialData, farmerID, onCloseModal}:ProductFormInte
         // images:[],
     }
 
-     const [userData, setUserData] = useState<Omit<CreateProductInterface, 'farmerID'>>({
+    const [userData, setUserData] = useState<Omit<CreateProductInterface, 'farmerID' | 'farmName' | 'farmerLocation'>>({
         ...defaultValues,
         ...initialData, // Will override defaults if provided (for Edit Form)
     });
@@ -45,18 +49,24 @@ const ProductForm = ({mode, initialData, farmerID, onCloseModal}:ProductFormInte
     const [imageFiles, setImageFiles] = useState<File[]>([]);
     const [previewUrls, setPerviewUrls] = useState<string[]>([]);
     
-    const [createProduct] = useCreateProductMutation();
-    const {data, isError} = useGetProductByFarmerIDQuery(farmerID);
+    const [createProduct, { isLoading }] = useCreateProductMutation();
+    const { data } = useGetProductByFarmerIDQuery(farmerID);
 
     console.log("\n data: ", data);
-    console.log("\n isError: ", isError);
 
-    
+    console.log("userDATA: ", userData);
+
+    const resetUserData = ():void =>{
+        setUserData(defaultValues);
+    }
+
     const [schemaValidation, validationErrors] = useSchemaValidation({
         schema: productSchema, 
         userData:{
             ...userData,
             farmerID: farmerID.toString(), //Product service expect string as farmerID
+            farmName,
+            farmerLocation,
             subCategories: selectedSubCategories, //seperated state 
             images: previewUrls,
             tags: selectedSubCategories
@@ -104,19 +114,19 @@ const ProductForm = ({mode, initialData, farmerID, onCloseModal}:ProductFormInte
     }
 
     const readAsBase64 = (file: File): Promise<string | ArrayBuffer | null> => {
-    const reader: FileReader = new FileReader();
-    const fileValue: Promise<string | ArrayBuffer | null> = new Promise((resolve, reject) => {
-        reader.addEventListener('load', () => {
-            resolve(reader.result);
-        });
+        const reader: FileReader = new FileReader();
+        const fileValue: Promise<string | ArrayBuffer | null> = new Promise((resolve, reject) => {
+            reader.addEventListener('load', () => {
+                resolve(reader.result);
+            });
 
-        reader.addEventListener('error', (event: ProgressEvent<FileReader>) => {
-            reject(event);
-        });
+            reader.addEventListener('error', (event: ProgressEvent<FileReader>) => {
+                reject(event);
+            });
 
-        reader.readAsDataURL(file);
-    });
-    return fileValue;
+            reader.readAsDataURL(file);
+            });
+            return fileValue;
     };
 
     const handleFileChange = async(event: ChangeEvent<HTMLInputElement>): Promise<void> => {
@@ -126,11 +136,6 @@ const ProductForm = ({mode, initialData, farmerID, onCloseModal}:ProductFormInte
             return
         }
 
-        //Validate all files
-        //NOT NOW
-
-        //Process valid files
-        // const newBase64Images: string[] = [];
         const newFiles: File[] = [];
         const newPreviewUrls: string[] = [];
 
@@ -150,7 +155,6 @@ const ProductForm = ({mode, initialData, farmerID, onCloseModal}:ProductFormInte
             setImageFiles(prev => [...prev, ...newFiles]);
             setPerviewUrls(prev => [...prev, ...newPreviewUrls]);
     
-
         }
         catch(error){
             console.error('Error processing file:', error);
@@ -180,7 +184,6 @@ const ProductForm = ({mode, initialData, farmerID, onCloseModal}:ProductFormInte
                 toast.error("Please fix the form errors");
                 return
             }
-
             // Convert imageFiles to Base64
             const imageBase64Strings = await Promise.all(
                 imageFiles.map(file => readAsBase64(file))
@@ -189,32 +192,17 @@ const ProductForm = ({mode, initialData, farmerID, onCloseModal}:ProductFormInte
             const createData: CreateProductInterface ={
                 ...userData, 
                 subCategories: selectedSubCategories,
-                //farmerID get from current session
                 farmerID: farmerID.toString(),
-                // images: imageBase64Strings as string[]
+                farmName,
+                farmerLocation,
+                images: imageBase64Strings as string[],
                 tags: selectedSubCategories,
-                images: ['data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wa8GvFFFKQP/2Q==']
             }
 
-            console.log("CreateData: ", createData);
-
-            // // const result = await createProduct(createData).unwrap();
-            // const result = await createProduct(createData).unwrap();
-            // console.log("Get result: ", result);
-            
-            const result = await createProduct(createData)
-            .unwrap()
-            .then(res => {
-                console.log("Full Response:", res); // Debug line
-                return res;
-            })
-            .catch(err => {
-                console.error("RTK Error Details:", err); // Debug line
-                throw err;
-            });
-            console.log("RESSSSSSSSSS: ", result);
-
-            //await createProduct(createData); //will import laterconst result = await signUp(userData).unwrap();
+            await createProduct(createData).unwrap();
+            onCloseModal();
+            resetUserData();
+            await refetchProducts?.();
             toast.success("Successfully product created")
         }
         catch(err){
@@ -491,16 +479,33 @@ const ProductForm = ({mode, initialData, farmerID, onCloseModal}:ProductFormInte
                 }
             </div>
 
-            {mode === 'create' &&
-            <div className='mx-auto'>
-                <button className='p-2.5 px-12 bg-green4 font-popins font-medium text-sm rounded-md hover:bg-green5' onClick={onAddProductHanlder} >Add Product</button>
-            </div>
+            <div className='w-full flex justify-center gap-3'>
+                {mode === 'create' &&
+                    <button 
+                        className='p-2.5 px-12 bg-green4 font-popins font-medium text-sm rounded-md hover:bg-green5' 
+                        onClick={onAddProductHanlder} 
+                    >
+                        Add Product
+                    </button>
+                }
+                {mode === 'edit' &&
+                    <button 
+                        className='p-2.5 px-12 bg-green4 font-popins font-medium text-sm rounded-md hover:bg-green5' 
+                        onClick={onEditProductHanlder} 
+                    >
+                        Edit Product
+                    </button>
+                }
+
+                {isLoading &&
+                <div className=''>
+                    <LoadingSpinner
+                        spinnerClassName='text-green5'
+                    />
+                </div>
             }
-            {mode === 'edit' &&
-            <div className='mx-auto'>
-                <button className='p-2.5 px-12 bg-green4 font-popins font-medium text-sm rounded-md hover:bg-green5' onClick={onEditProductHanlder} >Edit Product</button>
+
             </div>
-            }
 
         </div>
     )

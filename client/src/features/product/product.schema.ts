@@ -15,6 +15,14 @@ const productSchema: ObjectSchema<CreateProductInterface> = object({
     farmerID: string()
         .required('Farmer ID is required'),
 
+    farmName: string().optional(),
+    
+    farmerLocation: object({
+        country: string().required(),
+        city: string().required(),
+        address: string().required(),
+    }).optional(),
+
     name: string()
         .required('Product name is required')
         .min(3, 'Product name must be at least 3 characters')
