@@ -1,7 +1,7 @@
 import { ProductDocumentInterface, ProductCreateInterface, PaginatePropsInterface, BadRequestError } from '@veckovn/growvia-shared';
 import { Request, Response } from 'express';
 import { createProduct, deleteProduct, updateProduct, getProductById, getFarmerProducts, getProductsByCategory } from '@product/services/product';
-import { getMoreSimilarProducts, productsSearch } from '@product/services/search';
+import { getMoreSimilarProducts, getNewestProducts ,productsSearch } from '@product/services/search';
 import { z } from 'zod';
 // import { ProductCreateZodSchema, ProductUpdateZodSchema } from '@product/schema/product';
 import { ProductCreateZodSchema, ProductUpdateZodSchema } from '@product/schema/product';
@@ -9,25 +9,29 @@ import { sortBy } from 'lodash';
 
 const productCreate = async (req: Request, res: Response): Promise<void> => {
     try{
+        console.log("req.body: ", req.body);
+
         ProductCreateZodSchema.parse(req.body);
 
         const images = req.body.images;
         if (!images || !Array.isArray(images) || images.length === 0) {
-            throw BadRequestError("At least one image is required", "Product Service");
+            throw BadRequestError("At least one image is required", "Product Controller");
         }
 
         // Validate each image is a proper base64 string
         images.forEach(img => {
             if (!img.match(/^data:image\/(jpeg|png|gif);base64,/)) {
-                throw BadRequestError("Invalid image format", "Product Service");
+                throw BadRequestError("Invalid image format", "Product Controller");
             }
         });
 
         //only logged user can create product
         const product: ProductCreateInterface = {
             farmerID: req.body.farmerID,
+            farmName: req.body.farmName,
+            farmerLocation: req.body.farmerLocation,
             name: req.body.name,
-            images: req.body.images, //for test *array of {url, publicID}
+            images: req.body.images,
             description: req.body.description,
             shortDescription: req.body.shortDescription,
             category: req.body.category,
@@ -116,6 +120,25 @@ const getMoreProductsLikeThis = async(req: Request, res: Response): Promise<void
     res.status(200).json({ message: "Get product by id", products:productsResult });
 }
 
+const getNewestProductsInOrder = async(req: Request, res: Response): Promise<void> => {
+    const limit = parseInt(req.params.limit);
+
+    if(!limit && isNaN(limit)){
+        throw BadRequestError("Limit must be a valid number", "Product Controller");
+    }
+
+    let productsResult: ProductDocumentInterface[] = [];
+    const productsHits = await getNewestProducts(limit);
+    for(const product of productsHits.hits){
+        productsResult.push(product._source as ProductDocumentInterface);
+    }
+
+    console.log("productsResult");
+
+    res.status(200).json({ message: "Get newest products", products:productsResult });
+} 
+
+
 // const validatUrl = (value: string): boolean  =>{
 //     const dataUrlRegex =
 //     /^\s*data:([a-z]+\/[a-z0-9-+.]+(;[a-z-]+=[a-z0-9-]+)?)?(;base64)?,([a-z0-9!$&',()*+;=\-._~:@\\/?%\s]*)\s*$/i;
@@ -182,5 +205,6 @@ export {
     farmerProductsByID,
     productsByCategory,
     searchProducts,
-    getMoreProductsLikeThis
+    getMoreProductsLikeThis,
+    getNewestProductsInOrder
 }

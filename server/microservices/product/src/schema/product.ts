@@ -4,6 +4,12 @@ import { z } from 'zod';
 //Using zod Validation Schema as pre-validation Before Hitting The DB
 const ProductCreateZodSchema = z.object({
     farmerID: z.string().min(1, "Farmer ID is required"),
+    farmName: z.string().min(2, "Farm name is required"),
+    farmerLocation: z.object({
+        country: z.string().min(2, "Country is required"),
+        city: z.string().min(2, "City is required"),
+        address: z.string().min(5, "Address is required"),
+    }),
     name: z.string().min(3, "Product name must be at least 3 characters"),
     images: z.array(z.string()).min(1, "At least one image is required"),
     description: z.string().min(10, "Description must be at least 10 characters"),

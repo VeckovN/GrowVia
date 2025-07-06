@@ -4,6 +4,13 @@ import { ProductDocumentInterface, UNIT_TYPES } from '@veckovn/growvia-shared';
 const ProductSchema: Schema = new Schema(
     {
         farmerID: { type: String, index:true, require:true}, //Farmer user id  from Users Service DB (mongoDB as well)
+        // farmName: { type: String, require:true },
+        farmName: {type: String, required: true},
+        farmerLocation: {
+            country: { type: String },
+            city: { type: String },
+            address: { type: String }
+        },
         name: { type: String, required: true },
         images: [{
             url: { type: String, required: true },

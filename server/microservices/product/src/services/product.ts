@@ -1,11 +1,17 @@
-import { BadRequestError, ProductDocumentInterface, OrderItemDocumentInterface, ProductCreateInterface } from "@veckovn/growvia-shared";
+import { BadRequestError, UserLocation, ProductDocumentInterface, OrderItemDocumentInterface, ProductCreateInterface } from "@veckovn/growvia-shared";
 import { getDataIndex, addDataToIndex, updateDataIndex, deleteDataIndex } from "@product/elasticsearch";
 import { ProductModel } from "@product/model/product";
 import { uploadProductImageToCloudinary } from "@product/helper";
 import { productsSerachByFarmerID, productsSerachByCategory } from "@product/services/search";
 
+interface UserProductUpdatePropInterface {
+    farmerID?: string;
+    farmName?: string;
+    location?: UserLocation;
+}
+
 const createProduct = async(product:ProductCreateInterface):Promise<ProductDocumentInterface> =>{
-    
+    console.log("PRODUCT: ", product);
     const images = product.images as string[];
     if (!images || images.length === 0) {
         throw BadRequestError("At least one image is required", "Product Service");
@@ -125,7 +131,25 @@ const decreaseProductStock = async(orderProductList: OrderItemDocumentInterface[
     });
 
     return updatedProducts;
+}
 
+const updateUserProductData = async(data:UserProductUpdatePropInterface) =>{
+    const {farmerID, ...updateData} = data;
+
+    //Take all products from mongodB
+    const products = await ProductModel.find({farmerID}) 
+
+    for(const product of products){
+        if(updateData.farmName) product.farmName = updateData.farmName
+        if(updateData.location) product.farmerLocation = updateData.location
+
+        //update mongoDB
+        await product.save();
+
+        //update same product in EleasticSearch
+        const productElasticData = product.toJSON();
+        await updateDataIndex('products', `${product._id}`, productElasticData);
+    }
 }
 
 export {
@@ -135,5 +159,6 @@ export {
     getProductById,
     getFarmerProducts,
     getProductsByCategory,
-    decreaseProductStock
+    decreaseProductStock,
+    updateUserProductData,
 }

@@ -17,6 +17,7 @@ import { Channel } from "amqplib";
 import { customerDirectConsumer, farmerDirectConsumer } from "@users/rabbitmqQueues/userConsumer";
 const Server_port = 4003;
 const log: Logger = winstonLogger(`${config.ELASTICSEARCH_URL}`, 'usersService', 'debug');
+let userChannel: Channel;
 
 function compressRequestMiddleware(app:Application):void {
     app.use(compression());
@@ -53,7 +54,7 @@ function configCloudinary():void {
 
 async function startRabbitmqQueue():Promise<void>{
     //create userChannel (consuming/listening):
-    const userChannel:Channel = await createConnection() as Channel;
+    userChannel = await createConnection() as Channel;
     await customerDirectConsumer(userChannel); //for consuming create data on Authentication service)
     await farmerDirectConsumer(userChannel);
     //OrderService - on creating order and others.
@@ -124,3 +125,5 @@ export function start(app:Application){
     errorHandlerMiddleware(app);
     startHttpAndSocketServer(app);
 }
+
+export { userChannel };

@@ -14,7 +14,7 @@ import { verify } from "jsonwebtoken";
 import { mongoDBconnection } from "@product/database";
 import { appRoutes } from "@product/routes";
 import { createConnection } from "@product/rabbitmqQueues/rabbitmq";
-import { decreseProductsOrderDirectConsumer } from "@product/rabbitmqQueues/consumer";
+import { decreseProductsOrderDirectConsumer, updateUserDataDirectConsumer } from "@product/rabbitmqQueues/consumer";
 import { Channel } from "amqplib";
 const Server_port = 4004;
 const log: Logger = winstonLogger(`${config.ELASTICSEARCH_URL}`, 'ProductService', 'debug');
@@ -64,6 +64,7 @@ async function startRabbitmqQueue():Promise<void>{
     // //create ProductChannel (consuming/listening):
     productChannel = await createConnection() as Channel;
     await decreseProductsOrderDirectConsumer(productChannel);
+    await updateUserDataDirectConsumer(productChannel);
 } 
 
 function errorHandlerMiddleware(app: Application):void{
