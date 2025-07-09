@@ -1,6 +1,6 @@
 import { Request, Response } from "express"
 import { FarmerDocumentInterface } from "@veckovn/growvia-shared";
-import { getFarmerByUsername, getFarmerByEmail, updateFarmerDataByID } from "@users/services/farmer";
+import { getFarmerByUsername, getFarmerByEmail, getNewest, updateFarmerDataByID } from "@users/services/farmer";
 
 const getFarmerDetailsByUsername = async (req:Request, res:Response):Promise<void> => {
     const username = req.params.username;
@@ -12,6 +12,13 @@ const getFarmerDetailsByEmail = async (req:Request, res:Response):Promise<void> 
     const email = req.params.email;
     const farmerData:FarmerDocumentInterface | null = await getFarmerByEmail(email);
     res.status(200).json({message: "Farmer Profile Data By email", user: farmerData});
+}
+
+const getNewestFarmers = async (req:Request, res:Response):Promise<void> => {
+    const limit = parseInt(req.params.limit);
+    console.log("SHJA", limit);
+    const farmers:FarmerDocumentInterface[] = await getNewest(limit);
+    res.status(200).json({message: "Newest Farmers Data", farmers: farmers});
 }
 
 
@@ -26,5 +33,6 @@ const updateFarmerData = async (req:Request, res:Response):Promise<void> => {
 export{
     getFarmerDetailsByUsername,
     getFarmerDetailsByEmail,
+    getNewestFarmers,
     updateFarmerData
 }

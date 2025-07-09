@@ -40,6 +40,15 @@ const getFarmerByEmail = async(email: string): Promise<FarmerDocumentInterface |
     return farmerUser;
 }
 
+const getNewest = async(limit: number = 10): Promise<FarmerDocumentInterface[]> =>{
+    const newestFarmers: FarmerDocumentInterface[] = await FarmerModel
+        .find()
+        .sort({ createdAt: -1 }) // newest first
+        .limit(limit)
+        .exec();
+    return newestFarmers;
+}
+
 const updateFarmerDataByID = async(farmerID: string, farmerData:FarmerDocumentInterface) =>{
     //BUG WITH UPDATING OBJECT WITH "$SET" 
 
@@ -103,5 +112,6 @@ export {
     createFarmer,
     getFarmerByUsername,
     getFarmerByEmail,
+    getNewest,
     updateFarmerDataByID,
 }

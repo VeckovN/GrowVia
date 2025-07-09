@@ -7,7 +7,8 @@ import {
     productUpdate, 
     productDelete, 
     searchProducts,
-    getMoreProductsLikeThis
+    getMoreProductsLikeThis,
+    getNewestProductsInOrder
 } from "@product/controllers/product";
 
 const router:Router = express.Router();
@@ -17,9 +18,9 @@ export const productRoutes = (): Router => {
     router.get('/:productID', productByID); 
     router.get('/search/:from/:size/:type', searchProducts);  
     router.get('/search/similar/:productID', getMoreProductsLikeThis); 
+    router.get('/search/newest/:limit', getNewestProductsInOrder); 
     router.get('/category/:category', productsByCategory); 
     router.get('/farmer/:farmerID', farmerProductsByID); 
-    // router.get('/farmer/:farmerID', getProductsByFarmerID); 
     router.put('/:productID', productUpdate); //data to body 
     router.delete('/:productID/:farmerID', productDelete); 
     return router;

@@ -127,9 +127,41 @@ const getMoreSimilarProducts = async(productID: string):Promise<SearchResultInte
     }
 }
 
+const getNewestProducts = async(limit: number = 10): Promise<SearchResultInterface> =>{
+
+    const result: SearchResponse = await client.search({
+        index:'products',
+        size: limit,
+        query: {
+            match_all: {}
+        },
+        sort: [
+            {
+                createdAt: {
+                    order: 'desc', 
+                }
+            }
+        ],
+        //We can create filter to only dispay available products (stock > 0)
+        post_filter: {
+            range: {
+                stock: {
+                    gt:0 //only products with stock > 0
+                }
+            }
+        }
+        
+    });
+
+    return {
+        hits: result.hits.hits
+    }
+}
+
 export {
     productsSerachByFarmerID,
     productsSerachByCategory,
     productsSearch,
-    getMoreSimilarProducts
+    getMoreSimilarProducts,
+    getNewestProducts
 }

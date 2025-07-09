@@ -15,7 +15,6 @@ const router:Router = express.Router();
 export function customerRoutes():Router {
     router.get('/username/:username', getCustomerDetailsByUsername);
     router.get('/email/:email', getCustomerDetailsByEmail);
-    // router.put('/id/:customerID', updateCustomerData);
     router.patch('/id/:customerID', updateCustomerData);
     router.post('/wishlist', addProductToWishlist);
     // router.delete('/wishlist', removeProductToWishlist);
