@@ -6,9 +6,10 @@ import { GoChevronLeft } from "react-icons/go";
 import { GoChevronRight } from "react-icons/go";
 import { GoChevronUp } from "react-icons/go";
 import { GoChevronDown } from "react-icons/go";
-
+import { useGetNewestFarmersQuery } from '../../farmer/farmer.service';
 import { farmersList, SlideListInterface } from '../../shared/utils/data';
-
+import LoadingSpinner from '../../shared/page/LoadingSpinner';
+import { DEFAULT_IMAGE } from '../../shared/utils/data';
 
 const SuggestedFarmers: FC<SlideListInterface> = ({title}): ReactElement => {
     const visibleCount = useVisibleCount({
@@ -16,6 +17,10 @@ const SuggestedFarmers: FC<SlideListInterface> = ({title}): ReactElement => {
         tablet:6,
         desktop:6
     }) 
+
+    const { data, isLoading } = useGetNewestFarmersQuery(10);
+
+    console.log("FarmersData: ", data);
 
     return (
         <section className='container mx-auto px-7 pt-14 max-w-[420px] sm:max-w-[700px] lg:max-w-[1320px] '>
@@ -53,16 +58,27 @@ const SuggestedFarmers: FC<SlideListInterface> = ({title}): ReactElement => {
                 lg:grid-cols-3 lg:grid-rows-2 lg:gap-2 lg:w-full  
                 justify-items-center
             '>
-                {/* {productsList.slice(0,4).map((product) => ( */}
-                {farmersList.slice(0, visibleCount).map((product) => (
-                    <FarmerSlideItem 
-                        id={product.id}
-                        name={product.name}
-                        location={product.location}
-                        avatar={product.avatar}
-                        background={product.background}
-                    />
-                ))}
+                {isLoading
+                ?
+                    <div className='mx-auto'>
+                        <LoadingSpinner/>
+                    </div>
+                :
+                
+                    data?.farmers?.slice(0, visibleCount).map((farmer) => (
+                        <FarmerSlideItem 
+                            id={farmer.userID ?? ''}
+                            name={farmer.farmName ?? ''}
+                            location={{
+                                city:farmer.location?.city ?? "Unknown city", 
+                                address:farmer.location?.address ?? 'Unknown address'
+                            }}
+                            // avatar={farmer.profileAvatar ?? {url:'', publicID:''}}
+                            avatar={farmer.profileAvatar ?? DEFAULT_IMAGE}
+                            background={farmer.backgroundImage ?? DEFAULT_IMAGE}
+                        />
+                    ))
+                }
             </div>
 
             <div className='flex justify-center mb-2 sm:hidden'> 

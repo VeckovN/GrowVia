@@ -1,20 +1,35 @@
-import { FC, ReactElement, useCallback } from 'react';
+import { FC, ReactElement, useState, useCallback } from 'react';
+import { useGetNewestProductsQuery } from '../../product/product.service';
 import useVisibleCount from '../../hooks/useVisibleCount';
-import { SlideListInterface, productsList  } from '../utils/data';
+import { SlideListInterface  } from '../utils/data';
 import ProductSlideItem from './ProductSlideItem';
 import CircleArrowIconButton from '../../shared/CircleArrowIconButton';
 import { GoChevronLeft } from "react-icons/go";
 import { GoChevronRight } from "react-icons/go";
 import { GoChevronUp } from "react-icons/go";
 import { GoChevronDown } from "react-icons/go";
+import { DEFAULT_IMAGE } from '../utils/data';
+import LoadingSpinner from '../page/LoadingSpinner';
+import { Swiper, SwiperSlide } from 'swiper/react';
+import 'swiper/css';
+import 'swiper/css/navigation';
 
 
 const ProductsSlideList: FC<SlideListInterface> = ({title}): ReactElement => {
     const visibleCount = useVisibleCount({
         mobile:3,
         tablet:2,
-        desktop:5
+        // desktop:5
+        desktop:4
     }) 
+
+    const {data:productsData, isLoading: isProductLoading, refetch} = useGetNewestProductsQuery('8');
+    const [swiperInstance, setSwiperInstance] = useState<any>(null);
+
+    console.log("data: ", productsData?.products);
+
+    const handlePrev = () => swiperInstance?.slidePrev();
+    const handleNext = () => swiperInstance?.slideNext();
 
     //Prevent func recreating on every render 
     const addFavoriteHandler = useCallback((productID: string): void =>{
@@ -31,6 +46,20 @@ const ProductsSlideList: FC<SlideListInterface> = ({title}): ReactElement => {
     }, []);
     // }, [isCustomer]); //on auth implementation -> re-create function on user auth action
 
+    const chunkArray = <T,>(arr: T[], size: number): T[][] => {
+        //T[] = an array of items (like [1, 2, 3] if T is number)
+        //T[][] = an array of arrays (like [[1,2], [3,4]])
+        const chunks: T[][] = []; //This will hold our chunks (arrays of type T[])
+        for (let i = 0; i < arr.length; i += size) {
+            chunks.push(arr.slice(i, i + size));
+        }
+        return chunks;
+    }
+
+    //out put result
+    //const result = chunkArray([1, 2, 3, 4, 5], 2);
+    // result = [[1, 2], [3, 4], [5]]
+
     return (
         <section className='container mx-auto px-7 pt-10 max-w-[400px] sm:max-w-[700px] lg:max-w-[1320px] '>
 
@@ -38,10 +67,10 @@ const ProductsSlideList: FC<SlideListInterface> = ({title}): ReactElement => {
                 <div>
                     <h2 className='font-bold text-2xl mb-2 '> {title} </h2>
                      <div className='hidden sm:flex sm:justify-items-start '>
-                        <CircleArrowIconButton onClick={()=>alert("Left")}>
+                        <CircleArrowIconButton onClick={handlePrev}>
                             <GoChevronLeft className='text-2xl pl-[-20px]'/>
                         </CircleArrowIconButton>
-                        <CircleArrowIconButton onClick={()=>alert("Right")}>
+                        <CircleArrowIconButton onClick={handleNext}>
                             <GoChevronRight className='text-2xl pl-[-20px]'/>
                         </CircleArrowIconButton>
                     </div>
@@ -50,7 +79,8 @@ const ProductsSlideList: FC<SlideListInterface> = ({title}): ReactElement => {
             </div>
 
             <div className='flex justify-center mb-2 sm:hidden'> 
-                <CircleArrowIconButton onClick={()=>alert("Up")}>
+                {/* <CircleArrowIconButton onClick={()=>alert("Up")}> */}
+                <CircleArrowIconButton onClick={handlePrev}>
                     <GoChevronUp className='text-3xl'/>
                 </CircleArrowIconButton>
             </div>
@@ -61,32 +91,55 @@ const ProductsSlideList: FC<SlideListInterface> = ({title}): ReactElement => {
                 on Larger view display 4 items in flex-row as well
             */}
             {/*max-w-[1200px] mx-auto = prevents content from stretching to wide and center it  */}
-            <div className='
-                grid grid-cols-1 gap-4         /* Mobile: 1 column */
-                sm:grid-cols-2 sm:gap-6        /* Tablet: 2 columns */
-                lg:grid-cols-4 lg:gap-2         /* Desktop: 4 columns */
-            '>
-                {/* {productsList.slice(0,4).map((product) => ( */}
-                {productsList.slice(0, visibleCount).map((product) => (
-                    <ProductSlideItem 
-                        id={product.id}
-                        name={product.name}
-                        category={product.category}
-                        unit={product.unit}
-                        farmerName={product.farmerName}
-                        farmerLocation={product.farmerLocation}
-                        price={product.price}
-                        favorite={product.favorite}
-                        image={product.image}
-                        // //reference should be passed as () => ,not result of the fucntion
-                        addFavorite={() => addFavoriteHandler(product.id)} 
-                        
-                    />
-                ))}
-            </div>
+            
+        
+
+                {isProductLoading ? 
+                (
+                    <div className='mx-auto'>
+                        <LoadingSpinner/>
+                    </div>
+                )
+                :
+                (
+                    <Swiper
+                        spaceBetween={30}
+                        slidesPerView={1}
+                        onSwiper={setSwiperInstance}
+                    >
+                        {chunkArray(productsData?.products || [], visibleCount).map((chunk, i) => (
+                            <SwiperSlide key={`chunk-${i}`}>
+                                <div className={`
+                                    grid gap-4
+                                    grid-cols-1 sm:grid-cols-2 lg:grid-cols-4
+                                `}>
+                                    {chunk.map(product => (
+                                        <ProductSlideItem
+                                            key={product.id}
+                                            id={product.id!}
+                                            name={product.name}
+                                            category={product.category}
+                                            unit={product.unit}
+                                            farmName={product.farmName ?? 'Unknown Farm'}
+                                            farmerLocation={product.farmerLocation ?? {}}
+                                            price={product.price}
+                                            favorite={product.favorite ?? false}
+                                            image={product.images?.[0] ?? DEFAULT_IMAGE}
+                                            addFavorite={() => product.id && addFavoriteHandler(product.id)}
+                                        />
+                                    ))}
+                                </div>
+                            </SwiperSlide>
+                        ))}
+                    </Swiper>
+                )
+                
+                }
+            {/* </div> */}
 
             <div className='flex justify-center mb-2 sm:hidden'> 
-                <CircleArrowIconButton onClick={()=>alert("Down")}>
+                {/* <CircleArrowIconButton onClick={()=>alert("Down")}> */}
+                <CircleArrowIconButton onClick={handleNext}>
                     <GoChevronDown className='text-3xl'/>
                 </CircleArrowIconButton>
             </div>

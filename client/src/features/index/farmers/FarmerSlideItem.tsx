@@ -1,5 +1,6 @@
 import {FC, ReactElement } from 'react';
-import { FarmerItemInterface } from '../../shared/utils/data';
+import { FarmerItemInterface } from '../../shared/interfaces';
+
 
 const FarmerSlideItem: FC<FarmerItemInterface> = ({
     id,
@@ -20,14 +21,14 @@ const FarmerSlideItem: FC<FarmerItemInterface> = ({
             <div className='w-full relative bg-red-5003'>
                 {/* <div className='w-full h-[100px] bg-cover bg-center relative' */}
                 <div className='w-full h-[100px] sm:h-[120px] bg-cover bg-center rounded-tl-xl rounded-tr-xl '
-                    style={{backgroundImage: `url(${background})`}}>
+                    style={{backgroundImage: `url(${background.url})`}}>
                 </div>
 
                 <div className='relative flex h-[50px]'>
                     <div className='relative'>
                         <img 
                             className='relative w-[110px] h-[60px] bottom-[25px] left-[20px]  object-cover rounded-md '
-                            src={avatar}
+                            src={avatar.url}
                             alt={name}
                         />
                     </div>
@@ -40,7 +41,7 @@ const FarmerSlideItem: FC<FarmerItemInterface> = ({
 
             <div className='w-full pl-7 pt-0 pb-2'>
                 <p className='text-xs md:text-sm text-gray-700' >
-                    {location}
+                    {location.address}, {location.city}
                 </p>
             </div>
         </div>  

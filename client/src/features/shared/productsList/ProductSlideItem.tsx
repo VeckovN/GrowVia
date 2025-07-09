@@ -1,5 +1,5 @@
 import {FC, ReactElement } from 'react';
-import { ProductItemInterface } from '../utils/data';
+import { ProductItemInterface } from '../interfaces';
 
 import { VscHeart } from "react-icons/vsc";
 import { VscHeartFilled } from "react-icons/vsc";
@@ -9,24 +9,26 @@ const ProductSlideItem: FC<ProductItemInterface> = ({
     name, 
     category,
     unit,
-    farmerName,
+    farmName,
     farmerLocation,
     price,
     favorite,
     image,
     addFavorite
 }): ReactElement => {
-    console.log("ProdcutSlideItem: " + id);
     return (
         // This component will be reused in other components so the hardcoded width/height aren't good options -> 
         //i'ts better to leaft to the parrents (to controll widht/height)
-        <div key={id} className='
-            group flex flex-col my-4 justify-centers items-center
-            border-2 border-greyB rounded-lg sm:w-full sm:max-w-[320px] lg:mx-1 bg-white 
-            hover:opacity-90 hover:shadow-lg transition-shadow duration-100'
+        <div 
+            key={id} 
+            className='
+                group flex flex-col my-4 justify-centers items-center
+                border-2 border-greyB rounded-lg sm:w-full sm:max-w-[320px] lg:mx-1 bg-white 
+                hover:opacity-90 hover:shadow-lg transition-shadow duration-100'
+            onClick={() => alert(`TO: ProductID ${id}`)}
         >
             <div className='relative w-full h-[170px]  sm:h- bg-cover bg-center'
-                style={{backgroundImage: `url(${image})`}}>
+                style={{backgroundImage: `url(${image.url})`}}>
                 
                 {/* use relative instead of abosulte to be able to achive hover effect */}
                 <div className='
@@ -73,10 +75,10 @@ const ProductSlideItem: FC<ProductItemInterface> = ({
                 <div className='flex flex-col max-w-[70%] '>
                     {/* use 'truncate' to prevent overflowing text -> automatically adding '...'on end of text */}
                     <h4 className='text-sm truncate'>
-                        {farmerName}
+                        {farmName}
                     </h4>
                     <p className='font-lato text-xs text-greyC' >
-                        {farmerLocation}
+                        {farmerLocation.address}, {farmerLocation.city}
                     </p>
                 </div>
                 <button className='px-3 py-1 flex-shrink-0 text-sm border-2 rounded border-greyB hover:bg-grey'>
