@@ -60,6 +60,11 @@ async function getFarmerDetailsByEmail(email: string):Promise<AxiosResponse> {
     return res;
 }
 
+async function getNewestFarmers(limit: number):Promise<AxiosResponse> {
+    const res: AxiosResponse = await usersAxiosInstance.get(`/farmer/newest/${limit}`);
+    return res;
+}
+
 async function updateFarmerData(farmerID: string, newData: FarmerDocumentInterface):Promise<AxiosResponse> {
     const res: AxiosResponse = await usersAxiosInstance.patch(`/farmer/id/${farmerID}`, newData);
     return res;
@@ -78,5 +83,6 @@ export {
     updateCustomerOrderHistory,
     getFarmerDetailsByUsername,
     getFarmerDetailsByEmail,
+    getNewestFarmers,
     updateFarmerData
 }

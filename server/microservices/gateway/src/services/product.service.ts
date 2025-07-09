@@ -35,6 +35,11 @@ async function searchSimilarProducts(productID: string):Promise<AxiosResponse> {
     return res;
 }
 
+async function searchNewestProducts(limit: string):Promise<AxiosResponse> {
+    const res: AxiosResponse = await productAxiosInstance.get(`/search/newest/${limit}`);
+    return res;
+}
+
 async function createProduct(product: ProductCreateInterface):Promise<AxiosResponse> {
     const res: AxiosResponse = await productAxiosInstance.post(`/create`, product);
     return res;
@@ -60,5 +65,6 @@ export {
     deleteProduct,
     getProductsByCategory,
     searchProducts,
-    searchSimilarProducts
+    searchSimilarProducts,
+    searchNewestProducts
 }

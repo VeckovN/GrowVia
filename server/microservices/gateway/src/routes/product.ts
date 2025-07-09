@@ -1,5 +1,5 @@
 import express, { Router } from 'express';
-import { create, update, deleteByID, getByID, getFarmerProducts, getByCategory, products, similarProducts} from '@gateway/controllers/product';
+import { create, update, deleteByID, getFarmerProducts, getByCategory, products, similarProducts, newestProducts} from '@gateway/controllers/product';
 import { checkUserAuth } from "@gateway/authMiddleware";
 // import { seedUser } from "@gateway/controllers/seed"; 
 
@@ -8,11 +8,11 @@ const router: Router = express.Router();
 // /api/gateway/v1/product 
 const productRoutes = (): Router => {
     router.post('/product/create', checkUserAuth, create);
-    router.get('/product/:productID', checkUserAuth, getByID);
     router.get('/product/category/:category', checkUserAuth, getByCategory);
     router.get('/product/farmer/:farmerID', checkUserAuth, getFarmerProducts);
     router.get('/product/search/:from/:size/:type', checkUserAuth, products);
     router.get('/product/search/similar/:productID', checkUserAuth, similarProducts);
+    router.get('/product/search/newest/:limit', checkUserAuth, newestProducts);
     router.put('/product/:productID', checkUserAuth, update);
     router.delete('/product/:productID/:farmerID', checkUserAuth, deleteByID);
     return router;

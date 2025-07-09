@@ -8,11 +8,15 @@ import { farmerRoutes } from "./routes/users/farmer";
 import { productRoutes } from "@gateway/routes/product";
 import { orderRoutes } from "@gateway/routes/order";
 import { verifyUser } from "./authMiddleware";
+import { publicRoutes } from "./routes/public";
+
 
 const BASE_PATH = '/api/gateway/v1';
 
 export function appRoutes(app:Application): void {
-    app.use('', healthRoutes()); // url is " " + "gateway-health"(return of healthRoutes()) => localhost:4000:/gateway-health
+    app.use('', healthRoutes()); // url is " " + "gateway-health"(return of healthRoutes()) => localhost:4000:/gateway-health 
+    app.use(BASE_PATH, publicRoutes());//for all non-authenticated routes
+   
     // api/gateway/v1 + what authRoutes.routes() returns => /auth/something
     app.use(BASE_PATH, authRoutes());  //api/gateway/v1/auth/something
 

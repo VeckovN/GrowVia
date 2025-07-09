@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { getProductByID, getFarmerProductsByID, getProductsByCategory, createProduct, updateProduct, deleteProduct, searchProducts, searchSimilarProducts} from "@gateway/services/product.service";
+import { getProductByID, getFarmerProductsByID, getProductsByCategory, createProduct, updateProduct, deleteProduct, searchProducts, searchSimilarProducts, searchNewestProducts } from "@gateway/services/product.service";
 import { AxiosResponse } from "axios";
 
 export async function create(req:Request, res:Response):Promise<void> {
@@ -40,6 +40,11 @@ export async function products(req:Request, res:Response):Promise<void> {
 
 export async function similarProducts(req:Request, res:Response):Promise<void> {
     const response: AxiosResponse = await searchSimilarProducts(req.params.productID);
+    res.status(200).json({ message:response.data.message, products:response.data.products});
+}
+
+export async function newestProducts(req:Request, res:Response):Promise<void> {
+    const response: AxiosResponse = await searchNewestProducts(req.params.limit);
     res.status(200).json({ message:response.data.message, products:response.data.products});
 }
 
