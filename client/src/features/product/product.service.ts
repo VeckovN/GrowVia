@@ -26,14 +26,22 @@ export const productApi = api.injectEndpoints({
             },
             invalidatesTags: ['Product']
         
-        })
-        ,
-        // getProductByFarmerID: build.query<ResponseInterface, string>({
-        getProductByFarmerID: build.query<ResponseInterface, number>({
-            // query: (farmerID: string) => `product/farmer/${farmerID}`
-            query: (farmerID: number) => `/product/farmer/${farmerID}`,
+        }),
+        getProductByFarmerID: build.query<ResponseInterface, string>({
+            query: (farmerID: string) => `product/farmer/${farmerID}`,
             providesTags: ['Product']
-        })
+        }),
+
+        getProductByID: build.query<ResponseInterface, string>({
+            query: (productID: string) => `product/${productID}`,
+            providesTags: ['Product']
+        }),
+
+        getNewestProducts: build.query<ResponseInterface, string>({
+            query: (limit: string) => `product/search/newest/${limit}`,
+            providesTags: ['Product']
+        }),
+
     })
 })
 
@@ -41,5 +49,7 @@ export const productApi = api.injectEndpoints({
 export const {
     useCreateProductMutation,
     useDeleteProductMutation,
-    useGetProductByFarmerIDQuery
+    useGetProductByFarmerIDQuery,
+    useGetNewestProductsQuery,
+    useGetProductByIDQuery
 } = productApi
