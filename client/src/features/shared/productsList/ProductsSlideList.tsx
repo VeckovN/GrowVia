@@ -1,7 +1,7 @@
 import { FC, ReactElement, useState, useCallback } from 'react';
 import { useGetNewestProductsQuery } from '../../product/product.service';
 import useVisibleCount from '../../hooks/useVisibleCount';
-import { SlideListInterface  } from '../utils/data';
+import { SlideListInterface } from '../interfaces';
 import ProductSlideItem from './ProductSlideItem';
 import CircleArrowIconButton from '../../shared/CircleArrowIconButton';
 import { GoChevronLeft } from "react-icons/go";
@@ -15,7 +15,8 @@ import 'swiper/css';
 import 'swiper/css/navigation';
 
 
-const ProductsSlideList: FC<SlideListInterface> = ({title}): ReactElement => {
+// const ProductsSlideList: FC<SlideListInterface> = ({title}): ReactElement => {
+const ProductsSlideList: FC<SlideListInterface> = ({title, data:productsData, isLoading:isProductLoading}): ReactElement => {
     const visibleCount = useVisibleCount({
         mobile:3,
         tablet:2,
@@ -23,10 +24,10 @@ const ProductsSlideList: FC<SlideListInterface> = ({title}): ReactElement => {
         desktop:4
     }) 
 
-    const {data:productsData, isLoading: isProductLoading, refetch} = useGetNewestProductsQuery('8');
+    // const {data:productsData, isLoading: isProductLoading, refetch} = useGetNewestProductsQuery('8');
     const [swiperInstance, setSwiperInstance] = useState<any>(null);
 
-    console.log("data: ", productsData?.products);
+    console.log("data: ", productsData);
 
     const handlePrev = () => swiperInstance?.slidePrev();
     const handleNext = () => swiperInstance?.slideNext();
@@ -61,9 +62,9 @@ const ProductsSlideList: FC<SlideListInterface> = ({title}): ReactElement => {
     // result = [[1, 2], [3, 4], [5]]
 
     return (
-        <section className='container mx-auto px-7 pt-10 max-w-[400px] sm:max-w-[700px] lg:max-w-[1320px] '>
+        <section className='container mx-auto pt-10 max-w-[400px] sm:max-w-[700px] lg:max-w-[1320px] '>
 
-            <div className='flex justify-between px-2 pb-3 items-center '>
+            <div className='flex justify-between px-2 items-center '>
                 <div>
                     <h2 className='font-bold text-2xl mb-2 '> {title} </h2>
                      <div className='hidden sm:flex sm:justify-items-start '>
@@ -107,7 +108,7 @@ const ProductsSlideList: FC<SlideListInterface> = ({title}): ReactElement => {
                         slidesPerView={1}
                         onSwiper={setSwiperInstance}
                     >
-                        {chunkArray(productsData?.products || [], visibleCount).map((chunk, i) => (
+                        {chunkArray(productsData || [], visibleCount).map((chunk, i) => (
                             <SwiperSlide key={`chunk-${i}`}>
                                 <div className={`
                                     grid gap-4

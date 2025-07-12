@@ -7,7 +7,7 @@ import { GoChevronRight } from "react-icons/go";
 import { GoChevronUp } from "react-icons/go";
 import { GoChevronDown } from "react-icons/go";
 import { useGetNewestFarmersQuery } from '../../farmer/farmer.service';
-import { farmersList, SlideListInterface } from '../../shared/utils/data';
+import { SlideListInterface } from '../../shared/interfaces';
 import LoadingSpinner from '../../shared/page/LoadingSpinner';
 import { DEFAULT_IMAGE } from '../../shared/utils/data';
 
@@ -19,11 +19,10 @@ const SuggestedFarmers: FC<SlideListInterface> = ({title}): ReactElement => {
     }) 
 
     const { data, isLoading } = useGetNewestFarmersQuery(10);
-
     console.log("FarmersData: ", data);
 
     return (
-        <section className='container mx-auto px-7 pt-14 max-w-[420px] sm:max-w-[700px] lg:max-w-[1320px] '>
+        <section className='container mx-auto pt-14 max-w-[420px] sm:max-w-[700px] lg:max-w-[1320px]'>
 
             <div className='flex justify-between px-2 pb-3 items-center '>
                 <div>
