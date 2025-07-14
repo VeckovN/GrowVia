@@ -21,12 +21,23 @@ export const farmerApi = api.injectEndpoints({
                     body: updateData
                 };
             },
-            invalidatesTags: ['Product']
+            invalidatesTags: ['Farmer']
+        }),
+        getFarmerByID: build.query<ResponseInterface, string>({
+            query: (ID: string) => `/users/farmer/id/${ID}`,
+            providesTags: ['Farmer']
+        }),
+
+        getNewestFarmers: build.query<ResponseInterface, number>({
+            query: (limit: number) => `/users/farmer/newest/${limit}`,
+            providesTags: ['Farmer']
         }),
     })
 })
 
 
 export const {
-    useUpdateFarmerMutation
+    useUpdateFarmerMutation,
+    useGetFarmerByIDQuery,
+    useGetNewestFarmersQuery
 } = farmerApi;
