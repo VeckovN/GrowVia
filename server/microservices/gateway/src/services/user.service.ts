@@ -48,8 +48,12 @@ async function updateCustomerOrderHistory(customerID: string, orderID: string):P
     return res;
 }
 
-
 // Farmer
+async function getFarmerDetailsByID(ID: string):Promise<AxiosResponse> {
+    const res: AxiosResponse = await usersAxiosInstance.get(`/farmer/id/${ID}`);
+    return res;
+}
+
 async function getFarmerDetailsByUsername(username: string):Promise<AxiosResponse> {
     const res: AxiosResponse = await usersAxiosInstance.get(`/farmer/username/${username}`);
     return res;
@@ -81,6 +85,7 @@ export {
     addFarmerToSavedList,
     removeFarmerFromSavedList,
     updateCustomerOrderHistory,
+    getFarmerDetailsByID,
     getFarmerDetailsByUsername,
     getFarmerDetailsByEmail,
     getNewestFarmers,
