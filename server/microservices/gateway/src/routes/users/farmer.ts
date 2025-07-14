@@ -1,5 +1,5 @@
 import express, { Router } from 'express';
-import { getByUsername, getByEmail, updateByID} from '@gateway/controllers/users/farmer';
+import { getByUsername, getByEmail, updateByID } from '@gateway/controllers/users/farmer';
 import { checkUserAuth } from "@gateway/authMiddleware";
 
 const router: Router = express.Router();
