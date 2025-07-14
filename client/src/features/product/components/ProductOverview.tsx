@@ -176,7 +176,8 @@ const ProductOverview: FC = (): ReactElement => {
                   <img 
                     className='w-28 h-20 rounded-md object-cover'
                     //for test (the farmerAvatar missing for now)
-                    src={TestImg}
+                    // src={TestImg}
+                    src={product?.farmerAvatar?.url ?? TestImg}
                   />
                 </div>
               </div>
