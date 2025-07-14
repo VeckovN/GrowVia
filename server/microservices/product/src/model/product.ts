@@ -11,6 +11,10 @@ const ProductSchema: Schema = new Schema(
             city: { type: String },
             address: { type: String }
         },
+        farmerAvatar: {
+            url: { type: String },
+            public: { type: String }
+        },
         name: { type: String, required: true },
         images: [{
             url: { type: String, required: true },

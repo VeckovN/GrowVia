@@ -7,6 +7,10 @@ import { productsSerachByFarmerID, productsSerachByCategory } from "@product/ser
 interface UserProductUpdatePropInterface {
     farmerID?: string;
     farmName?: string;
+    farmerAvatar?: {
+        url: string,
+        publicID: string
+    }
     location?: UserLocation;
 }
 
@@ -142,6 +146,7 @@ const updateUserProductData = async(data:UserProductUpdatePropInterface) =>{
     for(const product of products){
         if(updateData.farmName) product.farmName = updateData.farmName
         if(updateData.location) product.farmerLocation = updateData.location
+        if(updateData.farmerAvatar) product.farmerAvatar = updateData.farmerAvatar;
 
         //update mongoDB
         await product.save();

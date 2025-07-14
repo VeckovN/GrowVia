@@ -30,8 +30,7 @@ const productCreate = async (req: Request, res: Response): Promise<void> => {
             farmerID: req.body.farmerID,
             farmName: req.body.farmName,
             farmerLocation: req.body.farmerLocation,
-            //This farmer Avatar missing (as part of productOverview and other)
-            // farmerAvatar: req.body.farmerAvatar, //{url, publicID}
+            farmerAvatar: req.body.farmerAvatar, //{url, publicID}
             name: req.body.name,
             images: req.body.images,
             description: req.body.description,
