@@ -1,11 +1,11 @@
-import { ProductDocumentInterface, ProductCreateInterface, PaginatePropsInterface, BadRequestError } from '@veckovn/growvia-shared';
+import { ProductDocumentInterface, ProductCreateInterface, BadRequestError, ProductSearchOptionsInterface } from '@veckovn/growvia-shared';
 import { Request, Response } from 'express';
 import { createProduct, deleteProduct, updateProduct, getProductById, getFarmerProducts, getProductsByCategory } from '@product/services/product';
 import { getMoreSimilarProducts, getNewestProducts ,productsSearch } from '@product/services/search';
 import { z } from 'zod';
 // import { ProductCreateZodSchema, ProductUpdateZodSchema } from '@product/schema/product';
 import { ProductCreateZodSchema, ProductUpdateZodSchema } from '@product/schema/product';
-import { sortBy } from 'lodash';
+// import { sortBy } from 'lodash';
 
 const productCreate = async (req: Request, res: Response): Promise<void> => {
     try{
@@ -77,34 +77,78 @@ const productsByCategory = async (req: Request, res: Response): Promise<void> =>
 }
 
 
-const searchProducts = async (req: Request, res: Response): Promise<void> => {
-    const { from, size, type } = req.params; //fron the URL -> /products/:from/:size/:type
-    ///Flexible filtering: with this req.query is also in URl but after '?' sign  (? query=''? minPrice=''? maxPrice='')
-    ///products/:from/:size/:type?query=''?minPrice=''?maxPrice=''
-    const { query, minPrice, maxPrice } = req.query; 
-    console.log("req params: ", req.params);
-    console.log("\n req Query: ", req.query); 
+// const searchProducts = async (req: Request, res: Response): Promise<void> => {
+//     const { from, size, type } = req.params; //fron the URL -> /products/:from/:size/:type
+//     const { query, minPrice, maxPrice } = req.query; 
+//     console.log("req params: ", req.params);
+//     console.log("\n req Query: ", req.query); 
     
+//     let productsResult: ProductDocumentInterface[] = [];
+//     const paginate:PaginatePropsInterface = { from, size: parseInt(`${size}`), type }
+//     const productsHits = await productsSearch(`${query}`, paginate, parseInt(`${minPrice}`), parseInt(`${maxPrice}`));
+//     for(const product of productsHits.hits){
+//         productsResult.push(product._source as ProductDocumentInterface);
+//     }
+//     res.status(200).json({ message: "Search products", products: productsResult });
+// }
+
+
+//refactored:
+const searchProducts = async (req: Request, res: Response): Promise<void> => {
+    console.log("req query !! :: ", req.query);
+
+    //pagination params
+    // const page = parseInt(req.query.page as string) || 1;
+    const from = parseInt(req.query.from as string) || 0;
+    const pageSize = parseInt(req.query.size as string) || 12;
+
+    console.log("FROM: ", from);
+    console.log("PAGE SIZE: ", pageSize);
+
+    // Extract filter params
+    const { 
+        query,
+        category,
+        subCategories,
+        minPrice,
+        maxPrice,
+        location,
+        quantity,
+        unit,
+        sort
+    } = req.query;
+
+    //Test this
+    // Convert comma-separated subCategories to array
+    const subCategoriesArray = subCategories 
+        ? (subCategories as string).split(',') 
+        : undefined;
+
+    // Prepare search options
+    const searchOptions: ProductSearchOptionsInterface = {
+        query: query as string,
+        category: category as string,
+        subCategories: subCategoriesArray,
+        minPrice: minPrice ? parseFloat(minPrice as string) : undefined,
+        maxPrice: maxPrice ? parseFloat(maxPrice as string) : undefined,
+        location: location as string,
+        quantity: quantity ? parseInt(quantity as string) : undefined,
+        unit: unit as string,
+        sort: sort as 'relevant' | 'price_asc' | 'price_desc' | 'newest' | undefined,
+        from: from,
+        size: pageSize
+    };
+
+
     let productsResult: ProductDocumentInterface[] = [];
-    const paginate:PaginatePropsInterface = { from, size: parseInt(`${size}`), type }
-    const productsHits = await productsSearch(`${query}`, paginate, parseInt(`${minPrice}`), parseInt(`${maxPrice}`));
+    const productsHits = await productsSearch(searchOptions);
     for(const product of productsHits.hits){
         productsResult.push(product._source as ProductDocumentInterface);
     }
 
-    
-    //if the user is on the bottom of the page type will be 'backward'
-    //Backward pagination (type: 'backward'): Older reviews are loaded when scrolling up, so you sort them ascendingly to maintain chronological order.
-    if(type === 'backward'){
-        productsResult = sortBy(productsResult, ['createdAt']) //in our case the 'createdAt'
-    }
-    // else {
-    //     // Descending: newest first
-    //     productsResult = sortBy(productsResult, ['createdAt']).reverse();
-    // }
-
-    res.status(200).json({ message: "Search products", products: productsResult });
+    res.status(200).json({ message: 'Search products', products:productsResult, total:productsHits.total });
 }
+
 
 // const getProductsByCategory = async (req: Request, res: Response): Promise<void> => {
 //     //take 5

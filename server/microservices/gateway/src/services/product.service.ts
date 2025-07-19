@@ -1,7 +1,7 @@
 import { createAxiosInstance } from "@gateway/axios";
 import { config } from '@gateway/config';
 import { AxiosResponse } from "axios";
-import { ProductCreateInterface, ProductDocumentInterface } from "@veckovn/growvia-shared";
+import { ProductCreateInterface, ProductDocumentInterface, ProductSearchOptionsInterface } from "@veckovn/growvia-shared";
 
 const productAxiosInstance = createAxiosInstance(`${config.PRODUCT_SERVICE_URL}/api/v1/product`, 'product');
 
@@ -20,15 +20,15 @@ async function getFarmerProductsByID(farmerID: string):Promise<AxiosResponse> {
     return res;
 }
 
-async function searchProducts(query: string, from:string, size: string, type:string, minPrice?:number, maxPrice?:number ):Promise<AxiosResponse> {
-    // const res: AxiosResponse = await productAxiosInstance.get(`/search/${from}/${size}/${type}?query=${query}&minPrice=${minPrice}&maxPrice=${maxPrice}`);
-    //better practice to use 'params' that is related to 'req.query' instead of passing it directly to URL
-    //url looks like: /search/0/10/forward/?query=''&minPrice=''&maxPrice=''
-    const res: AxiosResponse = await productAxiosInstance.get(`/search/${from}/${size}/${type}`, {
-        params: { query, minPrice, maxPrice }
-    });
+async function searchProducts(params: ProductSearchOptionsInterface ):Promise<AxiosResponse> {
+    const queryParams = {
+        ...params,
+        subCategories: params.subCategories?.join(',')
+    }
+    const res: AxiosResponse = await productAxiosInstance.get('/search', { params: queryParams });
     return res;
 }
+
 
 async function searchSimilarProducts(productID: string):Promise<AxiosResponse> {
     const res: AxiosResponse = await productAxiosInstance.get(`/search/similar/${productID}`);
@@ -54,7 +54,6 @@ async function deleteProduct(productID:string, farmerID:string):Promise<AxiosRes
     const res: AxiosResponse = await productAxiosInstance.delete(`/${productID}/${farmerID}`,);
     return res;
 }
-
 
 export {
     productAxiosInstance,

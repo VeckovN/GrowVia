@@ -1,6 +1,7 @@
 import { client } from "@product/elasticsearch";
-import { SearchResponse } from "@elastic/elasticsearch/lib/api/types";
-import { SearchResultInterface, PaginatePropsInterface, ElasticQueryInterface } from "@veckovn/growvia-shared";
+import { FieldSort, SearchResponse, SortCombinations } from "@elastic/elasticsearch/lib/api/types";
+// import { SearchResultInterface, PaginatePropsInterface, ElasticQueryInterface, ProductDocumentInterface } from "@veckovn/growvia-shared";
+import { SearchResultInterface, SearchHitTotalInterface ,ProductSearchOptionsInterface } from "@veckovn/growvia-shared";
 
 const productsSerachByFarmerID = async(farmerID: string): Promise<SearchResultInterface> => {
     const query = [{
@@ -47,58 +48,104 @@ const productsSerachByCategory = async(category: string): Promise<SearchResultIn
     }
 }
 
-const productsSearch = async(searchQuery:string, paginate:PaginatePropsInterface, minPrice?:number, maxPrice?:number):Promise<SearchResultInterface> =>{
-    const {size, from, type} = paginate;
-    const sortOrder = type === 'forward' ? 'asc' : 'desc';
-    const queries: ElasticQueryInterface[] = [
-        {
+//refactor: unified product serach with full filter support
+// const productSearch = async(options: ProductSerachOptionsInterface):Promise<{products: ProductDocumentInterface[], total:number}>
+const productsSearch = async(options: ProductSearchOptionsInterface):Promise<SearchResultInterface> => {
+
+    console.log("OPTTT : ", options);
+
+    //or more structured (typed )
+    // const queries: ElasticQueryInterface[] = []
+    const query: any = {
+        bool: {
+            must: [] as any[]
+        }
+    };
+
+    //text search
+    if(options.query){
+        query.bool.must.push({
             query_string: {
                 fields: ['name', 'description', 'shortDescription','category', 'subCategories', 'tags'], //all fields participating in the filter
-                query: `*${searchQuery}*`
+                query: `*${options.query}*`
             }
-        }
-        // {
-        //     term: {
-        //         active: true
-        //     }
-        // }
-    ]
+        })
+    }
 
-    //if is the min and max price passed
-    if (!Number.isNaN(parseInt(`${minPrice}`)) && !Number.isNaN(parseInt(`${maxPrice}`))) {
-        queries.push({
+    if(options.category){
+        query.bool.must.push({
+            term: { 'category.keyword': options.category}
+        });
+    }
+
+    if(options.subCategories?.length){
+        query.bool.must.push({
+            terms: {'subCategories.keyword': options.subCategories}
+        });
+    }
+
+    if (options.minPrice !== undefined && options.maxPrice !== undefined) {
+        query.bool.must.push({
             range: {
                 price: {
-                    gte: minPrice,
-                    lte: maxPrice
+                    gte: options.minPrice,
+                    lte: options.maxPrice
                 }
             }
         });
     }
 
+    if(options.quantity){
+        query.bool.must.push({
+            range: {  availableQuantity: { gte: options.quantity}}
+        });
+    }
+
+    if(options.unit){
+        query.bool.must.push({
+            term: { 'unit.keyword': options.unit }
+        });
+    }
+
+    //Sorting Options
+    const sort: SortCombinations[] = [];
+
+    switch (options.sort) {
+        case 'price_asc':
+            sort.push({ price: { order: 'asc' } as FieldSort });
+            break;
+        case 'price_desc':
+            sort.push({ price: { order: 'desc' } as FieldSort });
+            break;
+        case 'newest':
+            sort.push({ createdAt: { order: 'desc' } as FieldSort });
+            break;
+        case 'relevant':
+            sort.push('_score');
+            break;
+        default:
+            sort.push('_score');
+    }
+
+    //run search
     const result: SearchResponse = await client.search({
         index: 'products',
-        size, //pagination size
-        query: { 
-            bool: { 
-                must: [...queries]
-            } 
-        },
-        sort: [ 
-            {
-                createdAt: {
-                    order: sortOrder,
-                }
-            }
-        ],
-        //use search_after when is requested for page (not first page)
-        ...(from !== '0' && { serach_after: [from]})
+        body:{
+            query,
+            sort,
+            from: options.from || 0,
+            size: options.size || 12,
+            track_total_hits:true
+        }
     })
 
+    const total: SearchHitTotalInterface = result.hits.total as SearchHitTotalInterface;
     return {
         hits: result.hits.hits, 
+        total: total.value
     }
 }
+
 
 const getMoreSimilarProducts = async(productID: string):Promise<SearchResultInterface> =>{
     const result: SearchResponse = await client.search({

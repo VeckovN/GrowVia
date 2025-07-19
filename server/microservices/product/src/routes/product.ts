@@ -15,8 +15,8 @@ const router:Router = express.Router();
 
 export const productRoutes = (): Router => {
     router.post('/create', productCreate); 
-    router.get('/:productID', productByID); 
-    router.get('/search/:from/:size/:type', searchProducts);  
+    router.get('/search', searchProducts); //Before /:productID
+    router.get('/:productID', productByID);  
     router.get('/search/similar/:productID', getMoreProductsLikeThis); 
     router.get('/search/newest/:limit', getNewestProductsInOrder); 
     router.get('/category/:category', productsByCategory); 
