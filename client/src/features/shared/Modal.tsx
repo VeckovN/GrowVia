@@ -10,7 +10,7 @@ const Modal = ({children, closeModal}: {children: ReactNode, closeModal:()=>void
             />
             {/* Modal Container */}
             <div className='flex min-h-full items-center justify-center p-4 text-center '>
-                <div className='max-w-[700px] relative transform overflow-hidden rounded-lg bg-whit text-left shadow-xl transition-all'>
+                <div className='w-full max-w-[700px] relative transform overflow-hidden rounded-lg bg-whit text-left shadow-xl transition-all'>
                     {children}
                 </div>
             </div>
