@@ -1,5 +1,6 @@
 import {FC, ReactElement } from 'react';
 import { ProductItemInterface } from '../interfaces';
+import { useNavigate } from 'react-router-dom';
 
 import { VscHeart } from "react-icons/vsc";
 import { VscHeartFilled } from "react-icons/vsc";
@@ -16,21 +17,20 @@ const ProductSlideItem: FC<ProductItemInterface> = ({
     image,
     addFavorite
 }): ReactElement => {
+    const navigate = useNavigate();
+
     return (
-        // This component will be reused in other components so the hardcoded width/height aren't good options -> 
-        //i'ts better to leaft to the parrents (to controll widht/height)
         <div 
             key={id} 
             className='
                 group flex flex-col my-4 justify-centers items-center
                 border-2 border-greyB rounded-lg sm:w-full sm:max-w-[320px] lg:mx-1 bg-white 
                 hover:opacity-90 hover:shadow-lg transition-shadow duration-100'
-            onClick={() => alert(`TO: ProductID ${id}`)}
+            onClick={() => navigate(`/product/overview/${id}`)}
         >
             <div className='relative w-full h-[170px]  sm:h- bg-cover bg-center'
                 style={{backgroundImage: `url(${image.url})`}}>
                 
-                {/* use relative instead of abosulte to be able to achive hover effect */}
                 <div className='
                     hidden w-24 h-14 relative top-[-2px] left-[-2px] bg-white opacity-80
                     text-lg font-semibold font-lato rounded flex justify-center items-center 
@@ -73,7 +73,6 @@ const ProductSlideItem: FC<ProductItemInterface> = ({
 
             <div className='flex w-full px-2 pt-2 pb-2 items-center justify-between'>
                 <div className='flex flex-col max-w-[70%] '>
-                    {/* use 'truncate' to prevent overflowing text -> automatically adding '...'on end of text */}
                     <h4 className='text-sm truncate'>
                         {farmName}
                     </h4>
