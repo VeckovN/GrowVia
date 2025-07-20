@@ -8,10 +8,12 @@ const SelectField:FC<SelectFieldPropsInterface> = ({
     onChange,
     options,
     className = '',
-    placeholder = 'Select an option'
+    placeholder = 'Select an option',
+    disabled = false
 }) => {
     return(
         <select
+            disabled={disabled}
             id={id}
             name={name}
             value={value}

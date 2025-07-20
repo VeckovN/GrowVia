@@ -25,6 +25,7 @@ const TextField: ForwardRefExoticComponent<Omit<TextFieldPropsInterface, 'ref'> 
             onBlur={props.onBlur}
             onKeyUp={props.onKeyUp}
             onKeyDown={props.onKeyDown}
+            disabled={props.disabled}
             autoComplete="false"
         />
   </>
