@@ -1,24 +1,26 @@
 import { FC, ReactElement } from "react"
-import { ProductDocumentInterface } from "../../product/product.interface"
-import { FarmerDocumentInterface } from "../../farmer/farmer.interface";
+import { useAppDispatch } from "../../../store/store";
+import { addProduct } from "../../cart/cart.reducers";
+import { MarketListInterface } from "../market.interface";
 import ProductMarketCard from "../../product/components/ProductMarketCard";
+import { CartProductInterface } from "../../cart/cart.interface";
 
-interface MarketListInterface {
-    mode: 'products' | 'farmers',
-    items: ProductDocumentInterface[] | FarmerDocumentInterface[];
-    isLoading?: boolean;
-}
-
-// const MarketList:FC<MarketListInterface> = ({mode, products = [], farmers = [], isLoading}):ReactElement => {
 const MarketList:FC<MarketListInterface> = ({mode, items=[]}):ReactElement => {
+    const dispatch = useAppDispatch();
+
+    const onAddToCart = (farmerID: string, farmName: string, product:CartProductInterface ):void =>{
+        dispatch(addProduct({farmerID, farmName, product}));   
+    }
+
     return (
         <div className="bg-red-300a">
             {mode === 'products' ? (
                 <div className='bg-red-400a grid grid-cols-[repeat(auto-fit,_minmax(200px,_1fr))] w-fulla justify-items-center gap-x-3 gap-y-3'>
                     {items.map(product =>(
                         <ProductMarketCard
+                            key={product.id}
                             product={product}
-                            addToCart={() => alert("Add to Cart")}
+                            addToCart={onAddToCart}
                             addToFavorite={() => alert("Add to Favorite")}
                         />
                     ))}

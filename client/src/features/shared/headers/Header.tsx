@@ -1,4 +1,4 @@
-import { FC, ReactElement, useState, useRef } from 'react';
+import { FC, ReactElement, useState, useRef, useEffect } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { useAppSelector } from '../../../store/store';
@@ -6,6 +6,7 @@ import { useResentEmailVerificationMutation } from '../../auth/auth.service';
 import HeaderIconBadge from "./HeaderIconBadge";
 import Search from './Search';
 import ProfileDropdown from './ProfileDropdown';
+import CartDropdown from '../../cart/components/CartDropdown';
 import { ReduxStateInterface } from '../../../store/store.interface';
 import useOnClickOutside from '../hooks/useOnClickOutside';
 
@@ -19,15 +20,48 @@ import CustomerTestIcon from '../../../assets/header/CustomerTest.svg';
 const Header: FC = (): ReactElement => {
     const navigate = useNavigate();
     const authUser = useAppSelector((state: ReduxStateInterface) => state.authUser)
+    const cart = useAppSelector((state: ReduxStateInterface) => state.cart)
+
     const isCustomer: boolean = authUser.userType === 'customer';
     const isVerified = !authUser.verificationEmailToken;
     const [resentEmailVerification] = useResentEmailVerificationMutation();
     const [isEmailSent, setIsEmailSent] = useState<boolean>(false);
     const profileDropdownRef = useRef<HTMLDivElement>(null);
+    const cartDropdownRef = useRef<HTMLDivElement>(null);
     const [isProfileOpen, setIsProfileOpen] = useOnClickOutside(profileDropdownRef, false);
+    const [isCartOpen, setIsCartOpen] = useOnClickOutside(cartDropdownRef, false);
 
+    const cartData = cart?.data ?? [];
+    const totalQuantity = cartData.reduce((total, group) => {
+        return total + group.products.reduce((sum, product) => sum + product.quantity, 0);
+    }, 0)
+
+    console.log("CartDATA: ", cartData);
+
+    //Bussines Logic Decision:
+    // Decided to keep 'Profile', 'Cart', and 'Notification' modals within the Header component,
+    // instead of moving them to a separate global modal management (e.g. ModalContext).
     const toggleProfileDropdown = (): void => {
         setIsProfileOpen(!isProfileOpen);
+    }
+
+    useEffect(() => {
+        if (isCartOpen) {
+            const originalStyle = document.body.style.overflow;
+            document.body.style.overflow = 'hidden';
+
+            return () => { 
+                document.body.style.overflow = originalStyle
+            }
+        }
+    }, [isCartOpen])
+
+    const toggleCartDropdown = ():void => {
+        setIsCartOpen(!isCartOpen);        
+    }
+
+    const onCloseCartDropdown = ():void => {
+        setIsCartOpen(false);
     }
 
     const onResentVerification = async (): Promise<void> => {
@@ -69,16 +103,16 @@ const Header: FC = (): ReactElement => {
 
                     {/* Icons  */}
                     <div className={`relative flex justify-center items-center xs:gap-4 lg:gap-5 ${!isCustomer && 'gap-2'}`}>
+                        <HeaderIconBadge
+                            icon={Cart}
+                            alt="cart"
+                            content={totalQuantity}
+                            // content={0}
+                            textClassName='md:flex'
+                            onClick={toggleCartDropdown}
+                        />
                         {!isCustomer ?
                             <>
-                                <HeaderIconBadge
-                                    icon={Cart}
-                                    alt="cart"
-                                    content="3"
-                                    text="MyCart"
-                                    textClassName='md:flex'
-                                    onClick={() => alert("Cart Badge")}
-                                />
                                 <HeaderIconBadge
                                     icon={User}
                                     alt="user"
@@ -90,16 +124,9 @@ const Header: FC = (): ReactElement => {
                             :
                             <>
                                 <HeaderIconBadge
-                                    icon={Cart}
-                                    alt="cart"
-                                    content="3"
-                                    textClassName='md:flex'
-                                    onClick={() => alert("Cart Badge")}
-                                />
-                                <HeaderIconBadge
                                     icon={Bell}
                                     alt="notifications"
-                                    content='5'
+                                    content={5}
                                     onClick={() => alert("User Notifications")}
                                 />
                                 <HeaderIconBadge
@@ -108,7 +135,7 @@ const Header: FC = (): ReactElement => {
                                     onClick={() => alert("User Favorite")}
                                 />
                                 <HeaderIconBadge
-                                    icon={CustomerTestIcon}
+                                    icon={authUser.profileAvatar?.url || CustomerTestIcon}
                                     alt="avatar"
                                     text={authUser.username}
                                     textClassName='md:flex'
@@ -130,6 +157,22 @@ const Header: FC = (): ReactElement => {
                                 <ProfileDropdown authUser={authUser} />
                             </div>
                         }
+
+                        {isCartOpen && 
+                            <div className={`
+                                fixed inset-0 z-40 bg-black/50`}>
+                                <div 
+                                    ref={cartDropdownRef} 
+                                    className={`
+                                        flex fixed top-0 right-0  h-screen w-screen bg-white  
+                                        sm:w-[80%] md:w-[60%]a max-w-[550px] overflow-y-auto z-50
+                                    `}>
+                                    <CartDropdown cart={cartData} closeCartDropdown={onCloseCartDropdown}/>
+                                </div>
+                            </div>
+
+                        }
+
                     </div>
                 </div>
 
