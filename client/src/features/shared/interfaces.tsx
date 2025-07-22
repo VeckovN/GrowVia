@@ -1,5 +1,9 @@
 import React, { ChangeEvent, KeyboardEvent } from 'react';
 import { AuthUserInterface } from '../auth/auth.interfaces';
+import { ObjectSchema, AnyObject } from 'yup';
+import { ProductDocumentInterface } from '../product/product.interface';
+import { FarmerDocumentInterface } from '../farmer/farmer.interface';
+import { UnitType } from './utils/data';
 
 export interface CircleIconButtonInterface {
     onClick: () => void;
@@ -20,6 +24,7 @@ export interface HeaderIconBadgeInterface {
     text?: string,
     textClassName?:string, //additional classes for text div
     className?: string, //additional parrent div classes
+    hiddenText?:boolean,
     onClick: () => void;
 }
 
@@ -36,6 +41,7 @@ export interface TextFieldPropsInterface {
     maxLength?: number;
     min?: string | number;
     max?: string | number;
+    disabled?: boolean;
     // onChange?: (event: React.ChangeEvent) => void; => ChangeEvent is too generic
     onChange?: (event: React.ChangeEvent<HTMLInputElement>) => void; 
     onClick?: () => void;
@@ -54,6 +60,7 @@ export interface SelectFieldPropsInterface {
     options: Array<{ value: string; label: string }>;
     className?: string;
     placeholder?: string;
+    disabled?: boolean;
 }
 
 //Generic interface
@@ -62,4 +69,79 @@ export interface ResponseInterface{
     token?: string;
     message?: string;
     user?: AuthUserInterface; //we got response for authUser like {message, user} => on ApiGateway as res.json({message,user})
+    product?: ProductDocumentInterface;
+    products?: ProductDocumentInterface[];
+    farmers?: FarmerDocumentInterface[]; 
+    farmer: FarmerDocumentInterface; 
+    //TO DO: Refactor gateway response props -> replace '{user} with respective user type -> 
+    //For 'Farmer related requestes return 'farmer' instead of 'user' and 'customer' instead of 'user' as well 
+    total?: number; //for elasticSearch total results
+}
+
+export interface PaginationInterface {
+    currentPage: number;
+    totalPages: number;
+    onPageChange: (page: number) => void;
+}
+
+export interface ProfileDropdownProps {
+    authUser: AuthUserInterface;
+    closeProfileDropdown?: () => void;
+}
+
+export interface UseSchemaValidationPropsInterface<T extends AnyObject> {  // <-- Add constraint here
+  schema: ObjectSchema<T>;
+  userData: T;
+}
+
+export interface ProductItemInterface {
+    id:string,
+    name:string,
+    category:string,
+    unit: UnitType;
+    farmName:string,
+    farmerLocation:{
+        country?: string,
+        city?: string,
+        address?:string
+    },
+    price:number,
+    favorite:boolean, 
+    image:{
+        url:string,
+        publicID: string
+    },
+    addFavorite(productID: string):void
+}
+
+export interface FarmerItemInterface {
+    id: string,
+    name:string,
+    location: {
+        // country?: string;
+        city?: string;
+        address?: string;
+    }
+    avatar: {
+        url: string;
+        publicID: string;
+    }
+    background: {
+        url: string;
+        publicID: string;
+    }
+}
+
+export interface SlideListInterface {
+    title:string,
+    // data: ProductDocumentInterface | ,
+    data: ProductDocumentInterface[],
+    isLoading: boolean
+}
+
+export interface BreadcrumbsPropsInterface {
+  items: {
+    label: string,
+    href?: string
+  }[]
 }

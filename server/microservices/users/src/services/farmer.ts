@@ -1,14 +1,8 @@
-import { FarmerDocumentInterface, UserLocation } from "@veckovn/growvia-shared";
+import { FarmerDocumentInterface, UserProductUpdatePropInterface } from "@veckovn/growvia-shared";
 import { FarmerModel } from "@users/models/farmer";
 import { uploadImageToCloudinary } from "@users/helper";
 import { publishMessage } from "@users/rabbitmqQueues/producer";
 import { userChannel } from "@users/server";
-
-interface UserProductUpdatePropInterface {
-    farmerID?: string;
-    farmName?: string;
-    farmerLocation?: UserLocation;
-}
 
 const createFarmer = async(farmerData: FarmerDocumentInterface):Promise<void> =>{
     const checkCustomerUser:FarmerDocumentInterface = await FarmerModel.findOne({username: `${farmerData.username}`})
@@ -28,6 +22,11 @@ const createFarmer = async(farmerData: FarmerDocumentInterface):Promise<void> =>
         
         await FarmerModel.create(farmerCreateData);
     }
+}
+
+const getFarmerByID = async(ID: string): Promise<FarmerDocumentInterface | null> =>{
+    const farmerUser: FarmerDocumentInterface | null = await FarmerModel.findOne({ userID:ID }).exec();
+    return farmerUser;
 }
 
 const getFarmerByUsername = async(username: string): Promise<FarmerDocumentInterface | null> =>{
@@ -103,13 +102,12 @@ const updateFarmerDataByID = async(farmerID: string, farmerData:FarmerDocumentIn
         );
     }
 
-
     return updatedUser;
 }
 
-
 export {
     createFarmer,
+    getFarmerByID,
     getFarmerByUsername,
     getFarmerByEmail,
     getNewest,
