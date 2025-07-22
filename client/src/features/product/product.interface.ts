@@ -1,3 +1,4 @@
+import { CartProductInterface } from "../cart/cart.interface";
 import { UnitType } from "../shared/utils/data"
 
 export interface CreateProductInterface {
@@ -8,6 +9,10 @@ export interface CreateProductInterface {
         city: string;
         address: string;
     };
+    farmerAvatar?: {
+        url: string,
+        publicID: string
+    }
     name: string;
     images?: string[];
     description: string;
@@ -26,11 +31,16 @@ export interface ProductDocumentInterface {
     id?: string;
     farmerID?: string;
     farmName?: string;
+    
     farmerLocation?:{
         country: string;
         city: string;
         address: string;
     };
+    farmerAvatar?: {
+        url: string,
+        publicID: string
+    }
     name: string;
     images?: [
         {
@@ -45,6 +55,7 @@ export interface ProductDocumentInterface {
     price: number;
     stock: number;
     unit: UnitType;
+    favorite: boolean;
     tags: string[];
     createdAt?: Date | string;
     toJSON?: () => unknown;
@@ -62,6 +73,10 @@ export interface ProductFormInterface {
         city: string;
         address: string;
     }
+    farmerAvatar?: {
+        url: string;
+        publicID: string;
+    }
     onCloseModal: () => void;
     refetchProducts: () => Promise<any>;
 }
@@ -75,4 +90,25 @@ export interface DeleteViewModalInterface {
     onCloseModal: ()=> void;
     product?: ProductDocumentInterface; 
     refetchProducts: () => void;
+}
+
+export interface ProductSearchParamsInterface {
+  query?: string;
+  category?: string;
+  subCategories?: string[];
+  minPrice?: number;
+  maxPrice?: number;
+  location?: string;
+  quantity?: number;
+  unit?: string;
+  sort?: 'relevant' | 'price_asc' | 'price_desc' | 'newest';
+  from?: number;
+  size?: number;
+}
+
+export interface ProductMarketCardPropsInterface {
+    product: ProductDocumentInterface,
+    // addToCart: () => void;
+    addToCart: (farmerID: string, farmName: string, product: CartProductInterface) => void;
+    addToFavorite: () => void;
 }
