@@ -1,26 +1,25 @@
-import { ChangeEvent, useState} from 'react';
-import TextField from "../../shared/inputs/TextField";
-import { useSchemaValidation } from '../../shared/hooks/useSchemaValidation';
+import { FC, ChangeEvent, useState, ReactElement} from 'react';
+import TextField from "../inputs/TextField";
+import LoadingSpinner from '../page/LoadingSpinner';
+import { useSchemaValidation } from '../hooks/useSchemaValidation';
 import { useChangePasswordMutation } from '../../auth/auth.service';
-import { FarmerSettingsPropInterface } from '../farmer.interface';
-import { farmerSettingsSchema } from '../farmer.schema';
+import { UserSettingsPropInterface } from './user.interface';
+import { userSettingsSchema } from './user.schema';
 import toast from 'react-hot-toast';
 
-
-const FarmerSettings = () =>{
-
-    const [userData, setUserData] = useState<FarmerSettingsPropInterface>({
+const Settings: FC = ():ReactElement => {
+    const [userData, setUserData] = useState<UserSettingsPropInterface>({
         currentPassword: '',
         newPassword: '',
         repeatPassword: ''
     })
 
     const [schemaValidation, validationErrors, resetValidationErrors] = useSchemaValidation({
-        schema: farmerSettingsSchema, 
+        schema: userSettingsSchema, 
         userData
     });
 
-    const [ changePassword ] = useChangePasswordMutation();
+    const [ changePassword, {isLoading} ] = useChangePasswordMutation();
 
     const [actionError, setActionError] = useState<string>('');
 
@@ -33,7 +32,6 @@ const FarmerSettings = () =>{
             return '';
     }
 
-
     const handleChange = (e: ChangeEvent<HTMLInputElement>) =>{
         const { name, value } = e.target;
 
@@ -44,8 +42,6 @@ const FarmerSettings = () =>{
     }
 
     const onPasswordHandler = async():Promise<void> => {
-        console.log("userData: ", userData);
-
         try{
             const isValid = await schemaValidation(); 
 
@@ -57,8 +53,6 @@ const FarmerSettings = () =>{
                 currentPassword: userData.currentPassword, 
                 newPassword: userData.newPassword
             })
-
-            console.log("Result Change Password: ", result);
 
             setUserData({
                 currentPassword: '',
@@ -75,7 +69,7 @@ const FarmerSettings = () =>{
     }
 
     const onDeleteAccount = ():void => {
-        //Dispay 'Delete modal'
+        //Display 'Delete modal'
     }
 
     return (
@@ -83,7 +77,6 @@ const FarmerSettings = () =>{
             <h3 className='text-xl font-medium'>
                 Settings
             </h3>
-
 
             <div className='pt-8 pb-6 border-b border-greyB'>
                 <h4 className='text-md my-6 font-medium'>
@@ -130,9 +123,6 @@ const FarmerSettings = () =>{
                             name="newPassword"
                             type="password"
                             placeholder='Enter your new password'
-                            // onChange={(e: React.ChangeEvent<HTMLInputElement>) =>{
-                            //     setUserData({ ...userData, firstName: e.target.value})
-                            // }}
                             onChange={handleChange}
                         />
                         {validationErrors.newPassword &&
@@ -150,7 +140,6 @@ const FarmerSettings = () =>{
                                 ${getBorderErrorStyle('repeatPassword')}
                             `}
                             id="repeatPassword" //match label htmlFor 
-                            // value={userData.fullName.split('')[1]}
                             value={userData.repeatPassword}
                             name="repeatPassword"
                             type="password"
@@ -169,16 +158,22 @@ const FarmerSettings = () =>{
                     </p>
                 </div>
 
-                <div className='flex'>
+                <div className='w-full flex justify-center items-center gap-x-3 pt-6 '>
                     <button 
-                        className="w-full max-w-[220px] mx-auto p-2 mt-6 rounded-md text-white font-semibold bg-green7" 
+                        className="w-full max-w-[220px] p-2 rounded-md text-white font-semibold bg-green7" 
                         onClick={onPasswordHandler}
                     > Change Password
                     </button>
+
+                    {isLoading &&
+                        <div className='bg-red-1'>
+                            <LoadingSpinner
+                                spinnerClassName='text-green5'
+                            />
+                        </div>
+                    }
                 </div>
-
             </div>
-
 
             <div className='mt-2'>
                 <h4 className='text-md font-medium py-5'>
@@ -194,15 +189,23 @@ const FarmerSettings = () =>{
                     </p>
                 </div>
 
-                <div className='flex '>
+                <div className='w-full flex justify-center items-center gap-x-3 pt-6 '>
                     <button 
                         className="
-                            w-full max-w-[220px] mx-auto p-2 mt-6 border-2 border-red-700 rounded-md text-red-700 font-semibold bg-white
+                            w-full max-w-[220px] p-2 border-2 border-red-700 rounded-md text-red-700 font-semibold bg-white
                             hover:bg-red-700 hover:text-white transition duration-200 ease-in-out
                         " 
                         onClick={onDeleteAccount}
                     > Delete my account
                     </button>
+
+                    {/* {isLoadingDeleting &&
+                        <div className=''>
+                            <LoadingSpinner
+                                spinnerClassName='text-red-600'
+                            />
+                        </div>
+                    } */}
                 </div>
 
             </div>
@@ -210,4 +213,4 @@ const FarmerSettings = () =>{
     )
 }
 
-export default FarmerSettings
+export default Settings
