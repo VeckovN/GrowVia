@@ -1,10 +1,13 @@
+
+import { UserSocialInterface } from './user.interface';
+
 import FacebookIcon from '../../../assets/social/facebook.svg';
 import InstagramIcon from '../../../assets/social/instagram.svg';
 import LinkedinIcon from '../../../assets/social/linkedin.svg';
 import TiktokIcon from '../../../assets/social/tiktok.svg';
 import TwitterIcon from '../../../assets/social/twitter.svg'
 
-const SocialLinks: React.FC<{ links:{ name: string, url: string}[] }> = ({ links }) => {
+const SocialLinks: React.FC<UserSocialInterface> = ({ links }) => {
     if (!links) return null;
 
     const getSocialUrlIcon = (name: string) => {
@@ -35,7 +38,7 @@ const SocialLinks: React.FC<{ links:{ name: string, url: string}[] }> = ({ links
                 rel="noopener noreferrer"
             >
                 <img
-                    className='w-10 h-10'
+                    className='h-8 xs:h-10'
                     src={getSocialUrlIcon(el.name)}
                     alt={`${el.name}-icon`}
                 />
