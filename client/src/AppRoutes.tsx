@@ -1,17 +1,32 @@
 import {FC, Suspense } from 'react';
-import { RouteObject, useRoutes } from 'react-router-dom';
+import { Outlet, RouteObject, useRoutes } from 'react-router-dom';
 
 import Index from './features/index/Index';
 import MainLayout from './layouts/components/MainLayout';
-import Market from './features/market/Market';
+import FarmerLayout from './layouts/components/FarmerLayout';
+import CustomerLayout from './layouts/components/CustomerLayout';
+import Market from './features/market/components/Market';
+import ProductOverview from './features/product/components/ProductOverview';
+import FarmerOverview from './features/farmer/components/FarmerOverview';
+
+import RequireAuthRoute from './features/RequireAuthRoute';
 
 import SignIn from './features/auth/components/SignIn';
 import SignUp from './features/auth/components/SignUp';
 import ForgotPassword from './features/auth/components/ForgotPassword';
 import ResetPassword from './features/auth/components/ResetPassword';
 import ConfirmEmail from './features/auth/components/ConfirmEmail';
+import Settings from './features/shared/user/Settings';
 
-import RequireAuthRoute from './features/RequireAuthRoute';
+import FarmerDashboard from './features/farmer/components/FarmerDashboard';
+import FarmerProducts from './features/farmer/components/FarmerProducts';
+import FarmerProfile from './features/farmer/components/FarmerProfile';
+// import FarmerSettings from './features/farmer/components/FarmerSettings';
+
+import CustomerProfile from './features/customer/components/CustomerProfile';
+
+import { ModalProvider } from './features/shared/context/ModalContext';
+
 
 const AppRouter: FC = () => {
     const routes: RouteObject[] = [
@@ -27,6 +42,16 @@ const AppRouter: FC = () => {
         {
             path: '/farmers',
             element: <MainLayout> <Market/> </MainLayout>
+        },
+
+        {
+            path: '/product/overview/:id',
+            element: <MainLayout> <ProductOverview /> </MainLayout>
+        },
+
+        {
+            path: '/farmer/overview/:id',
+            element: <MainLayout> <FarmerOverview /> </MainLayout>
         },
 
         //Signup/SignIn 
@@ -56,8 +81,52 @@ const AppRouter: FC = () => {
                 </RequireAuthRoute>
             )
             // element: <MainLayout authPage={true}> <ConfirmEmail/> </MainLayout>
+        },
+        {
+            path: '/farmer',
+            element: (
+                <RequireAuthRoute allowedRoles={['farmer']}>
+                    <FarmerLayout> <Outlet/> </FarmerLayout>
+                </RequireAuthRoute>
+            ),
+            children: [
+                // {path:'dashboard', element: <FarmerDashboard />}, 
+                {index: true, element: <FarmerDashboard />}, 
+                {path:'profile', element: <FarmerProfile />}, 
+                {
+                    path:'products', 
+                    element: 
+                    //Wrap ModalProvier here not in main.tsx -> better for performance (scope reduced) 
+                    //The modals is only here in FarmerProducts needed
+                        <ModalProvider>
+                            <FarmerProducts />
+                        </ModalProvider>
+                    }, 
+                // {path:'/orders', element: <FarmerOrders />}, 
+                {path:'settings', element: <Settings/>}, 
+            ]
+        },
+
+        // Combine MainLayout and CustomerLayout to keep the global Header at the top
+        // By nesting CustomerLayout inside MainLayout, the Header stays consistent across pages
+        // without needing to manually include it in CustomerLayout.
+        {
+            path: '/customer',
+            element: (
+                <RequireAuthRoute allowedRoles={['customer']}>
+                    <MainLayout>
+                        <CustomerLayout> <Outlet/> </CustomerLayout>
+                    </MainLayout>
+                </RequireAuthRoute>
+            ),
+            children: [
+                {path:'profile', element: <CustomerProfile/>},  
+                // {path:'orders', element: <CustomerOrders />}, 
+                // {path:'wishlist', element: <CustomerWishlist />}, 
+                {path:'settings', element: <Settings/>}, 
+            ]
         }
-        
+
     ]
 
     return useRoutes(routes);
