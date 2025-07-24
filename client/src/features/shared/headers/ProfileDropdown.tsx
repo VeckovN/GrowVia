@@ -7,7 +7,6 @@ import { removeUserFromSessionStorage } from '../utils/utilsFunctions';
 import { clearAuth } from '../../auth/auth.reducers';
 import { toast } from 'react-hot-toast';
 
-//get userAuth from header (or get it here with selector)
 const ProfileDropdown: FC<ProfileDropdownProps> = ({ authUser, closeProfileDropdown }) => {
     const navigate = useNavigate();
     const dispatch = useDispatch();
@@ -84,7 +83,7 @@ const ProfileDropdown: FC<ProfileDropdownProps> = ({ authUser, closeProfileDropd
                 <li className='w-full p-2 px-3 hover:bg-gray-100 transition-colors duration-200'>
                     <Link
                         //customer/account or farmer/customer 
-                        to={`/${authUser.userType}/account `}
+                        to={`/${authUser.userType}/profile `}
                         onClick={closeProfileDropdown}
                     >
                         Account
