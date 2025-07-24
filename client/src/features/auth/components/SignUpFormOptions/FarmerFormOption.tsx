@@ -5,11 +5,18 @@ import SelectField from '../../../shared/inputs/SelectField';
 import { LocationInterface } from '../../auth.interfaces';
 import { CustomerFormOptionPropsInterface } from '../../auth.interfaces';
 import { CITIES } from '../../../shared/utils/data';
+import { readAsBase64 } from '../../../shared/utils/utilsFunctions';
 
 const FarmerFormOption: FC<CustomerFormOptionPropsInterface> = ({ userInfo, setUserInfo, validationErrors, actionError}) => {
-    console.log("userInfo farmer: ", userInfo);
-    
-    
+    const getFieldError = (fieldName: string) => validationErrors[fieldName];
+ 
+    const getBorderErrorStyle = (field: string): string =>{
+        if(actionError || getFieldError(field))
+            return 'border-0 border-b-4 border-red-400';
+        else
+            return '';
+    }
+
     const handleChange = (
         e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
     ): void => {
@@ -35,6 +42,23 @@ const FarmerFormOption: FC<CustomerFormOptionPropsInterface> = ({ userInfo, setU
         }
     };
 
+    const handleImageFileChange = async ( e: ChangeEvent<HTMLInputElement>): Promise<void> => {
+        const file = e.target.files?.[0];
+        const name = e.target.name;
+        if(!file) return;
+
+        try{
+            const base64 = await readAsBase64(file);
+            setUserInfo(prev => ({
+                ...prev,
+                [name]: base64,
+            }));
+        }
+        catch(error){
+            console.error("Faild to process avatar file:", error);
+        }
+    }
+
 
   return (
     <div className="mt-10 space-y-6  ">
@@ -45,7 +69,11 @@ const FarmerFormOption: FC<CustomerFormOptionPropsInterface> = ({ userInfo, setU
             Farm Name
             </label>
             <TextField
-                className='w-full p-2 pl-4 border-2 border-greyB rounded-md shadow-sm focus:border-green2 focus:border-4'
+                className={`
+                    w-full p-2 pl-4 border-2 border-greyB rounded-md shadow-sm 
+                    focus:border-green2 focus:border-4
+                    ${getBorderErrorStyle('farmName')}
+                `}
                 id="farmerName"
                 value={userInfo.farmName}
                 name="farmName"
@@ -53,8 +81,8 @@ const FarmerFormOption: FC<CustomerFormOptionPropsInterface> = ({ userInfo, setU
                 placeholder="Enter Farm Name"
                 onChange={handleChange}
             />
-            {validationErrors.phoneNumber &&
-                <label className='text-red-600 text-sm'>{validationErrors.phoneNumber}</label>
+            {validationErrors.farmName &&
+                <label className='text-red-600 text-sm'>{validationErrors.farmName}</label>
             }
         </div>
     
@@ -65,7 +93,11 @@ const FarmerFormOption: FC<CustomerFormOptionPropsInterface> = ({ userInfo, setU
                     First Name
                 </label>
                 <TextField
-                    className='w-full p-2 pl-4 border-2 border-greyB rounded-md shadow-sm focus:border-green2 focus:border-4'
+                    className={`
+                        w-full p-2 pl-4 border-2 border-greyB rounded-md shadow-sm 
+                        focus:border-green2 focus:border-4
+                        ${getBorderErrorStyle('firstName')}
+                    `}
                     id="firstName" //match label htmlFor 
                     value={userInfo.firstName}
                     name="firstName"
@@ -77,7 +109,7 @@ const FarmerFormOption: FC<CustomerFormOptionPropsInterface> = ({ userInfo, setU
                     onChange={handleChange}
                 />
                 {validationErrors.firstName &&
-                    <label className='text-red-600'> {validationErrors.firstName}</label>
+                    <label className='text-red-600 text-sm'> {validationErrors.firstName}</label>
                 }
             </div>
             <div className="w-full md:w-1/2">
@@ -85,7 +117,11 @@ const FarmerFormOption: FC<CustomerFormOptionPropsInterface> = ({ userInfo, setU
                     Last Name
                 </label>
                 <TextField
-                    className='w-full p-2 pl-4 border-2 border-greyB rounded-md shadow-sm focus:border-green2 focus:border-4'
+                    className={`
+                        w-full p-2 pl-4 border-2 border-greyB rounded-md shadow-sm 
+                        focus:border-green2 focus:border-4
+                        ${getBorderErrorStyle('lastName')}
+                    `}
                     id="lastName" //match label htmlFor 
                     value={userInfo.lastName}
                     name="lastName"
@@ -94,7 +130,7 @@ const FarmerFormOption: FC<CustomerFormOptionPropsInterface> = ({ userInfo, setU
                     onChange={handleChange}
                 />
                 {validationErrors.lastName &&
-                    <label className='text-red-600'> {validationErrors.lastName}</label>
+                    <label className='text-red-600 text-sm'> {validationErrors.lastName}</label>
                 }  
             </div>
         </div>
@@ -106,7 +142,11 @@ const FarmerFormOption: FC<CustomerFormOptionPropsInterface> = ({ userInfo, setU
                     Username
                 </label>
                 <TextField
-                    className='w-full p-2 pl-4 border-2 border-greyB rounded-md shadow-sm focus:border-green2 focus:border-4'
+                    className={`
+                        w-full p-2 pl-4 border-2 border-greyB rounded-md shadow-sm 
+                        focus:border-green2 focus:border-4
+                        ${getBorderErrorStyle('username')}
+                    `}
                     id="username" 
                     value={userInfo.username}
                     name="username"
@@ -115,7 +155,7 @@ const FarmerFormOption: FC<CustomerFormOptionPropsInterface> = ({ userInfo, setU
                     onChange={handleChange}
                 />
                 {validationErrors.username &&
-                    <label className='text-red-600'> {validationErrors.username}</label>
+                    <label className='text-red-600 text-sm'> {validationErrors.username}</label>
                 }  
             </div>
             <div className="w-full md:w-1/2">
@@ -123,7 +163,11 @@ const FarmerFormOption: FC<CustomerFormOptionPropsInterface> = ({ userInfo, setU
                     Email
                 </label>
                 <TextField
-                    className='w-full p-2 pl-4 border-2 border-greyB rounded-md shadow-sm focus:border-green2 focus:border-4'
+                    className={`
+                        w-full p-2 pl-4 border-2 border-greyB rounded-md shadow-sm 
+                        focus:border-green2 focus:border-4
+                        ${getBorderErrorStyle('email')}
+                    `}
                     id="email" 
                     value={userInfo.email}
                     name="email"
@@ -132,7 +176,7 @@ const FarmerFormOption: FC<CustomerFormOptionPropsInterface> = ({ userInfo, setU
                     onChange={handleChange}
                 />
                 {validationErrors.email &&
-                    <label className='text-red-600'> {validationErrors.email}</label>
+                    <label className='text-red-600 text-sm'> {validationErrors.email}</label>
                 }  
             </div>
         </div>
@@ -144,7 +188,11 @@ const FarmerFormOption: FC<CustomerFormOptionPropsInterface> = ({ userInfo, setU
                     Password
                 </label>
                 <TextField
-                    className='w-full p-2 pl-4 border-2 border-greyB rounded-md shadow-sm focus:border-green2 focus:border-4'
+                    className={`
+                        w-full p-2 pl-4 border-2 border-greyB rounded-md shadow-sm 
+                        focus:border-green2 focus:border-4
+                        ${getBorderErrorStyle('password')}
+                    `}
                     id="password"
                     value={userInfo.password}
                     name="password"
@@ -161,7 +209,11 @@ const FarmerFormOption: FC<CustomerFormOptionPropsInterface> = ({ userInfo, setU
                     Repeat Password
                 </label>
                 <TextField
-                    className='w-full p-2 pl-4 border-2 border-greyB rounded-md shadow-sm focus:border-green2 focus:border-4'
+                    className={`
+                        w-full p-2 pl-4 border-2 border-greyB rounded-md shadow-sm 
+                        focus:border-green2 focus:border-4
+                        ${getBorderErrorStyle('repeatPassword')}
+                    `}
                     id="repeatPassword"
                     value={userInfo.repeatPassword}
                     name="repeatPassword"
@@ -181,7 +233,11 @@ const FarmerFormOption: FC<CustomerFormOptionPropsInterface> = ({ userInfo, setU
                 Phone Number
             </label>
             <TextField
-                className='w-full p-2 pl-4 border-2 border-greyB rounded-md shadow-sm focus:border-green2 focus:border-4'
+                className={`
+                    w-full p-2 pl-4 border-2 border-greyB rounded-md shadow-sm 
+                    focus:border-green2 focus:border-4
+                    ${getBorderErrorStyle('phoneNumber')}
+                `}
                 id="phoneNumber"
                 value={userInfo.phoneNumber}
                 name="phoneNumber"
@@ -201,20 +257,27 @@ const FarmerFormOption: FC<CustomerFormOptionPropsInterface> = ({ userInfo, setU
                 City
                 </label>
                 <SelectField 
-                    className='p-[11px] pl-4'
+                    className={`p-[11px] pl-4 bg-white text-gray-500 ${getBorderErrorStyle('location')}`}
                     id='city'
                     name='location.city'
                     value={userInfo.location?.city ?? ''}
                     options={CITIES}
                     onChange={handleChange}
                 />
+                {validationErrors.location &&
+                    <label className='text-red-600 text-sm'>{validationErrors.location}</label>
+                }
             </div>
             <div className="w-full md:w-1/2">
                 <label htmlFor="address" className="text-sm font-medium text-gray-700">
                 Address
                 </label>
                 <TextField
-                    className='w-full p-2 pl-4 border-2 border-greyB rounded-md shadow-sm focus:border-green2 focus:border-4'
+                    className={`
+                        w-full p-2 pl-4 border-2 border-greyB rounded-md shadow-sm 
+                        focus:border-green2 focus:border-4
+                        ${getBorderErrorStyle('address')}
+                    `}
                     id="address"
                     name="location.address"
                     value={userInfo.location?.address}
@@ -222,8 +285,8 @@ const FarmerFormOption: FC<CustomerFormOptionPropsInterface> = ({ userInfo, setU
                     placeholder="Address"
                     onChange={handleChange}
                 />
-                {validationErrors.address &&
-                <label className='text-red-600 text-sm'>{validationErrors.address}</label>
+                {validationErrors.location &&
+                    <label className='text-red-600 text-sm'>{validationErrors.location}</label>
                 }
             </div>
         </div>
@@ -237,25 +300,22 @@ const FarmerFormOption: FC<CustomerFormOptionPropsInterface> = ({ userInfo, setU
                 <input
                     type="file"
                     id="avatar"
-                    name="profilePicture"
-                    onChange={(e) => {
-                    if (e.target.files && e.target.files[0]) {
-                        setUserInfo(prev => ({
-                        ...prev,
-                        profilePicture: URL.createObjectURL(e.target.files![0])
-                        }));
-                    }
-                    }}
-                    className="
+                    name="profileAvatarFile"
+                    onChange={handleImageFileChange}
+                    className={`
                         mt-1 w-full text-sm text-gray-500 
                         border-2 rounded-md p-1
                         file:mr-4 file:py-2 file:px-4
                         file:rounded-md file:border-0
                         file:text-sm file:font-semibold
-                        file:bg-gray-200 file:text-green8
-                        hover:file:bg-gray-200
-                    " 
+                        file:bg-white file:text-green8
+                        hover:file:bg-gray-200 hover:file:cursor-pointer hover:file:bg-gray-200
+                        ${getBorderErrorStyle('profileAvatarFile')}
+                    `} 
                 />
+                {validationErrors.profileAvatarFile &&
+                    <label className='text-red-600 text-sm'> {validationErrors.profileAvatarFile}</label>
+                }
             </div>
             <div className="w-full md:w-1/2">
                 <label htmlFor="background" className="text-sm font-medium text-gray-700">
@@ -264,25 +324,30 @@ const FarmerFormOption: FC<CustomerFormOptionPropsInterface> = ({ userInfo, setU
                 <input
                     type="file"
                     id="background"
-                    name="backgroundImage"
-                    onChange={(e) => {
-                    if (e.target.files && e.target.files[0]) {
-                        setUserInfo(prev => ({
-                        ...prev,
-                        backgroundImage: URL.createObjectURL(e.target.files![0])
-                        }));
-                    }
-                    }}
-                    className="
+                    name="backgroundImageFile"
+                    // onChange={(e) => {
+                    // if (e.target.files && e.target.files[0]) {
+                    //     setUserInfo(prev => ({
+                    //     ...prev,
+                    //     backgroundImage: URL.createObjectURL(e.target.files![0])
+                    //     }));
+                    // }
+                    // }}
+                    onChange={handleImageFileChange}
+                    className={`
                         mt-1 w-full text-sm text-gray-500 
                         border-2 rounded-md p-1
                         file:mr-4 file:py-2 file:px-4
                         file:rounded-md file:border-0
                         file:text-sm file:font-semibold
-                        file:bg-gray-200 file:text-green8
-                        hover:file:bg-gray-200
-                    " 
+                        file:bg-white file:text-green8
+                        hover:file:bg-gray-200 hover:file:cursor-pointer hover:file:bg-gray-200
+                        ${getBorderErrorStyle('backgroundImageFile')}
+                    `}
                 />
+                {validationErrors.backgroundImageFile &&
+                    <label className='text-red-600 text-sm'> {validationErrors.backgroundImageFile}</label>
+                }
             </div>
         </div>
 
@@ -294,11 +359,11 @@ const FarmerFormOption: FC<CustomerFormOptionPropsInterface> = ({ userInfo, setU
             <textarea
                 className='w-full p-2 pl-4 border-2 border-greyB rounded-md shadow-sm focus:border-green2 focus:border-4'
                 id="description"
+                name='description'
                 value={userInfo.description}
                 placeholder="Enter a detailed description to be shown on the full profile"
                 onChange={handleChange}
             >
-
             </textarea>
             {validationErrors.description &&
                 <label className='text-red-600 text-sm'>{validationErrors.description}</label>

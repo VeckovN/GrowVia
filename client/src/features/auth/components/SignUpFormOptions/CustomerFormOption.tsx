@@ -1,11 +1,10 @@
 import { FC, ChangeEvent } from 'react';
-
 import TextField from '../../../shared/inputs/TextField';
 import SelectField from '../../../shared/inputs/SelectField';
 import { LocationInterface } from '../../auth.interfaces';
 import { CustomerFormOptionPropsInterface } from '../../auth.interfaces';
 import { CITIES } from '../../../shared/utils/data';
-
+import { readAsBase64 } from '../../../shared/utils/utilsFunctions';
 
 const CustomerFormOption: FC<CustomerFormOptionPropsInterface> = ({ userInfo, setUserInfo, validationErrors, actionError }) => {
     console.log("userInfo: ", userInfo);
@@ -19,7 +18,6 @@ const CustomerFormOption: FC<CustomerFormOptionPropsInterface> = ({ userInfo, se
             return 'border-0 border-b-4 border-red-400';
         else
             return '';
-
     }
 
     const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLSelectElement>): void => {
@@ -43,7 +41,25 @@ const CustomerFormOption: FC<CustomerFormOptionPropsInterface> = ({ userInfo, se
             [name]: value
         }));
         }
-  };
+    };    
+
+    const handleAvatarFileChange = async ( e: ChangeEvent<HTMLInputElement>): Promise<void> => {
+        const file = e.target.files?.[0];
+        if(!file) return;
+
+        try{
+            // const base64 = await readAsBase64New(file);
+            const base64 = await readAsBase64(file);
+
+            setUserInfo(prev => ({
+                ...prev,
+                profileAvatarFile: base64
+            }));
+        }
+        catch(error){
+            console.error("Faild to process avatar file:", error);
+        }
+    }
 
   return (
     <div className="mt-10 space-y-6  ">
@@ -64,14 +80,10 @@ const CustomerFormOption: FC<CustomerFormOptionPropsInterface> = ({ userInfo, se
                 name="firstName"
                 type="text"
                 placeholder='Enter First Name'
-                // onChange={(e: React.ChangeEvent<HTMLInputElement>) =>{
-                //     setUserInfo({ ...userInfo, firstName: e.target.value})
-                // }}
                 onChange={handleChange}
             />
-            {/* {validationErrors.firstName && */}
             {getFieldError('firstName') &&
-                <label className='text-red-600'>{getFieldError('firstName')}</label>
+                <label className='text-red-600 text-sm'>{getFieldError('firstName')}</label>
             }
         </div>
         <div className="w-full md:w-1/2">
@@ -91,7 +103,7 @@ const CustomerFormOption: FC<CustomerFormOptionPropsInterface> = ({ userInfo, se
                 onChange={handleChange}
             />
             {validationErrors.lastName &&
-                <label className='text-red-600'> {validationErrors.lastName}</label>
+                <label className='text-red-600 text-sm'> {validationErrors.lastName}</label>
             }  
         </div>
       </div>
@@ -115,7 +127,7 @@ const CustomerFormOption: FC<CustomerFormOptionPropsInterface> = ({ userInfo, se
                 onChange={handleChange}
             />
             {validationErrors.username &&
-                <label className='text-red-600'> {validationErrors.username}</label>
+                <label className='text-red-600 text-sm'> {validationErrors.username}</label>
             }  
         </div>
         <div className="w-full md:w-1/2">
@@ -135,7 +147,7 @@ const CustomerFormOption: FC<CustomerFormOptionPropsInterface> = ({ userInfo, se
                 onChange={handleChange}
             />
             {validationErrors.email &&
-                <label className='text-red-600'> {validationErrors.email}</label>
+                <label className='text-red-600 text-sm'> {validationErrors.email}</label>
             }  
         </div>
       </div>
@@ -214,7 +226,7 @@ const CustomerFormOption: FC<CustomerFormOptionPropsInterface> = ({ userInfo, se
             </label>
             <SelectField 
                 className={`
-                    p-[11px] pl-4
+                    p-[11px] pl-4 bg-white text-gray-500
                     ${getBorderErrorStyle('location.city')}
                 `}
                 id='city'
@@ -241,38 +253,35 @@ const CustomerFormOption: FC<CustomerFormOptionPropsInterface> = ({ userInfo, se
                 onChange={handleChange}
             />
             {validationErrors.address &&
-            <label className='text-red-600 text-sm'>{validationErrors.address}</label>
+                <label className='text-red-600 text-sm'>{validationErrors.address}</label>
             }
       </div>
       </div>
 
       {/* Row 6 - Avatar Upload */}
-      <div className="w-full">
+      <div className="w-1/2">
         <label htmlFor="avatar" className="text-sm font-medium text-gray-700">
-          Profile Picture
+          Profile Avatar
         </label>
         <input
             type="file"
             id="avatar"
-            name="profilePicture"
-            onChange={(e) => {
-            if (e.target.files && e.target.files[0]) {
-                setUserInfo(prev => ({
-                ...prev,
-                profilePicture: URL.createObjectURL(e.target.files![0])
-                }));
-            }
-            }}
-            className="
-                mt-1 w-full text-sm text-gray-500 
-                border-2 rounded-md p-1
-                file:mr-4 file:py-2 file:px-4
+            name="profileAvatarFile"
+            onChange={handleAvatarFileChange}
+            className={`
+                mt-1 w-full text-sm text-gray-700 border-2 rounded-md p-1
+                file:mr-4 file:py-2 file:px-4 
                 file:rounded-md file:border-0
+                file:bg-white file:text-green8
                 file:text-sm file:font-semibold
-                file:bg-gray-200 file:text-green8
-                hover:file:bg-gray-200
-            "
+                hover:file:bg-gray-200 hover:file:cursor-pointer hover:file:bg-gray-200
+                ${getBorderErrorStyle('profileAvatarFile')}
+            `}
+            
         />
+        {validationErrors.profileAvatarFile &&
+            <label className='text-red-600 text-sm'>{validationErrors.profileAvatarFile}</label>
+        }
       </div>
     </div>
   );
