@@ -6,18 +6,23 @@ import { FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER, persistReducer } fro
 import { TypedUseSelectorHook, useDispatch, useSelector } from 'react-redux';
 import { setupListeners } from '@reduxjs/toolkit/query';
 import { api } from './api';
+import authReducer from '../features/auth/auth.reducers';
+import cartReducer from '../features/cart/cart.reducers';
+
 
 const persistConfig = {
     key: 'root',
     storage: storage,
     //This props we aren't going to persist in the storage -> //clientApi props from redux-toolkit
     blacklist: ['clientApi', '_persist'] //won't store any data with 'clientAPI' key -> defined in api.ts as createApi
-
 }
 
 //we'll have multiple reducers -> 'authReducer', 'customerReducer', etc, ->reducers from features/service files
 export const combineReducer = combineReducers({
     [api.reducerPath]: api.reducer,
+    authUser: authReducer, //auth slice reducer
+    cart: cartReducer
+
 });
 
 export const rootReducers: Reducer = (state, action) => {
