@@ -2,15 +2,16 @@ import {FC, ReactElement, lazy, Suspense, useState} from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSignUpMutation } from '../auth.service';
 import { useSchemaValidation } from '../../shared/hooks/useSchemaValidation';
-import { signUpSchema } from '../auth.schema';
+import { signUpFarmerSchema, signUpCustomerSchema } from '../auth.schema';
 import { initalSignupUserData } from '../../shared/utils/data';
+import { SignUpCustomerFormInterface, SignUpFarmerFormInterface } from '../auth.interfaces';
 
 import toast from 'react-hot-toast';
 
 import CustomerIcon from '../../../assets/signup/customerOption.svg';
 import FarmerIcon from '../../../assets/signup/farmerOption.svg';
 
-import { SignUpFormInterface } from '../auth.interfaces';
+import { SignUpFormUnionInterface } from '../auth.interfaces';
 import { SignUpPayloadInterface } from '../auth.interfaces';
 import SignUpRoleOption from './SignUpRoleOption';
 
@@ -19,9 +20,14 @@ const FarmerFormOption = lazy( () => import('./SignUpFormOptions/FarmerFormOptio
 
 const SignUp: FC = (): ReactElement => {
     const navigate = useNavigate();
-    const [selectedOption, setSelectOption] = useState<string>('customer');
-    const [userInfo, setUserInfo] = useState<SignUpFormInterface>({...initalSignupUserData })
-    const [schemaValidation, validationErrors, resetValidationErrors] = useSchemaValidation({schema: signUpSchema, userData: userInfo});
+    const [selectedOption, setSelectOption] = useState<"customer" | "farmer">('customer');
+    const [userInfo, setUserInfo] = useState<SignUpFormUnionInterface>({...initalSignupUserData })
+    const [schemaValidation, validationErrors, resetValidationErrors] = useSchemaValidation({
+        schema: selectedOption === 'customer' ? signUpCustomerSchema : signUpFarmerSchema, 
+        userData: selectedOption === 'customer'
+            ? userInfo as SignUpCustomerFormInterface
+            : userInfo as SignUpFarmerFormInterface 
+    });
     const [actionError, setActionError] = useState<string>('');
     const [signUp ] = useSignUpMutation();
 
@@ -34,22 +40,25 @@ const SignUp: FC = (): ReactElement => {
             // }
             //has try/catch but doesn't thrown error (it returns boolean instead) -> (error won't be trigger)
             //but this is called inside this try/catch so the error will be caught here in catch
-            await schemaValidation(); 
+            const isValid = await schemaValidation(); 
 
-            const fullName = `${userInfo.firstName} ${userInfo.lastName}`
-            //Merge FirstName and Lastname
-            const userData:SignUpPayloadInterface = {
-                ...userInfo,
-                fullName
+            if(isValid){
+                const fullName = `${userInfo.firstName} ${userInfo.lastName}`
+                //Merge FirstName and Lastname
+                const userData:SignUpPayloadInterface = {
+                    ...userInfo,
+                    fullName
+                }
+                console.log("userData -> signUpPayloadInterface: ", userData);
+    
+                //.unwrap(), catch any thrown error
+                const result = await signUp(userData).unwrap();
+                console.log("\n result signUp: ", result);
+    
+                toast.success("Successfully signed up")
+                navigate('/signin');
             }
-            console.log("userData -> signUpPayloadInterface: ", userData);
 
-            //.unwrap(), catch any thrown error
-            const result = await signUp(userData).unwrap();
-            console.log("\n result signUp: ", result);
-
-            toast.success("Successfully signed up")
-            navigate('/signin');
         }
         catch(err){
             console.log("Global ERROR: ", err);
@@ -66,7 +75,7 @@ const SignUp: FC = (): ReactElement => {
             return;
 
         setSelectOption(role); //customer | farmer
-        setUserInfo({...initalSignupUserData });
+        setUserInfo({...initalSignupUserData, userType:role });
         resetValidationErrors();
         setActionError('');
     }

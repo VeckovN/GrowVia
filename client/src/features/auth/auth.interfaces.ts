@@ -114,7 +114,7 @@ export interface SignUpFormUnionInterface {
     lastName: string;
     location?: LocationInterface;
     profileAvatarFile?: string;
-    userType: 'customer | farmer';
+    userType: 'customer' | 'farmer';
     farmName?: string;
     backgroundImageFile?: string;
     // profileImagesFile?: string[]; //adding profile images will be allowed in user profil

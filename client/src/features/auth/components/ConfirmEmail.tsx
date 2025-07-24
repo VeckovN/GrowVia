@@ -19,7 +19,6 @@ const ConfirmEmail: FC = (): ReactElement => {
     const [verifyEmail] = useVerifyEmailMutation();
 
     const onVerifyEmail = async():Promise<void> => {
-        console.log("onVerificationEmail");
         try{
             const token = searchParams.get('token');
             if(!token){
@@ -27,7 +26,7 @@ const ConfirmEmail: FC = (): ReactElement => {
                 setIsVerifying(false);
                 return
             }
-            const result = await verifyEmail({userID: authUser.id, token}).unwrap();
+            const result = await verifyEmail({userID: authUser.id!, token}).unwrap();
             dispatch(verifyUserEmail());
             setResponseMessage({message: result.message});
         }
