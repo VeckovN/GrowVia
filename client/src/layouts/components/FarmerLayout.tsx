@@ -6,7 +6,7 @@ import FarmerHeader from '../../features/shared/headers/FarmerHeader';
 const FarmerLayout = ({children}: FarmerLayoutPropsInterface ) => {
 
     return (
-        <div className='w-full'>
+        <div className='w-full bg-white'>
             <div className='lg:invisible top right '>
                 <FarmerHeader />
             </div>

@@ -36,8 +36,6 @@ const Header: FC = (): ReactElement => {
         return total + group.products.reduce((sum, product) => sum + product.quantity, 0);
     }, 0)
 
-    console.log("CartDATA: ", cartData);
-
     //Bussines Logic Decision:
     // Decided to keep 'Profile', 'Cart', and 'Notification' modals within the Header component,
     // instead of moving them to a separate global modal management (e.g. ModalContext).
@@ -107,7 +105,6 @@ const Header: FC = (): ReactElement => {
                             icon={Cart}
                             alt="cart"
                             content={totalQuantity}
-                            // content={0}
                             textClassName='md:flex'
                             onClick={toggleCartDropdown}
                         />
@@ -176,7 +173,6 @@ const Header: FC = (): ReactElement => {
                     </div>
                 </div>
 
-                {/* Not Mobile View -> Links */}
                 <div className='hidden sm:flex sm:items-center sm:h-16 sm:gap-6 sm:px-5'>
                     <NavLink
                         className={({ isActive }) =>

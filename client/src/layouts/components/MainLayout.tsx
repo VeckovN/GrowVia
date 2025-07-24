@@ -6,7 +6,7 @@ import { MainLayoutPropsInterface } from '../layouts.interface';
 
 const MainLayout = ({children, authPage}: MainLayoutPropsInterface) => {
     return (
-        <div className='w-full'>
+        <div className='w-full bg-white'>
             {/* if the authPage = true  display <HeaderAuth /> if not let Header*/}
             {authPage ? (
                 <HeaderAuth />

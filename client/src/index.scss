@@ -3,6 +3,12 @@
 @tailwind components;
 @tailwind utilities;
 
+//clamp(min, preferred, max) lets font-size grow with screen width.
+
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap");
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&display=swap');
+
 * {
   margin: 0;
   padding: 0;
@@ -28,4 +34,15 @@ body {
   // width: 100vw;
   cursor: default;
   // overflow: auto;
+  font-family: 'Inter', sans-serif; //By default
+  background-color: rgb(247, 247, 247);
 }
+
+
+//tailwind bra
+// Prefix	Min Width	Example Use
+// sm	640px	Tablets
+// md	768px	Small laptops
+// lg	1024px	Larger laptops
+// xl	1280px	Desktops
+// 2xl	1536px	Large desktops
