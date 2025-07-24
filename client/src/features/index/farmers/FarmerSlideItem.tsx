@@ -1,4 +1,5 @@
 import {FC, ReactElement } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { FarmerItemInterface } from '../../shared/interfaces';
 
 
@@ -9,17 +10,20 @@ const FarmerSlideItem: FC<FarmerItemInterface> = ({
     avatar,
     background
 }): ReactElement => {
+    const navigate = useNavigate();
+
     return (
-        <div key={id} className='
-            w-full flex flex-col my-1 border border-greyB rounded-xl bg-white
-            md:max-w-[370px] lg:mx-1 cursor-pointer
-            hover:opacity-95 hover:shadow-lg transition-shadow duration-100
+        <div 
+            key={id} 
+            className='
+                w-full flex flex-col my-1 border border-greyB rounded-xl bg-white
+                md:max-w-[370px] lg:mx-1 cursor-pointer
+                hover:opacity-95 hover:shadow-lg transition-shadow duration-100
             '
-            onClick={()=>alert(`Farmer: ${name}`)}
+            onClick={() => navigate(`/farmer/overview/${id}`)}
         >
             
             <div className='w-full relative bg-red-5003'>
-                {/* <div className='w-full h-[100px] bg-cover bg-center relative' */}
                 <div className='w-full h-[100px] sm:h-[120px] bg-cover bg-center rounded-tl-xl rounded-tr-xl '
                     style={{backgroundImage: `url(${background.url})`}}>
                 </div>
