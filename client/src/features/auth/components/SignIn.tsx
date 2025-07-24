@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import TextField from '../../shared/inputs/TextField';
 import { useAppDispatch } from '../../../store/store';
-import { setAuthUser, clearAuth } from '../auth.reducers';
+import { setAuthUser} from '../auth.reducers';
 import { saveDataToSessionStorage } from '../../shared/utils/utilsFunctions';
 
 import GoogleIcon from '../../../assets/google.svg';
@@ -13,7 +13,6 @@ import { FaRegEyeSlash } from "react-icons/fa";
 
 import { useSignInMutation } from '../auth.service';
 import { SignInPayloadInterface } from '../auth.interfaces';
-import { ResponseInterface } from '../auth.interfaces';
 import { useSchemaValidation } from '../../shared/hooks/useSchemaValidation';
 
 import { signInSchema } from '../auth.schema';
@@ -40,17 +39,17 @@ const SignIn: FC = (): ReactElement => {
             const isValid = await schemaValidation();
             if(isValid){
                 //we must to .unwrap() result to get raw data -> without it we won't get correct result
-                const result:ResponseInterface = await signIn(userData).unwrap();
+                const result = await signIn(userData).unwrap();
                 dispatch(setAuthUser(result.user));
+
                 const isLoggedIn = JSON.stringify(true);
                 const username = JSON.stringify(result.user?.username);
+
                 saveDataToSessionStorage(isLoggedIn, username);
 
-                // toast.success("Successfully logged in");
                 toast.success(`${result.message}`);
 
                 if (result.user?.userType === 'farmer'){
-                    // navigate('/farmer/dashboard');
                     navigate('/farmer');
                 }
                 else{
