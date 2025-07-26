@@ -1,10 +1,5 @@
 import { useState, useEffect } from 'react';
-
-interface VisibleCountConfig {
-    mobile: number,
-    tablet: number,
-    desktop: number
-}
+import { VisibleCountConfig } from '../shared/interfaces';
 
 const defaultConfig: VisibleCountConfig = {
     mobile: 3,
@@ -12,7 +7,6 @@ const defaultConfig: VisibleCountConfig = {
     desktop: 4
 }
 
-//<Partial> makes all properties optional
 const useVisibleCount = (config: Partial<VisibleCountConfig> = {}) => {
     const [visibleCount, setVisibleCount] = useState(config.mobile || defaultConfig.mobile);
 
@@ -31,7 +25,7 @@ const useVisibleCount = (config: Partial<VisibleCountConfig> = {}) => {
             clearTimeout(timeoutId);
             timeoutId = setTimeout(() => {
                 const width = window.innerWidth;             
-                const count =  width < 640 ? resolvedConfig.mobile //first check (if width<640 the .mobile will be return)
+                const count =  width < 640 ? resolvedConfig.mobile
                             : width < 1024 ? resolvedConfig.tablet
                             : resolvedConfig.desktop;
 
@@ -39,7 +33,8 @@ const useVisibleCount = (config: Partial<VisibleCountConfig> = {}) => {
             }, 10);
         };
 
-        handleResize(); // Initial call
+        handleResize(); 
+        
         window.addEventListener('resize', handleResize);
         return () => {
             window.removeEventListener('resize', handleResize);

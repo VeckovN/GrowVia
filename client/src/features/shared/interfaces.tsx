@@ -1,4 +1,4 @@
-import React, { ChangeEvent, KeyboardEvent } from 'react';
+import React, { ChangeEvent } from 'react';
 import { AuthUserInterface } from '../auth/auth.interfaces';
 import { ObjectSchema, AnyObject } from 'yup';
 import { ProductDocumentInterface } from '../product/product.interface';
@@ -20,7 +20,8 @@ export interface MarketplaceInfoInterface {
 export interface HeaderIconBadgeInterface {
     icon: string,
     alt: string,
-    content?: string, //badge content (count)
+    // content?: string, //badge content (count)
+    content?: number, //badge content (count)
     text?: string,
     textClassName?:string, //additional classes for text div
     className?: string, //additional parrent div classes
@@ -134,7 +135,6 @@ export interface FarmerItemInterface {
 
 export interface SlideListInterface {
     title:string,
-    // data: ProductDocumentInterface | ,
     data: ProductDocumentInterface[],
     isLoading: boolean
 }
@@ -144,4 +144,10 @@ export interface BreadcrumbsPropsInterface {
     label: string,
     href?: string
   }[]
+}
+
+export interface VisibleCountConfig {
+    mobile: number,
+    tablet: number,
+    desktop: number
 }
