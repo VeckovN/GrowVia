@@ -5,13 +5,13 @@ export interface CreateProductInterface {
     farmerID: string;
     farmName?: string;
     farmerLocation?: {
-        country: string;
-        city: string;
-        address: string;
+        country?: string;
+        city?: string;
+        address?: string;
     };
     farmerAvatar?: {
-        url: string,
-        publicID: string
+        url?: string,
+        publicID?: string
     }
     name: string;
     images?: string[];

@@ -18,9 +18,14 @@ const productSchema: ObjectSchema<CreateProductInterface> = object({
     farmName: string().optional(),
     
     farmerLocation: object({
-        country: string().required(),
-        city: string().required(),
-        address: string().required(),
+        country: string().optional(),
+        city: string().optional(),
+        address: string().optional()
+    }).optional(),
+
+    farmerAvatar: object({
+        url: string().optional(),
+        publicID: string().optional()
     }).optional(),
 
     name: string()
