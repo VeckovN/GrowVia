@@ -8,7 +8,7 @@ const ActionDropdown = ( {product} : { product: ProductDocumentInterface }) => {
     const { openModal } = useModal();
     
     return (
-        <div className='flex flex-col w-32 bg-gray-50 w-full border-2 border-grey rounded-md font-normal'>
+        <div className='flex flex-col pr-7 bg-gray-50 w-full border-2 border-grey rounded-md font-normal'>
             <div 
                 className='relative p-1 items-center flex hover:bg-gray-100 cursor-pointer'
                 onClick={() => openModal('view', {product})}
@@ -28,7 +28,7 @@ const ActionDropdown = ( {product} : { product: ProductDocumentInterface }) => {
                 <img
                     className=' ml-2 w-4 h-4'
                     src={EditIcon}
-                    alt='eye'
+                    alt='edit'
                 />
                 <div className='pl-6 text-gray-600'>Edit</div>
             </div>
@@ -40,7 +40,7 @@ const ActionDropdown = ( {product} : { product: ProductDocumentInterface }) => {
                 <img
                     className='ml-2 w-4 h-4'
                     src={TrashIcon}
-                    alt='eye'
+                    alt='trash'
                 />
                 <div className='pl-6 text-red-500'>Delete</div>
             </div>
