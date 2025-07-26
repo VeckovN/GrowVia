@@ -1,4 +1,5 @@
 import { FarmerLocationInterface } from "../auth/auth.interfaces";
+import { ProductDocumentInterface } from "../product/product.interface";
 
 export interface FarmerProductsTableInterface {
     id: string,
@@ -23,12 +24,6 @@ export interface FarmerProfileInterface {
     // profileAvatarImages?: string[],
     description?: string,
     socialLinks?: { name: string, url: string }[],
-}
-
-export interface FarmerSettingsPropInterface {
-    currentPassword: string,
-    newPassword: string,
-    repeatPassword: string,
 }
 
 export interface FarmerDocumentInterface {
@@ -73,6 +68,22 @@ export interface FarmerDocumentInterface {
     createdAt?: Date | string;
     updatedAt?: Date | string;
 }
+
+export interface FarmerProductPaginationInterface { 
+    sort?: 'newest' | 'oldest' | 'available'
+    from?: number;
+    size?: number;
+    currentPage?: number;
+    totalPages?: number;
+}
+
+export interface FarmerProductsTableProps {
+    products: ProductDocumentInterface[];
+    totalProducts: number;
+    pagination: FarmerProductPaginationInterface;
+    onPaginationChange: (newPagination: Partial<FarmerProductPaginationInterface>) => void;
+}
+
 
 export interface GalleryImageInterface {
     url: string,
