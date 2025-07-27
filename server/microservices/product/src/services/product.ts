@@ -15,7 +15,6 @@ interface UserProductUpdatePropInterface {
 }
 
 const createProduct = async(product:ProductCreateInterface):Promise<ProductDocumentInterface> =>{
-    console.log("PRODUCT: ", product);
     const images = product.images as string[];
     if (!images || images.length === 0) {
         throw BadRequestError("At least one image is required", "Product Service");
@@ -81,13 +80,11 @@ const updateProduct = async(productID: string, product:ProductDocumentInterface)
     return updatedDocument;
 }
 
-
 const deleteProduct = async(productID: string):Promise<void> =>{
     await ProductModel.deleteOne({ _id:productID }).exec();
     //produce message to farmer (based on farmeriD)
     await deleteDataIndex('products', productID);
 }
-
 
 //retreiving data elasticsearch
 const getProductById = async(productID: string): Promise<ProductDocumentInterface> => {
@@ -95,15 +92,28 @@ const getProductById = async(productID: string): Promise<ProductDocumentInterfac
     return product;
 }
 
-// //using search feature to get Farmers products
-const getFarmerProducts = async(farmerID: string): Promise<ProductDocumentInterface[]> => {
-    const productsHits = await productsSerachByFarmerID(farmerID);
+const getFarmerProducts = async (
+    farmerID: string,
+    from?: number,
+    size?: number,
+    sort?: 'newest' | 'oldest' | 'available'
+): Promise<{ total: number; products: ProductDocumentInterface[]}> => {
+    const productsHits = await productsSerachByFarmerID({
+        farmerID,
+        from,
+        size,
+        sort
+    });
+
     const productsResult: ProductDocumentInterface[] = [];
     for(const product of productsHits.hits){
         productsResult.push(product._source as ProductDocumentInterface);
     }
 
-    return productsResult;
+    return {
+        products: productsResult,
+        total: productsHits.total ?? 0
+    };
 }
 
 const getProductsByCategory = async(category: string): Promise<ProductDocumentInterface[]> => {

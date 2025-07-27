@@ -15,8 +15,10 @@ async function getProductsByCategory(category: string):Promise<AxiosResponse> {
     return res;
 }
 
-async function getFarmerProductsByID(farmerID: string):Promise<AxiosResponse> {
-    const res: AxiosResponse = await productAxiosInstance.get(`/farmer/${farmerID}`);
+async function getFarmerProductsByID(farmerID: string, from?:number, size?:number, sort?: 'newest' | 'oldest' | 'available'):Promise<AxiosResponse> {
+    const res: AxiosResponse = await productAxiosInstance.get(`/farmer/${farmerID}`, {
+        params: { from, size, sort }
+    });
     return res;
 }
 
@@ -28,7 +30,6 @@ async function searchProducts(params: ProductSearchOptionsInterface ):Promise<Ax
     const res: AxiosResponse = await productAxiosInstance.get('/search', { params: queryParams });
     return res;
 }
-
 
 async function searchSimilarProducts(productID: string):Promise<AxiosResponse> {
     const res: AxiosResponse = await productAxiosInstance.get(`/search/similar/${productID}`);

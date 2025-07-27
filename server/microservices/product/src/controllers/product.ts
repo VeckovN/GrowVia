@@ -3,9 +3,7 @@ import { Request, Response } from 'express';
 import { createProduct, deleteProduct, updateProduct, getProductById, getFarmerProducts, getProductsByCategory } from '@product/services/product';
 import { getMoreSimilarProducts, getNewestProducts ,productsSearch } from '@product/services/search';
 import { z } from 'zod';
-// import { ProductCreateZodSchema, ProductUpdateZodSchema } from '@product/schema/product';
 import { ProductCreateZodSchema, ProductUpdateZodSchema } from '@product/schema/product';
-// import { sortBy } from 'lodash';
 
 const productCreate = async (req: Request, res: Response): Promise<void> => {
     try{
@@ -59,16 +57,19 @@ const productCreate = async (req: Request, res: Response): Promise<void> => {
     }
 }
 
-
 const productByID = async (req: Request, res: Response): Promise<void> => {
     const product: ProductDocumentInterface = await getProductById(req.params.productID);
     res.status(200).json({ message: "Get product by id", product });
 }
 
-// //get all products by FarmerID
 const farmerProductsByID = async (req: Request, res: Response): Promise<void> => {
-    const products: ProductDocumentInterface[] = await getFarmerProducts(req.params.farmerID);
-    res.status(200).json({ message: "Get farmer products by id", products });
+    const farmerID = req.params.farmerID as string ;
+    const from = parseInt(req.query.from as string);
+    const size = parseInt(req.query.size as string);
+    const sort = (req.query.sort as 'newest' | 'oldest' | 'available') || 'newest';
+
+    const { products, total } = await getFarmerProducts(farmerID, from, size, sort);
+    res.status(200).json({ message: "Get farmer products by id", products, total });
 }
 
 const productsByCategory = async (req: Request, res: Response): Promise<void> => {
@@ -76,34 +77,9 @@ const productsByCategory = async (req: Request, res: Response): Promise<void> =>
     res.status(200).json({ message: "Get products by category", products });
 }
 
-
-// const searchProducts = async (req: Request, res: Response): Promise<void> => {
-//     const { from, size, type } = req.params; //fron the URL -> /products/:from/:size/:type
-//     const { query, minPrice, maxPrice } = req.query; 
-//     console.log("req params: ", req.params);
-//     console.log("\n req Query: ", req.query); 
-    
-//     let productsResult: ProductDocumentInterface[] = [];
-//     const paginate:PaginatePropsInterface = { from, size: parseInt(`${size}`), type }
-//     const productsHits = await productsSearch(`${query}`, paginate, parseInt(`${minPrice}`), parseInt(`${maxPrice}`));
-//     for(const product of productsHits.hits){
-//         productsResult.push(product._source as ProductDocumentInterface);
-//     }
-//     res.status(200).json({ message: "Search products", products: productsResult });
-// }
-
-
-//refactored:
 const searchProducts = async (req: Request, res: Response): Promise<void> => {
-    console.log("req query !! :: ", req.query);
-
-    //pagination params
-    // const page = parseInt(req.query.page as string) || 1;
     const from = parseInt(req.query.from as string) || 0;
     const pageSize = parseInt(req.query.size as string) || 12;
-
-    console.log("FROM: ", from);
-    console.log("PAGE SIZE: ", pageSize);
 
     // Extract filter params
     const { 
@@ -118,7 +94,6 @@ const searchProducts = async (req: Request, res: Response): Promise<void> => {
         sort
     } = req.query;
 
-    //Test this
     // Convert comma-separated subCategories to array
     const subCategoriesArray = subCategories 
         ? (subCategories as string).split(',') 
@@ -149,10 +124,6 @@ const searchProducts = async (req: Request, res: Response): Promise<void> => {
     res.status(200).json({ message: 'Search products', products:productsResult, total:productsHits.total });
 }
 
-
-// const getProductsByCategory = async (req: Request, res: Response): Promise<void> => {
-//     //take 5
-// }
 
 const getMoreProductsLikeThis = async(req: Request, res: Response): Promise<void> => {
 

@@ -3,7 +3,16 @@ import { FieldSort, SearchResponse, SortCombinations } from "@elastic/elasticsea
 // import { SearchResultInterface, PaginatePropsInterface, ElasticQueryInterface, ProductDocumentInterface } from "@veckovn/growvia-shared";
 import { SearchResultInterface, SearchHitTotalInterface ,ProductSearchOptionsInterface } from "@veckovn/growvia-shared";
 
-const productsSerachByFarmerID = async(farmerID: string): Promise<SearchResultInterface> => {
+interface FarmerProductsQueryOptions {
+  farmerID: string;
+  from?: number;
+  size?: number;
+  sort?: 'newest' | 'oldest' | 'available'
+}
+
+const productsSerachByFarmerID = async(options: FarmerProductsQueryOptions): Promise<SearchResultInterface> => {
+    const { farmerID, from = 0, size = 10, sort = 'newest' } = options;
+
     const query = [{
         query_string:{ 
             fields: ['farmerID'],
@@ -11,17 +20,41 @@ const productsSerachByFarmerID = async(farmerID: string): Promise<SearchResultIn
         }
     }]
 
+    const sortParams: SortCombinations[] = [];
+    switch (sort) {
+        case 'newest':
+            sortParams.push({ createdAt: { order: 'desc' } });
+            break;
+        case 'oldest':
+            sortParams.push({ createdAt: { order: 'asc' } });
+            break;
+        case 'available':
+            sortParams.push(
+                { stock: { order: 'desc' } },     // in-stock first
+                { createdAt: { order: 'desc' } }  // newest next
+            );
+            break;
+        default:
+            sortParams.push('_score'); // relevance in Elasticsearch
+    }
+
     const result: SearchResponse = await client.search({
         index: 'products',
-        query: { 
+        from,
+        size,
+        sort: sortParams,
+        query: {
             bool: {
-                must: [...query] //(similar to SQL AND).
-            } 
-        }
-    })
+                must: query,
+            },
+        },
+        track_total_hits: true,
+    });
 
+    const total: SearchHitTotalInterface = result.hits.total as SearchHitTotalInterface;
     return {
         hits: result.hits.hits, 
+        total: total.value
     }
 }   
 
