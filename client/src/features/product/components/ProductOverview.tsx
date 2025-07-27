@@ -1,7 +1,7 @@
 import { FC, ReactElement, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAppDispatch } from '../../../store/store'; 
-import { useGetProductByIDQuery, useGetNewestProductsQuery } from '../product.service';
+import { useGetProductByIDQuery, useGetSimilarProductsQuery} from '../product.service';
 import LoadingSpinner from '../../shared/page/LoadingSpinner';
 import ProductsSlideList from '../../shared/productsList/ProductsSlideList';
 import { handleAddToCart } from '../../shared/utils/utilsFunctions';
@@ -23,16 +23,12 @@ const ProductOverview: FC = (): ReactElement => {
   const { data, isLoading } = useGetProductByIDQuery(id!, {
     skip: !id // skip the query if ID is not present
   });
-
-  const {data:productsData, isLoading: isProductLoading} = useGetNewestProductsQuery('8');
   
-  //IMPLEMNT THIS ("getSimilarProducts") -> parameters('similarProductID', 'limit')
-  // const {data:productsData, isLoading: isProductLoading, refetch} = useGetSimilarProductsQuery(data?.product?._id, '10'); 
-
-  console.log("Product: ", data);
-
+  const {data:productsData, isLoading: isProductLoading} = useGetSimilarProductsQuery(id!, {
+    skip: !id 
+  });
+  
   const product = data?.product;
-  console.log("get product: ", product);
 
   if (isLoading) {
     return (

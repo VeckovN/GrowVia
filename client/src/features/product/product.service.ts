@@ -45,6 +45,11 @@ export const productApi = api.injectEndpoints({
             providesTags: ['Product']
         }),
 
+        getSimilarProducts: build.query<ResponseInterface, string>({
+            query: (productID: string) => `product/search/similar/${productID}`,
+            providesTags: ['Product']
+        }),
+
         getProductsSearch: build.query<ResponseInterface, ProductSearchParamsInterface>({
             query: (paramsData) => (
                 {
@@ -71,6 +76,7 @@ export const {
     useDeleteProductMutation,
     useGetProductByFarmerIDQuery,
     useGetNewestProductsQuery,
+    useGetSimilarProductsQuery,
     useGetProductByIDQuery,
     useGetProductsSearchQuery
 } = productApi
