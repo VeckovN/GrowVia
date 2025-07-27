@@ -14,8 +14,9 @@ export const productApi = api.injectEndpoints({
                     body
                 };
             },
-            invalidatesTags: ['Product']
+            invalidatesTags: ['Product'] 
         }),
+        
         deleteProduct: build.mutation<ResponseInterface, {productID: string, farmerID: string}>({
             query({productID, farmerID}) {
                 return {
@@ -24,7 +25,6 @@ export const productApi = api.injectEndpoints({
                 };
             },
             invalidatesTags: ['Product']
-        
         }),
 
         getProductByFarmerID: build.query<ResponseInterface, { farmerID: string; from?: number; size?: number; sort?: string }>({
