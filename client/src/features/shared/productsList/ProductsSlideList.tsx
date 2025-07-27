@@ -14,8 +14,6 @@ import { Swiper, SwiperSlide } from 'swiper/react';
 import 'swiper/css';
 import 'swiper/css/navigation';
 
-
-// const ProductsSlideList: FC<SlideListInterface> = ({title}): ReactElement => {
 const ProductsSlideList: FC<SlideListInterface> = ({title, data:productsData, isLoading:isProductLoading}): ReactElement => {
     const visibleCount = useVisibleCount({
         mobile:3,
@@ -48,9 +46,7 @@ const ProductsSlideList: FC<SlideListInterface> = ({title, data:productsData, is
     // }, [isCustomer]); //on auth implementation -> re-create function on user auth action
 
     const chunkArray = <T,>(arr: T[], size: number): T[][] => {
-        //T[] = an array of items (like [1, 2, 3] if T is number)
-        //T[][] = an array of arrays (like [[1,2], [3,4]])
-        const chunks: T[][] = []; //This will hold our chunks (arrays of type T[])
+        const chunks: T[][] = []; 
         for (let i = 0; i < arr.length; i += size) {
             chunks.push(arr.slice(i, i + size));
         }
@@ -91,10 +87,6 @@ const ProductsSlideList: FC<SlideListInterface> = ({title, data:productsData, is
                 on Table view diplay 2 items  in flex-row
                 on Larger view display 4 items in flex-row as well
             */}
-            {/*max-w-[1200px] mx-auto = prevents content from stretching to wide and center it  */}
-            
-        
-
                 {isProductLoading ? 
                 (
                     <div className='mx-auto'>
@@ -121,6 +113,7 @@ const ProductsSlideList: FC<SlideListInterface> = ({title, data:productsData, is
                                             name={product.name}
                                             category={product.category}
                                             unit={product.unit}
+                                            farmerID={product.farmerID ?? '0'}
                                             farmName={product.farmName ?? 'Unknown Farm'}
                                             farmerLocation={product.farmerLocation ?? {}}
                                             price={product.price}
@@ -136,10 +129,8 @@ const ProductsSlideList: FC<SlideListInterface> = ({title, data:productsData, is
                 )
                 
                 }
-            {/* </div> */}
 
             <div className='flex justify-center mb-2 sm:hidden'> 
-                {/* <CircleArrowIconButton onClick={()=>alert("Down")}> */}
                 <CircleArrowIconButton onClick={handleNext}>
                     <GoChevronDown className='text-3xl'/>
                 </CircleArrowIconButton>

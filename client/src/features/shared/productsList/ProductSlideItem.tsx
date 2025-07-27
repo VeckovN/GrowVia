@@ -1,15 +1,20 @@
-import {FC, ReactElement } from 'react';
+import { FC, ReactElement } from 'react';
+import { useAppDispatch } from '../../../store/store';
 import { ProductItemInterface } from '../interfaces';
 import { useNavigate } from 'react-router-dom';
+import { handleAddToCart } from '../utils/utilsFunctions';
 
 import { VscHeart } from "react-icons/vsc";
 import { VscHeartFilled } from "react-icons/vsc";
+import { CartProductInterface } from '../../cart/cart.interface';
+// import { handleAddToCart } from '../utils/utilsFunctions';
 
 const ProductSlideItem: FC<ProductItemInterface> = ({
     id, 
     name, 
     category,
     unit,
+    farmerID,
     farmName,
     farmerLocation,
     price,
@@ -18,6 +23,23 @@ const ProductSlideItem: FC<ProductItemInterface> = ({
     addFavorite
 }): ReactElement => {
     const navigate = useNavigate();
+    const dispatch = useAppDispatch();
+
+    const onAddToCartHandler = ():void =>{
+    
+        const cartProduct: CartProductInterface = {
+          productID: id,
+          name: name,
+          imageUrl: image?.url,
+          price: price,
+          unit: unit,
+          quantity: 1,
+          totalPrice: price.toFixed(2),
+          // favorite?:;
+        }
+        
+        handleAddToCart(dispatch, farmerID, farmName, cartProduct)
+      }
 
     return (
         <div 
@@ -80,7 +102,13 @@ const ProductSlideItem: FC<ProductItemInterface> = ({
                         {farmerLocation.address}, {farmerLocation.city}
                     </p>
                 </div>
-                <button className='px-3 py-1 flex-shrink-0 text-sm border-2 rounded border-greyB hover:bg-grey'>
+                <button 
+                    className='px-3 py-1 flex-shrink-0 text-sm border-2 rounded border-greyB hover:bg-grey'
+                    onClick={(e) => {
+                        e.stopPropagation(); 
+                        onAddToCartHandler();
+                    }}
+                >
                     + Add
                 </button>
             </div>

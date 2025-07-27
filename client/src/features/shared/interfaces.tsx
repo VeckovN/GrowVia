@@ -100,6 +100,7 @@ export interface ProductItemInterface {
     name:string,
     category:string,
     unit: UnitType;
+    farmerID: string,
     farmName:string,
     farmerLocation:{
         country?: string,
@@ -112,6 +113,7 @@ export interface ProductItemInterface {
         url:string,
         publicID: string
     },
+    addFavorite(productID: string):void
     addFavorite(productID: string):void
 }
 
