@@ -1,39 +1,37 @@
 import { FC } from 'react';
 import { useAppDispatch } from '../../../store/store';
 import { CartFarmerGroupInterface } from '../cart.interface';
-import { removeProduct, increaseProduct, decreaseProduct } from '../cart.reducers';
 import CartDropdownProduct from './CartDropdownProduct';
+import { handleCartItemIncrease, handleCartItemDecrease, handleRemoveCartItem } from '../../shared/utils/utilsFunctions';
 
 interface CartDropdownProps {
     cart: CartFarmerGroupInterface[];
     closeCartDropdown?: () => void;
 }
 
+//COMMIT: use utility cart function for adding,increaseing descreasiong and removing products
+
 const CartDropdown: FC<CartDropdownProps> = ({cart, closeCartDropdown }) => {
     const dispatch = useAppDispatch();
 
     const onIncreaseProduct = (farmerID: string, productID: string):void => {
-        dispatch(increaseProduct({farmerID, productID}));
+        handleCartItemIncrease(dispatch, farmerID, productID);
     }
 
     const onDecreseProduct = (farmerID: string, productID: string):void => {
-        dispatch(decreaseProduct({farmerID,productID}))
+        handleCartItemDecrease(dispatch, farmerID, productID);
     }
 
     const onRemoveProduct = (farmerID: string, productID: string):void => {
-        dispatch(removeProduct({farmerID, productID}));
+        handleRemoveCartItem(dispatch, farmerID, productID);
     }
 
     const getTotalAmount = (farmerID: string):number => {
         const totalAmount = cart?.find(el => el.farmerID === farmerID)?.products
             .reduce((sum, product) => sum + product.quantity * product.price, 0) ?? 0;
 
-        return Number(totalAmount.toFixed(2)); //toFixed returns a string, so explicit parsing to number is necessary
+        return Number(totalAmount.toFixed(2));
     }
-
-    console.log("CartDropdown cart: ", cart);
-    //or take it as prop
-    // const cart = useAppSelector((state: ReduxStateInterface) => state.cart)
 
     return (
         <div className='w-full flex flex-col'>
@@ -54,16 +52,16 @@ const CartDropdown: FC<CartDropdownProps> = ({cart, closeCartDropdown }) => {
            </div>
 
            <div className='w-full flex flex-col gap-y-1'>
-                {cart.length > 1
+                {cart.length > 0
                     ?
-                        cart.slice(0,2).map(data => ( //Farmers by group
+                        cart.map(data => (
                         <div className='w-full border-t-2 border-greyB' key={data.farmerID}>
                             <div className='p-1 px-2'>
                                 <p> Farmer: <span className='font-semibold'>{data.farmName}</span></p>
                             </div>
 
                             <div className='w-full max-w-screen-mda mx-autoa'>
-                                {data.products.slice(0,4).map(product => (
+                                {data.products.map(product => (
                                     <CartDropdownProduct 
                                         product={product}
                                         farmerID={data.farmerID!}

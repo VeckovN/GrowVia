@@ -1,28 +1,31 @@
 import { FC, ReactElement, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-// import { useGetProductByIDQuery, useGetSimilarProductsQuery } from '../product.service';
+import { useAppDispatch } from '../../../store/store'; 
 import { useGetProductByIDQuery, useGetNewestProductsQuery } from '../product.service';
 import LoadingSpinner from '../../shared/page/LoadingSpinner';
 import ProductsSlideList from '../../shared/productsList/ProductsSlideList';
+import { handleAddToCart } from '../../shared/utils/utilsFunctions';
 
 import { VscHeart } from "react-icons/vsc";
 import { VscHeartFilled } from "react-icons/vsc";
 
 import Breadcrumbs from '../../shared/page/Breadcrumbs';
 import TestImg from '../../../assets/farmers/avatar1.jpg';
-import { BreadcrumbsPropsInterface } from '../../shared/interfaces';
+import { CartProductInterface } from '../../cart/cart.interface';
+import { ProductDocumentInterface } from '../product.interface';
 
 const ProductOverview: FC = (): ReactElement => {
   const navigate = useNavigate();
+  const dispatch = useAppDispatch();
   const { id } = useParams(); //get id from 'page url'
   const [amount, setAmount] = useState(1);
 
-  // If `id` might be undefined, pass it only when it's available
   const { data, isLoading } = useGetProductByIDQuery(id!, {
     skip: !id // skip the query if ID is not present
   });
 
-  const {data:productsData, isLoading: isProductLoading, refetch} = useGetNewestProductsQuery('8');
+  const {data:productsData, isLoading: isProductLoading} = useGetNewestProductsQuery('8');
+  
   //IMPLEMNT THIS ("getSimilarProducts") -> parameters('similarProductID', 'limit')
   // const {data:productsData, isLoading: isProductLoading, refetch} = useGetSimilarProductsQuery(data?.product?._id, '10'); 
 
@@ -60,9 +63,21 @@ const ProductOverview: FC = (): ReactElement => {
     }
   ]
 
-  const onAddToCartHandler = ():void => {
-  // const onAddToCartHandler = ():Promise<void> => {
+  const onAddToCartHandler = (farmerID: string, farmName: string, product:ProductDocumentInterface ):void =>{
+    const totalPriceNumber = Number(product.price * amount).toFixed(2);
 
+    const cartProduct: CartProductInterface = {
+      productID: product.id ?? '0',
+      name: product.name,
+      imageUrl: product.images?.[0]?.url ?? '',
+      price: product.price,
+      unit: product.unit,
+      quantity: amount,
+      totalPrice: totalPriceNumber,
+      // favorite?:;
+    }
+    
+    handleAddToCart(dispatch, farmerID, farmName, cartProduct)
   }
 
   return (
@@ -79,7 +94,7 @@ const ProductOverview: FC = (): ReactElement => {
           <div className='w-full mx-auto'>
             <div className='w-full'>
               <img
-                className="w-full object-cover rounded border border-gray-300 p-3"
+                className="w-full max-h-[16rem] w-[60%]a  object-cover rounded border border-gray-300 p-3"
                 src={product?.images ? product?.images[0].url : TestImg}
               />
             </div>
@@ -90,7 +105,7 @@ const ProductOverview: FC = (): ReactElement => {
                 product.images.slice(1).map((el, index) => (
                   <img
                     key={el.publicID}
-                    className="w-fulla w-[85%] aspect-squarea object-cover border border-gray-300 rounded p-1"
+                    className="w-fulla w-[85%] max-h-[5.5rem] aspect-squarea object-cover border border-gray-300 rounded p-1"
                     // className="p-1 w-16 h-16 object-cover border border-gray-300 rounded"
                     src={el.url}
                     alt={`Product image ${index}`}
@@ -153,7 +168,11 @@ const ProductOverview: FC = (): ReactElement => {
 
                 <button 
                   className='bg-green6 text-white text-sm py-1 px-6 rounded ml-5 hover:bg-green7' 
-                  onClick={onAddToCartHandler}
+                  // onClick={onAddToCartHandler(product?.farmerID!, product?.farmName!, product!)}
+                  onClick={(e) =>{
+                    e.stopPropagation();
+                    onAddToCartHandler(product?.farmerID!, product?.farmName!, product!)
+                  }}
                 >
                   Add to Cart
                 </button>
@@ -175,8 +194,6 @@ const ProductOverview: FC = (): ReactElement => {
                 <div className=''>
                   <img 
                     className='w-28 h-20 rounded-md object-cover'
-                    //for test (the farmerAvatar missing for now)
-                    // src={TestImg}
                     src={product?.farmerAvatar?.url ?? TestImg}
                   />
                 </div>

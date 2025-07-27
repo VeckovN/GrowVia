@@ -4,12 +4,13 @@ import { addProduct } from "../../cart/cart.reducers";
 import { MarketListInterface } from "../market.interface";
 import ProductMarketCard from "../../product/components/ProductMarketCard";
 import { CartProductInterface } from "../../cart/cart.interface";
+import { handleAddToCart } from "../../shared/utils/utilsFunctions";
 
 const MarketList:FC<MarketListInterface> = ({mode, items=[]}):ReactElement => {
     const dispatch = useAppDispatch();
 
     const onAddToCart = (farmerID: string, farmName: string, product:CartProductInterface ):void =>{
-        dispatch(addProduct({farmerID, farmName, product}));   
+        handleAddToCart(dispatch, farmerID, farmName, product);
     }
 
     return (
