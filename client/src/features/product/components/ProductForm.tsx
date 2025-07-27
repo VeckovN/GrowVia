@@ -12,20 +12,12 @@ import { ProductFormInterface } from '../../product/product.interface';
 import uploadImage from '../../../assets/upload.svg';
 import LoadingSpinner from '../../shared/page/LoadingSpinner';
 
-import { useCreateProductMutation, useGetProductByFarmerIDQuery } from '../../product/product.service'; 
+import { useCreateProductMutation } from '../../product/product.service'; 
 
-const ProductForm = ({mode, initialData, farmerID, farmName, farmerLocation, onCloseModal, refetchProducts}:ProductFormInterface) => {
+const ProductForm = ({mode, initialData, farmerID, farmName, farmerLocation, farmerAvatar, onCloseModal, refetchProducts}:ProductFormInterface) => {
     const categories = productCategories.map(prod => ({value:prod.name, label: prod.name}));
     const units = UNIT_TYPES.map(unit => ({value:unit, label: unit})); 
-    console.log("FARMERID: ", farmerID); 
-    console.log("FarmerID type: ", typeof(farmerID));
 
-    console.log("INITAL DATA:" ,initialData);
-
-    console.log("farmName:" ,farmName);
-    console.log("farmerLocation:" ,farmerLocation);
-    
-    
     const defaultValues = {
         name: '',
         description: '',
@@ -34,13 +26,12 @@ const ProductForm = ({mode, initialData, farmerID, farmName, farmerLocation, onC
         subCategories: [],
         price: null,
         stock: null,
-        // unit: UNIT_TYPES,
         unit: null,
         tags: [],
         // images:[],
     }
 
-    const [userData, setUserData] = useState<Omit<CreateProductInterface, 'farmerID' | 'farmName' | 'farmerLocation'>>({
+    const [userData, setUserData] = useState<Omit<CreateProductInterface, 'farmerID' | 'farmName' | 'farmerLocation' | 'farmerAvatar'>>({
         ...defaultValues,
         ...initialData, // Will override defaults if provided (for Edit Form)
     });
@@ -50,11 +41,6 @@ const ProductForm = ({mode, initialData, farmerID, farmName, farmerLocation, onC
     const [previewUrls, setPerviewUrls] = useState<string[]>([]);
     
     const [createProduct, { isLoading }] = useCreateProductMutation();
-    const { data } = useGetProductByFarmerIDQuery(farmerID);
-
-    console.log("\n data: ", data);
-
-    console.log("userDATA: ", userData);
 
     const resetUserData = ():void =>{
         setUserData(defaultValues);
@@ -66,17 +52,13 @@ const ProductForm = ({mode, initialData, farmerID, farmName, farmerLocation, onC
             ...userData,
             farmerID: farmerID.toString(), //Product service expect string as farmerID
             farmName,
-            farmerLocation,
+            // farmerLocation,
             subCategories: selectedSubCategories, //seperated state 
             images: previewUrls,
             tags: selectedSubCategories
         } 
     });
     const [actionError, setActionError] = useState<string>('');
-
-    console.log("ValidatinErrors: ", validationErrors);
-    //UseEffect(On mount the fetch subcategories should be passed to 'selectedSubCategories)
-    console.log("\n userDatA: ", userData);
 
     const getBorderErrorStyle = (field: string): string =>{
         if(actionError || validationErrors[field])
@@ -85,7 +67,6 @@ const ProductForm = ({mode, initialData, farmerID, farmName, farmerLocation, onC
             return '';
     }
 
-    //fro all others filds insatea of subCategories and Images
     const handleChanges = (e: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
         setUserData(prev => ({
@@ -145,8 +126,6 @@ const ProductForm = ({mode, initialData, farmerID, farmName, farmerLocation, onC
             const filesArray = Array.from(target.files);
     
             for( const file of filesArray) {
-                // const base64 = await readAsBase64(file); 
-                // newBase64Images.push(base64 as string);
                 newFiles.push(file);
                 newPreviewUrls.push(URL.createObjectURL(file))
             }
@@ -195,6 +174,7 @@ const ProductForm = ({mode, initialData, farmerID, farmName, farmerLocation, onC
                 farmerID: farmerID.toString(),
                 farmName,
                 farmerLocation,
+                farmerAvatar,
                 images: imageBase64Strings as string[],
                 tags: selectedSubCategories,
             }
@@ -202,7 +182,9 @@ const ProductForm = ({mode, initialData, farmerID, farmName, farmerLocation, onC
             await createProduct(createData).unwrap();
             onCloseModal();
             resetUserData();
+
             await refetchProducts?.();
+
             toast.success("Successfully product created")
         }
         catch(err){
@@ -223,14 +205,10 @@ const ProductForm = ({mode, initialData, farmerID, farmName, farmerLocation, onC
                 toast.error("Please fix the form errors");
                 return
             }
-
             // const editData ={
-                
             // }
-
             // const result = await updateProduct(editData).unwrap();
             // console.log("result");
-
             toast.success("Successfully product updated")
 
         }
@@ -246,7 +224,7 @@ const ProductForm = ({mode, initialData, farmerID, farmName, farmerLocation, onC
     }
 
     return (
-        <div className=' px-10 py-4 flex flex-col gap-8 bg-white'>
+        <div className='px-10 py-4 flex flex-col gap-8 bg-white'>
             <div className='flex justify-between mb-2'>
                 <h2 className='text-xl font-medium'>
                     {`${mode === 'create' ?'AddProduct' : 'EditProduct'}`}
