@@ -2,23 +2,18 @@ import { FC, ReactElement, useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useGetFarmerByIDQuery } from '../farmer.service';
 import { useGetProductByFarmerIDQuery } from '../../product/product.service';
-// import { useGetProductByIDQuery, useGetNewestProductsQuery } from '../product.service';
 import LoadingSpinner from '../../shared/page/LoadingSpinner';
 import ProductsSlideList from '../../shared/productsList/ProductsSlideList';
 import SocialLinks from '../../shared/user/SocialLinks';
 import FarmerGalleryGrid from './FarmerGalleryGrid';
 import { SOCIAL, farmerGalleryImages } from '../../shared/utils/data';
 
-import Breadcrumbs from '../../shared/page/Breadcrumbs';
-import TestImg from '../../../assets/farmers/avatar1.jpg';
-
 const FarmerOverview: FC = (): ReactElement => {
     const { id } = useParams()
 
     const {data:farmerData, isLoading:isFarmerLoaded} = useGetFarmerByIDQuery(id as string);
-    const {data:productsData, isLoading:isProductLoading} = useGetProductByFarmerIDQuery(id as string);
+    const {data:productsData, isLoading:isProductLoading} = useGetProductByFarmerIDQuery({farmerID:id as string, from:0, size:8});
     const farmer = farmerData?.farmer;
-    console.log("get farmer by id: ", farmer);
     const [socialLinks, setSocialLinks] = useState<Array<{name:string, url:string}>>([]);
 
     useEffect(() =>{
@@ -39,9 +34,9 @@ const FarmerOverview: FC = (): ReactElement => {
     if (isFarmerLoaded) {
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-white ">
-        <div className="text-xl font-semibold">
-            <LoadingSpinner spinnerClassName='text-gray-800' />
-        </div>
+            <div className="text-xl font-semibold">
+                <LoadingSpinner spinnerClassName='text-gray-800' />
+            </div>
         </div>
     );
     }
