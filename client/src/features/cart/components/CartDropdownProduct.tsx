@@ -4,7 +4,7 @@ import { CartDropdownProductInterface } from '../cart.interface';
 import { VscHeart } from "react-icons/vsc";
 import { VscHeartFilled } from "react-icons/vsc";
 
-
+//COMMIT: refactor: fix total amount for selected product on cart based on amount and price
 const CartDropdownProduct:FC<CartDropdownProductInterface> = ({product, farmerID, onIncreaseProduct, onDecreseProduct, onRemoveProduct}) => {
 
     return (
@@ -34,7 +34,6 @@ const CartDropdownProduct:FC<CartDropdownProductInterface> = ({product, farmerID
                         '
                         onClick={(e) => {
                             e.stopPropagation();
-                            // onRemoveProduct(data.farmerID!, product.productID)
                             onRemoveProduct(farmerID, product.productID)
                         }}
 
@@ -84,7 +83,7 @@ const CartDropdownProduct:FC<CartDropdownProductInterface> = ({product, farmerID
                 </div>
 
                 <h4 className='text-center  font-semibold mr-1'>
-                    ${product.price}
+                    ${(product.price * product.quantity).toFixed(2)}
                 </h4>
             </div>
         </div>
