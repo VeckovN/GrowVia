@@ -164,7 +164,11 @@ const Header: FC = (): ReactElement => {
                                         flex fixed top-0 right-0  h-screen w-screen bg-white  
                                         sm:w-[80%] md:w-[60%]a max-w-[550px] overflow-y-auto z-50
                                     `}>
-                                    <CartDropdown cart={cartData} closeCartDropdown={onCloseCartDropdown}/>
+                                    <CartDropdown
+                                        isCustomer={isCustomer} 
+                                        cart={cartData} 
+                                        closeCartDropdown={onCloseCartDropdown}
+                                    />
                                 </div>
                             </div>
 

@@ -1,17 +1,19 @@
 import { FC } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAppDispatch } from '../../../store/store';
 import { CartFarmerGroupInterface } from '../cart.interface';
 import CartDropdownProduct from './CartDropdownProduct';
 import { handleCartItemIncrease, handleCartItemDecrease, handleRemoveCartItem } from '../../shared/utils/utilsFunctions';
+import toast from 'react-hot-toast';
 
 interface CartDropdownProps {
+    isCustomer: boolean;
     cart: CartFarmerGroupInterface[];
     closeCartDropdown?: () => void;
 }
 
-//COMMIT: use utility cart function for adding,increaseing descreasiong and removing products
-
-const CartDropdown: FC<CartDropdownProps> = ({cart, closeCartDropdown }) => {
+const CartDropdown: FC<CartDropdownProps> = ({isCustomer, cart, closeCartDropdown }) => {
+    const navigate = useNavigate();
     const dispatch = useAppDispatch();
 
     const onIncreaseProduct = (farmerID: string, productID: string):void => {
@@ -31,6 +33,15 @@ const CartDropdown: FC<CartDropdownProps> = ({cart, closeCartDropdown }) => {
             .reduce((sum, product) => sum + product.quantity * product.price, 0) ?? 0;
 
         return Number(totalAmount.toFixed(2));
+    }
+
+    const handleMakeOrder =(farmerID: string):void =>{
+        if(!isCustomer) {
+            toast.error('You must be logged in to order');
+            return;
+        }
+
+        navigate(`/order/${farmerID}`);
     }
 
     return (
@@ -79,10 +90,12 @@ const CartDropdown: FC<CartDropdownProps> = ({cart, closeCartDropdown }) => {
                                     </div>
 
                                     <div className=''>
-                                        <button className='
-                                            px-4 py-2 text-white text-sm bg-green6 rounded
-                                            hover:bg-green7 hover:font-medium
+                                        <button 
+                                            className='
+                                                px-4 py-2 text-white text-sm bg-green6 rounded
+                                                hover:bg-green7 hover:font-medium
                                             '
+                                            onClick={() => handleMakeOrder(data.farmerID!)}
                                         >
                                             Make Order
                                         </button>
