@@ -1,6 +1,12 @@
  //Endopoint for host of ApiGateway
-@baseUrl = http://localhost:4000  
+# @baseUrl = http://localhost:4000  
+@baseUrl = http://growvia.com  
 @urlPath = api/gateway/v1/auth
+
+GET {{baseUrl}}/gateway-health
+Content-Type: application/json
+Accept: application/json
+withCredentials:true
 
 
 //Post Request to -> http://localhost:4002/app/v1//auth/signup
@@ -81,16 +87,16 @@
 #withCredentials:true
 
 
-PUT {{baseUrl}}/{{urlPath}}/change-password
-Content-Type: application/json
-Accept: application/json
-withCredentials:true
+# PUT {{baseUrl}}/{{urlPath}}/change-password
+# Content-Type: application/json
+# Accept: application/json
+# withCredentials:true
 
-//This post request requires data to be passed to the body (object)
-//but userID will be get throught currentUser.id -> Logged User
-{   
-    "newPassword": "novak13"   
-}
+# //This post request requires data to be passed to the body (object)
+# //but userID will be get throught currentUser.id -> Logged User
+# {   
+#     "newPassword": "novak13"   
+# }
 
 
 # @token = 852b3edfffd5b9fc551ad405b01854a9b2a1f45a79809b56fc5c517ee24fb971

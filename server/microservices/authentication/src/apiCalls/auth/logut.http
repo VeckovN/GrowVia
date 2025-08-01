@@ -1,0 +1,13 @@
+@baseUrl = http://localhost:4000  
+# @baseUrl = http://growvia.com  
+@urlPath = api/gateway/v1/auth
+
+
+POST {{baseUrl}}/{{urlPath}}/signout
+Content-Type: application/json
+Accept: application/json
+withCredentials:true
+
+
+{
+}

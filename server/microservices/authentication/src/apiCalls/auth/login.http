@@ -1,4 +1,5 @@
 @baseUrl = http://localhost:4000  
+# @baseUrl = http://growvia.com  
 @urlPath = api/gateway/v1/auth
 
 
@@ -22,12 +23,14 @@ withCredentials:true
 //This post request requires data to be passed to the body (object)
 {
     //"usernameOrEmail": "sara22",
-    "usernameOrEmail": "Ilse1016",
+    //"usernameOrEmail": "Novak",
+    "usernameOrEmail": "Sara",
     //"usernameOrEmail": "veckov",
     //"usernameOrEmail": "veckov@gmail.com",
 
     //new password after password update 
     //"password": "sara22"
-    "password": "seedPassword"
+    //"password": "novak"
+    "password": "sara"
     //"password": "veckov"
 }

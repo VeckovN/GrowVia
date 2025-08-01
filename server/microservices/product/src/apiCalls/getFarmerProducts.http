@@ -1,8 +1,9 @@
-@baseUrl = http://localhost:4000 
+# @baseUrl = http://localhost:4000 
+@baseUrl = http://growvia.com
 @urlPath = api/gateway/v1/product
 
 ///:farmerID
-GET {{baseUrl}}/{{urlPath}}/farmer/67cb27a235755eb9cadaba94
+GET {{baseUrl}}/{{urlPath}}/farmer/67efef6df05ab61dc2325961
 Content-Type: application/json
 Accept: application/json
 withCredentials:true
