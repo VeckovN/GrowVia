@@ -55,6 +55,9 @@ const updateFarmerDataByID = async(farmerID: string, farmerData:FarmerDocumentIn
     //for example if i pass location: "address" it replace whole location obj with ony that prop
     //won't be override and all other location props will be lost
     
+
+    //TODO: Update exsiting prpfileAvatar and backgroundImage ->
+    //with farmerData.profileAvatarFile and farmerData.backgroundImageFile
     const updatedUser = FarmerModel.findOneAndUpdate(
         { userID: farmerID },
         {
@@ -74,6 +77,7 @@ const updateFarmerDataByID = async(farmerID: string, farmerData:FarmerDocumentIn
         },
         { new: true }
     );
+
 
     if (!updatedUser) return null; 
     

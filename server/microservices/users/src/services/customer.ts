@@ -29,7 +29,6 @@ const getCustomerByEmail = async(email: string): Promise<CustomerDocumentInterfa
 // }
 
 const updateCustomerDataByID = async(customerID: string, customerData:CustomerDocumentInterface) =>{
-    // const existingCustomerData: CustomerDocumentInterface | null = await CustomerModel.findOne({ _id:customerID }).exec();
     const existingCustomerData: CustomerDocumentInterface | null = await CustomerModel.findOne({ userID:customerID }).exec();
     console.log("ExistingCUstomerDatA: ", existingCustomerData);
 
@@ -38,9 +37,9 @@ const updateCustomerDataByID = async(customerID: string, customerData:CustomerDo
     }
 
     let newProfileAvatar = existingCustomerData.profileAvatar ?? { url: "", publicID: "" };
-    if(customerData.profileAvatarFile && customerData.profileAvatar?.publicID){
+    if(customerData.profileAvatarFile){
         try{
-            const { imageUrl } = await updateImageInCloudinary(customerData.profileAvatarFile, customerData.profileAvatar.publicID);
+            const { imageUrl } = await updateImageInCloudinary(customerData.profileAvatarFile, newProfileAvatar.publicID);
             newProfileAvatar = {
                 url: imageUrl,
                 publicID: newProfileAvatar.publicID 
@@ -61,8 +60,6 @@ const updateCustomerDataByID = async(customerID: string, customerData:CustomerDo
                 email: customerData.email, 
                 fullName: customerData.fullName, 
                 location: customerData.location, 
-                // profilePicture: newProfilePicture,
-                // profileImage: newProfileImage,
                 profileAvatar: newProfileAvatar,
                 purchasedProducts: customerData.purchasedProducts,
                 wishlist: customerData.wishlist, 
@@ -72,9 +69,10 @@ const updateCustomerDataByID = async(customerID: string, customerData:CustomerDo
         },
         { new: true } //return new updated document
     );
+
+    console.log("Returned User: ", updatedUser);
+
     return updatedUser;
-
-
 }
 
 const updateCustomerWishlist = async(customerID: string, productID: string, action: 'add' | 'remove'):Promise<void> =>{
@@ -119,31 +117,3 @@ export {
     updateCustomerSavedFarmers,
     updateCustomerOrderHistory
 }
-
-
-
-
-
-// So that means i should have for all farmers' images?
-// xport interface FarmerDocumentInterface {
-//     userID?: string;
-//     username?: string;
-//     email?: string;
-
-//     profilePicture?: string;
-//     profilePublicID?: string;
-
-//     profileAvatar?: {
-//         url: string,
-//         publicID: string,
-//     };
-//     backgroundImage?: {
-//         url: string,
-//         publicID: string,
-//     };
-//     profileImages?: [
-//         {
-//             url: string,
-//             publicID: string,
-//         }
-//     ];
