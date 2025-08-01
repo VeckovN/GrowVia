@@ -66,7 +66,7 @@ const authUserTable = `
         IF NOT EXISTS (SELECT FROM information_schema.views 
                     WHERE table_name = 'auths_user_without_password') THEN
             CREATE VIEW public.auths_user_without_password AS
-                SELECT id, username, email, verificationEmailToken, 
+                SELECT id, username, email, userType, verificationEmailToken, 
                     resetPasswordToken, expiresResetPassword, createdAt
                 FROM public.auths;
         END IF;
