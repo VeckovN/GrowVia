@@ -4,7 +4,7 @@ import { Channel} from 'amqplib';
 import { config } from '@users/config';
 import { createConnection } from "@users/rabbitmqQueues/rabbitmq";
 
-const log:Logger = winstonLogger(`${config.ELASTICSEARCH_URL}`, 'authenticationRabbitMQProducer', 'debug');
+const log:Logger = winstonLogger(`${config.ELASTICSEARCH_URL}`, 'userRabbitMQProducer', 'debug');
 
 export async function publishMessage(channel:Channel, exchangeName:string, routingKey:string, logMessage:string, message:string):Promise<void> {
     try{
