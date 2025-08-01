@@ -22,7 +22,8 @@ async function AuthEmailConsumer(channel: Channel): Promise<void> {
             const {template, receiverEmail, username, verifyLink, resetLink} = JSON.parse(msg!.content.toString());
             
             const locals: EmailLocalsInterface = {
-                // appLink: `${config.CLIENT_URL}`, //app link is client URL (app link)
+                appLink: `${config.CLIENT_URL}`, //app link is client URL (app link)
+                appIcon: `https://res.cloudinary.com/dqloq0g97/image/upload/v1749724665/LogoIcon_xkmuzp.svg`,
                 username,
                 verifyLink,
                 resetLink

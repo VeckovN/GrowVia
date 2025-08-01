@@ -1,20 +1,55 @@
 <div>
-    <div></div>
-    
-    <div style="height: 100%; width: 100%; margin: 0 ; padding: 0 ">
-        <p>
-            Hi <%= username %><br /> Forgot Password Form
-        </p>
-        <div>
-            Reset your password by following given link:
-        </div>
-        </br>
-        <div> Reset Link:
-        <a
-            href="<%= resetLink %>"
-            style="font-weight: normal; line-height: 1.5em; text-align: center; text-decoration: none; color: #ffffff; display: block;"
-        >
-        </div>
-    </div>
-
+  <div style="max-width: 600px; margin: 0 auto; font-family: 'Helvetica Neue', Arial, sans-serif;">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #EAF7E9;">
+      <tr>
+        <td align="center" style="padding: 30px 0;">
+          <table border="0" cellpadding="0" cellspacing="0" width="90%" style="background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); border: 1px solid #D5F0D3;">
+            <!-- Header with Logo -->
+            <tr>
+              <td align="center" style="padding: 40px 0 20px 0;">
+                <a href="<%= appLink %>" target="_blank">
+                    ICON
+                </a>
+              </td>
+            </tr>
+            
+            <!-- Title -->
+            <tr>
+              <td align="center" style="padding: 0 40px 20px 40px;">
+                <h1 style="color: #1B6B16; font-size: 22px; font-weight: 600; margin: 0;">Reset Your Farm Marketplace Password</h1>
+              </td>
+            </tr>
+            
+            <!-- Content -->
+            <tr>
+              <td style="padding: 0 40px 20px 40px; color: #4a5568; font-size: 15px; line-height: 1.5;">
+                <p>Hello <strong style="color: #248E1D;"><%= username %></strong>,</p>
+                <p>We received a request to reset your Farm Marketplace account password. To grow a new password (just like our crops!), please click below:</p>
+                
+                <!-- Reset Button -->
+                <div style="margin: 30px 0;">
+                  <a href="<%= resetLink %>" 
+                     style="background-color: #2DB224; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; font-weight: 500; display: inline-block; transition: background-color 0.2s;" 
+                     onmouseover="this.style.backgroundColor='#248E1D'" 
+                     onmouseout="this.style.backgroundColor='#2DB224'">
+                    Grow New Password
+                  </a>
+                </div>
+                
+                <p>Or copy and paste this link into your browser:</p>
+                <p style="word-break: break-all; background-color: #EAF7E9; padding: 10px; border-radius: 4px; border-left: 3px solid #ABE0A7;">
+                  <a href="<%= resetLink %>" style="color: #1B6B16; text-decoration: none;"><%= resetLink %></a>
+                </p>
+                
+                <p style="margin-top: 25px; color: #718096; font-size: 14px; border-top: 1px solid #D5F0D3; padding-top: 15px;">
+                  <em>This link will expire in 1 hour for security reasons. If you didn't request this password reset, please ignore this email - our farm security is on it!</em>
+                </p>
+              </td>
+            </tr>
+            
+          </table>
+        </td>
+      </tr>
+    </table>
+  </div>
 </div>
