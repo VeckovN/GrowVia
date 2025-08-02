@@ -16,6 +16,7 @@ import SignUp from './features/auth/components/SignUp';
 import ForgotPassword from './features/auth/components/ForgotPassword';
 import ResetPassword from './features/auth/components/ResetPassword';
 import ConfirmEmail from './features/auth/components/ConfirmEmail';
+import Order from './features/order/pages/Order';
 import Settings from './features/shared/user/Settings';
 
 import FarmerDashboard from './features/farmer/components/FarmerDashboard';
@@ -30,7 +31,6 @@ import { ModalProvider } from './features/shared/context/ModalContext';
 
 const AppRouter: FC = () => {
     const routes: RouteObject[] = [
-        //Main Layout
         {
             path: '/',
             element: <MainLayout> <Index/> </MainLayout>
@@ -72,6 +72,7 @@ const AppRouter: FC = () => {
             path: '/reset-password',
             element: <MainLayout authPage={true}> <ResetPassword/> </MainLayout>
         },
+        
         //for logged users
         { //When user click on "change Password" on received mail
             path: '/confirm-email',
@@ -81,6 +82,16 @@ const AppRouter: FC = () => {
                 </RequireAuthRoute>
             )
             // element: <MainLayout authPage={true}> <ConfirmEmail/> </MainLayout>
+        },
+        { 
+            path: '/order/:farmerID',
+            element: (
+                <RequireAuthRoute allowedRoles={['customer']}>
+                    <MainLayout >
+                        <Order/>
+                    </MainLayout>
+                </RequireAuthRoute>
+            )
         },
         {
             path: '/farmer',
