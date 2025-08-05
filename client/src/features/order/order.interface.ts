@@ -1,10 +1,11 @@
 import { ChangeEvent } from "react";
 import { CartFarmerGroupInterface } from "../cart/cart.interface";
+import { AuthUserInterface } from "../auth/auth.interfaces";
 import { ValidationErrorMap } from "../shared/hooks/useSchemaValidation";
 
 // export type PaymentType = 'cod' | 'stripe';
 //visa or master are stripe supported
-export type PaymentType = 'cod' | 'visa' | 'master' ;
+export type PaymentType = 'cod' | 'stripe' ;
 export type CardType = 'visa' | 'master';
 
 export interface OrderDataInterface {
@@ -64,12 +65,13 @@ export interface OrderSummaryInterface {
 
 export interface CardPaymentDataInterface {
     email: string,
-    cardNumber: string;
-    date: string; //consider Date type
-    cvv: string;
+    // cardNumber: string;
+    // date: string; //consider Date type
+    // cvv: string;
     country: string; 
     total: number;
-    cardType: CardType | null; //only visa and master from PaymentType 
+    // cardType: CardType | null;
+    paymentMethodID: string;
 
     //on payment response we should go *i think we got this dirreclty from stripe?
     // payment_intent_id
@@ -86,14 +88,13 @@ export interface OrderPaymentInterface {
     setPaymentData: React.Dispatch<React.SetStateAction<CardPaymentDataInterface>>;
     validationErrorData: ValidationErrorMap;
     handlePreviousStep: () => void;
-    handlePaymentOrderRequest: () => Promise<void>;
+    handlePaymentOrderRequest: (paymentMethodID: string) => Promise<void>;
 }
 
 export interface OrderProductsListPropsInterface {
     cartData: CartFarmerGroupInterface;
     isCheckout: boolean; 
 }
-
 
 
 //FOR API BODY REQUEST
@@ -104,7 +105,7 @@ export interface OrderItemRequestInterface {
     total_price: number;
 }
 
-export interface OrderRequestBody {
+export interface OrderRequestBodyInterface {    
     customer_id: string;
     customer_username: string;
     customer_email: string;
@@ -113,13 +114,25 @@ export interface OrderRequestBody {
     farmer_email: string;
     invoice_id: string;
     total_price: number;
-    payment_status: 'pending';
+    payment_status?: 'pending';
     order_status: 'pending';
-    payment_type: PaymentType;
-    payment_intent_id?: string;
+    payment_type: 'cod' | 'stripe';
+    // payment_intent_id?: string; //NOT USED ON FRONTEND
     payment_method_id?: string;
-    payment_method?: string;
+    billing_address?: string;
     shipping_address: string;
     tracking_url?: string;
     orderItems: OrderItemRequestInterface[];
+}
+
+// Extracts only {id, email, username} from AuthUserInterface (Redux-auth user)
+// Stays in sync with AuthUserInterface if those fields change
+export type MinimalUserInterface = Pick<AuthUserInterface, 'id' | 'username' | 'email'>
+
+export interface OrderCreateDataInterface {
+    orderData: OrderDataInterface;
+    paymentData: CardPaymentDataInterface;
+    cartData: CartFarmerGroupInterface;
+    // Basic user info from Redux-auth user
+    userData: MinimalUserInterface
 }
