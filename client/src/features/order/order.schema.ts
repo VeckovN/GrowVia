@@ -34,33 +34,20 @@ const orderDeliveryDetailsSchema: ObjectSchema<OrderDataInterface> = object({
     .required('Email is required')
     .email('Invalid email format'),
 
-    paymentMethod: mixed<'cod' | 'visa' | 'master'>()
-    .oneOf(['cod', 'visa', 'master'], 'Select a valid payment method')
+    paymentMethod: mixed<'cod' | 'stripe'>()
+    .oneOf(['cod', 'stripe'], 'Select a valid payment method')
     .required('Payment method is required')
 });
 
-const paymentDetailsSchema: ObjectSchema<CardPaymentDataInterface> = object({
+const paymentDetailsSchema: ObjectSchema<Pick<CardPaymentDataInterface, 'email' | 'country'>> = object({
     
     email: string()
     .required('Email is required')
     .email('Invalid email format'),
 
-    cardNumber: string()
-        .required('Card number is required')
-        .matches(/^\d{16}$/, 'Card number must be 16 digits'),
-
-    date: string()
-        .required('Expiration date is required')
-        .matches(/^(0[1-9]|1[0-2])\/?([0-9]{2})$/, 'Date must be in MM/YY format'),
-
-    cvv: string()
-        .required('CVV is required')
-        .matches(/^\d{3,4}$/, 'CVV must be 3 or 4 digits'),
-
     country: string()
         .required('Country is required')
         .min(2, 'Country must be at least 2 characters'),
-
 });
 
 

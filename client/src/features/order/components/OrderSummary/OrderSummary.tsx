@@ -7,18 +7,12 @@ import stripeCardIcon from '../../../../assets/paymentCards/Stripe.svg';
 
 const OrderSummary:FC<OrderSummaryInterface> = ({orderData, priceDetails, cartData, handleNextStep, handlePreviousStep}):ReactElement => {
 
-
     const getCreaditCardIcon = (paymentMethod: string) => {
         return paymentMethod === 'stripe' ? stripeCardIcon : codCardIcon
     }
 
     return (
         <div className='w-full max-w-[1000px] mx-auto my-10'>
-
-            {/* <div className='my-5 md:px-10 flex flex-col gap-y-2'>
-                <label><span className='font-semibold'>Checkout</span>{` -> Summary`}</label>
-                <h2 className='text-xl lg:text-2xl font-semibold '>Summary</h2>
-            </div> */}
 
             <div className="my-5 md:px-10 flex flex-col gap-y-2">
                 <div className="text-sm  flex items-center gap-x-1">
@@ -28,7 +22,6 @@ const OrderSummary:FC<OrderSummaryInterface> = ({orderData, priceDetails, cartDa
                     >
                         Checkout
                     </span>
-                    {/* <span className="text-gray-500 font-semibold">→</span> */}
                     <span className="text-gray-500 font-semibold">{`-->`}</span>
                     <span>Summary</span>
                 </div>
@@ -37,7 +30,6 @@ const OrderSummary:FC<OrderSummaryInterface> = ({orderData, priceDetails, cartDa
             </div>
 
             <div 
-                // w-full gap-x-2 lg:gap-x-3 gap-y-5 justify-items-centera sm:justify-items-streach
                 className="
                     grid 
                     grid-cols-1 
@@ -81,7 +73,6 @@ const OrderSummary:FC<OrderSummaryInterface> = ({orderData, priceDetails, cartDa
                             />
 
                             <label className='text-gray-800'>
-                            {/* {orderData.paymentMethod === 'visa' || orderData.paymentMethod === 'master' */}
                             {orderData.paymentMethod === 'stripe'
                                 ? 'Credit Card'
                                 : 'on Delivery'
@@ -89,9 +80,7 @@ const OrderSummary:FC<OrderSummaryInterface> = ({orderData, priceDetails, cartDa
                             </label>
                         </div>
                     </div>
-
                 </div>
-                
 
                 <div className='max-w-[280px] sm:max-w-none  p-2 pl-4 border border-greyB rounded-md bg-greyOrder'>
                     <h3 className="text-lg font-medium mt-2 mb-4 font-lato">Summary</h3>
@@ -139,7 +128,6 @@ const OrderSummary:FC<OrderSummaryInterface> = ({orderData, priceDetails, cartDa
                     Return Back
                 </button>
 
-                {/* {orderData.paymentMethod === 'visa' || orderData.paymentMethod === 'master'  */}
                 {orderData.paymentMethod === 'stripe'
                     ?
                         <button
@@ -151,7 +139,7 @@ const OrderSummary:FC<OrderSummaryInterface> = ({orderData, priceDetails, cartDa
                     :
                         <button
                             className="py-2 px-5 border border-blue-700 rounded-md bg-blue-600 text-white hover:bg-blue-700 cursor-pointer"
-                            // onClick={}
+                            onClick={handleNextStep}
                         >
                             Request Order
                         </button>

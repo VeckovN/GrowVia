@@ -28,6 +28,6 @@ export const api = createApi({
     reducerPath: 'clientApi',
     baseQuery: baseQueryAuthInterceptor,
     //use these properites to know which values or data to CACHE and VALIDATE
-    tagTypes: ['Auth', 'CurrentUser', 'Customer', 'Farmer', 'Product'],   
+    tagTypes: ['Auth', 'CurrentUser', 'Customer', 'Farmer', 'Product', 'Order'],   
     endpoints: () => ({}) //since the different features have their own api definations, we'll just add a callback here
 })
