@@ -1,36 +1,15 @@
 import { FC, ReactElement } from "react";
 import { OrderSummaryInterface } from "../../order.interface";
 import OrderProductsList from "../OrderProductsList";
-
 import codCardIcon from '../../../../assets/paymentCards/Cod.svg';
-import visaCardIcon from '../../../../assets/paymentCards/Visa.svg';
-import masterCardIcon from '../../../../assets/paymentCards/Mastercard.svg';
-
-
+import stripeCardIcon from '../../../../assets/paymentCards/Stripe.svg';
+ 
 
 const OrderSummary:FC<OrderSummaryInterface> = ({orderData, priceDetails, cartData, handleNextStep, handlePreviousStep}):ReactElement => {
-    
-    console.log("or: ", orderData);
-    
-    // const orderDataTest = {
-    //     firstName: 'Novak',
-    //     lastName: 'Veckov',
-    //     address: 'Knjaza Milosa',
-    //     city: 'Knjazevac',
-    //     postCode: '19350',
-    //     phone: '0603231774',
-    //     email: 'novakveckov@gmail.com',
-    //     paymentMethod: 'visa',
-    // }
+
 
     const getCreaditCardIcon = (paymentMethod: string) => {
-
-        if(paymentMethod === 'visa')
-            return visaCardIcon;
-        else if(paymentMethod === 'master')
-            return masterCardIcon
-        else
-            return codCardIcon
+        return paymentMethod === 'stripe' ? stripeCardIcon : codCardIcon
     }
 
     return (
@@ -102,7 +81,8 @@ const OrderSummary:FC<OrderSummaryInterface> = ({orderData, priceDetails, cartDa
                             />
 
                             <label className='text-gray-800'>
-                            {orderData.paymentMethod === 'visa' || orderData.paymentMethod === 'master'
+                            {/* {orderData.paymentMethod === 'visa' || orderData.paymentMethod === 'master' */}
+                            {orderData.paymentMethod === 'stripe'
                                 ? 'Credit Card'
                                 : 'on Delivery'
                             } 
@@ -159,7 +139,8 @@ const OrderSummary:FC<OrderSummaryInterface> = ({orderData, priceDetails, cartDa
                     Return Back
                 </button>
 
-                {orderData.paymentMethod === 'visa' || orderData.paymentMethod === 'master' 
+                {/* {orderData.paymentMethod === 'visa' || orderData.paymentMethod === 'master'  */}
+                {orderData.paymentMethod === 'stripe'
                     ?
                         <button
                             className="py-2 px-5 border border-blue-700 rounded-md bg-blue-600 text-white hover:bg-blue-700 cursor-pointer"
