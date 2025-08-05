@@ -2,12 +2,16 @@ import { FC, ReactElement, useState, Suspense, lazy } from "react";
 import toast from 'react-hot-toast';
 import { useParams } from "react-router-dom";
 import { useAppSelector } from "../../../store/store";
+import { Elements } from '@stripe/react-stripe-js';
+import { loadStripe } from "@stripe/stripe-js";
+
 import { ReduxStateInterface } from "../../../store/store.interface";
-import { OrderDataInterface, CardPaymentDataInterface, OrderPriceInfoInterface, PaymentType, CardType } from "../order.interface";
+import { OrderDataInterface, CardPaymentDataInterface, OrderPriceInfoInterface, PaymentType, CardType, OrderCreateDataInterface, OrderItemRequestInterface, OrderRequestBodyInterface } from "../order.interface";
 import { CartFarmerGroupInterface } from "../../cart/cart.interface";
 import LoadingSpinner from "../../shared/page/LoadingSpinner";
 import { useSchemaValidation } from "../../shared/hooks/useSchemaValidation.tsx";
 import { orderDeliveryDetailsSchema, paymentDetailsSchema } from "../order.schema.ts";
+import { useCreateOrderMutation } from "../order.service.ts";
 
 const OrderCheckout = lazy(() => import("../components/OrderCheckout/OrderCheckout.tsx"));
 const OrderSummary = lazy(() => import("../components/OrderSummary/OrderSummary.tsx"));
@@ -21,6 +25,11 @@ const Order:FC = ():ReactElement => {
     const cartData:CartFarmerGroupInterface | undefined = cart.data.find(group => group.farmerID === farmerID);
     console.log("cartDataG: ", cartData);
 
+    // const stripePromise = loadStripe(process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY!);
+    const stripePromise = loadStripe(import.meta.env.STRIPE_PUBLISHABLE_KEY!);
+    
+
+    // const stripePromise = loadStripe('');
 
     const subTotal = cartData
         ? cartData.products.reduce((acc, item) => acc + Number(item.totalPrice), 0)
@@ -52,16 +61,10 @@ const Order:FC = ():ReactElement => {
 
     const initialPaymentData = {
         email: '',
-        cardNumber: '',
-        date: '', //consider Date type
-        cvv: '',
         country: '', 
         total: total, //total from priceDetails
         cardType: null,
-        //on payment response we should go *i think we got this dirreclty from stripe?
-        // payment_intent_id
-        // payment_method_id
-        //"payment_method": "pm_card_visa", 
+        paymentMethodID: '',
     }
 
     //Steps: 1-Checkout, 2-Summary, 3-Payment(only for card options -> selected in Checkout)
@@ -78,6 +81,9 @@ const Order:FC = ():ReactElement => {
         schema: paymentDetailsSchema,
         userData: paymentData   
     });
+
+    
+    
         
     console.log("orderDDDD: ", orderData);
     console.log("steP: ", step);
@@ -102,9 +108,10 @@ const Order:FC = ():ReactElement => {
             if(step === 2){
                 if(orderData.paymentMethod === 'cod'){
                     // await makeOrder();
+                    await hanldeCodOrderRequest();
                     console.log("ORDER REQUESTED");
                 }
-                else if(orderData.paymentMethod === 'visa' || orderData.paymentMethod === 'master') {
+                else if(orderData.paymentMethod === 'stripe') {
                     setPaymentData(prev => ({...prev, cardType:orderData.paymentMethod as CardType}))
                     setStep(3);
                 }
@@ -123,7 +130,7 @@ const Order:FC = ():ReactElement => {
         }
     }
 
-    const handlePaymentOrderRequest = async():Promise<void> => {
+    const handlePaymentOrderRequest = async(newPaymentMethodID: string):Promise<void> => {
         try{
             //ensure it's 3th step
             if(step === 3){
@@ -132,7 +139,9 @@ const Order:FC = ():ReactElement => {
                     toast.error("Payment data validation faild!")
                     return;
                 }
-                // makeOrder();
+
+                
+                //makeOrder();
             }
         }
         catch(error){
@@ -143,19 +152,15 @@ const Order:FC = ():ReactElement => {
     }
 
 
-    const makeOrder = async(type: PaymentType, orderData:OrderDataInterface, paymentData):Promise<void> => {      
-        try{
-            //One of the options is to:
-            //pass orderData,cardData and userData to the requestOrder RTQ Mutation (in it transform data to API response requested)        
-        }
-        catch(error){
-            //set global error 
-        }
-    }
+    const makeOrder = async (data: OrderCreateDataInterface) => {
+
+       
+    };
 
     const hanldeCodOrderRequest = async():Promise<void> => {
         //call
         //makeOrder()
+        
     }
 
     return ( 
@@ -185,13 +190,15 @@ const Order:FC = ():ReactElement => {
                                 handleNextStep={handleNextStep}
                                 handlePreviousStep={handlePreviousStep}
                             />,
-                        3: <OrderPayment
-                                paymentData={paymentData}
-                                setPaymentData={setPaymentData}
-                                validationErrorData={valPaymentDataError}
-                                handlePreviousStep={handlePreviousStep}
-                                handlePaymentOrderRequest={handlePaymentOrderRequest}
-                            />
+                        3: <Elements stripe={stripePromise}>
+                                <OrderPayment
+                                    paymentData={paymentData}
+                                    setPaymentData={setPaymentData}
+                                    validationErrorData={valPaymentDataError}
+                                    handlePreviousStep={handlePreviousStep}
+                                    handlePaymentOrderRequest={handlePaymentOrderRequest}
+                                />
+                            </Elements>
                     }[step]}
                 </Suspense>
             )}
