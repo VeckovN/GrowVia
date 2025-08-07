@@ -197,7 +197,7 @@ const Order: FC = (): ReactElement => {
                     payment_status: 'pending', //default on create Order
                     order_status: 'pending',
                     payment_method_id: paymentData.paymentMethodID, //From stripe
-                    shipping_address: orderData.address, //from orderData
+                    shipping_address: `${orderData.address}, ${orderData.city}`, //from orderData
                     // billing_address: paymentData.address
                     tracking_url: '', // if needed
                     orderItems,
@@ -215,7 +215,7 @@ const Order: FC = (): ReactElement => {
                     total_price: subTotal,
                     payment_type: 'cod', 
                     order_status: 'pending', //default on create Order
-                    shipping_address: orderData.address, //from orderData
+                    shipping_address: `${orderData.address}, ${orderData.city}`, //from orderData
                     tracking_url: '', // if needed
                     orderItems,
                 };
