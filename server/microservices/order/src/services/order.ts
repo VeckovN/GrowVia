@@ -29,6 +29,35 @@ const getOrderByID = async(orderID: string):Promise<OrderDocumentInterface | nul
     }
 }
 
+
+const getFarmerOrders = async(farmerID: string):Promise<OrderDocumentInterface[] | null> => {
+    try {
+        const resultOrders = await pool.query(`SELECT * FROM public.orders WHERE farmer_id = $1`, [farmerID])
+        
+        if(resultOrders.rowCount === 0) return null;
+
+        const orders: OrderDocumentInterface[] = [];
+
+        for(const orderRow of resultOrders.rows) {
+            const resultOrderItems = await pool.query(
+                `SELECT * FROM public.order_items WHERE order_id = $1 `, 
+                [orderRow.order_id]
+            );  
+
+            orders.push({
+                ...orderRow,
+                orderItems: resultOrderItems.rows as OrderItemDocumentInterface[]
+            })
+        }
+
+        return orders;
+    }
+    catch (error){
+        log.log("error", "Order service: farmer orders can't be found");
+        throw BadRequestError(`Failed to found farmers order by farmerID: ${error} `, "orderService getOrderByID method error");
+    }
+}
+
 const placePendingOrder = async(orderData: OrderCreateInterface):Promise<OrderDocumentInterface> => {
 
     console.log("PLACE PEDNIGN ORDER: ", orderData);
@@ -277,7 +306,10 @@ const farmerApproveOrder = async(orderID: string): Promise<void> => {
         if(!orderData.order_id)
             throw NotFoundError("Failed to find the order, orderID doesn't exist", "orderService farmerApproveOrder with cod paymentMethod failed")
         
-        await changeOrderStatus(orderData.order_id, 'pending');
+
+        await changeOrderStatus(orderData.order_id, 'accepted');
+        //THE ORDER MUST BE CHANGED TO 'accepted'
+        // await changeOrderStatus(orderData.order_id, 'pending');
     }
 }
 
@@ -486,6 +518,7 @@ const changeOrderStatus = async(orderID: string, newStatus: string, newPaymentSt
 
 export { 
     getOrderByID,
+    getFarmerOrders,
     placePendingOrder,
     placeOrder,
     cancelOrder,
