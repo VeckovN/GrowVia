@@ -8,6 +8,7 @@ import CustomerLayout from './layouts/components/CustomerLayout';
 import Market from './features/market/components/Market';
 import ProductOverview from './features/product/components/ProductOverview';
 import FarmerOverview from './features/farmer/components/FarmerOverview';
+import FarmerOrders from './features/farmer/components/FarmerOrders';
 
 import RequireAuthRoute from './features/RequireAuthRoute';
 
@@ -83,12 +84,23 @@ const AppRouter: FC = () => {
             )
             // element: <MainLayout authPage={true}> <ConfirmEmail/> </MainLayout>
         },
+        // { 
+        //     path: '/order/overview/:orderID',
+        //     element: (
+        //         <RequireAuthRoute allowedRoles={['customer', 'farmer']}>
+        //             <MainLayout >
+        //                 <OrderOverview >
+        //             </MainLayout>
+        //         </RequireAuthRoute>
+        //     )
+        // },
         { 
             path: '/order/:farmerID',
             element: (
                 <RequireAuthRoute allowedRoles={['customer']}>
                     <MainLayout >
-                        <Order/>
+                        {/* Order Page */}
+                        <Order/> 
                     </MainLayout>
                 </RequireAuthRoute>
             )
@@ -113,7 +125,7 @@ const AppRouter: FC = () => {
                             <FarmerProducts />
                         </ModalProvider>
                     }, 
-                // {path:'/orders', element: <FarmerOrders />}, 
+                {path:'orders', element: <FarmerOrders />}, 
                 {path:'settings', element: <Settings/>}, 
             ]
         },

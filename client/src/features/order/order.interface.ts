@@ -8,6 +8,10 @@ import { ValidationErrorMap } from "../shared/hooks/useSchemaValidation";
 export type PaymentType = 'cod' | 'stripe' ;
 export type CardType = 'visa' | 'master';
 
+export type OrderStatusType = 'pending' | 'accepted' | 'canceled' | 'rejected' | 'processing' | 'shipped' | 'completed'
+export type OrderPaymentStatusType = 'pending' | 'authorized' | 'paid' | 'refunded' | 'canceled';
+
+
 export interface OrderDataInterface {
     firstName: string;
     lastName: string;
@@ -65,23 +69,12 @@ export interface OrderSummaryInterface {
 
 export interface CardPaymentDataInterface {
     email: string,
-    // cardNumber: string;
-    // date: string; //consider Date type
-    // cvv: string;
     country: string; 
     total: number;
-    // cardType: CardType | null;
+    cardType: CardType | null;
     paymentMethodID: string;
-
-    //on payment response we should go *i think we got this dirreclty from stripe?
-    // payment_intent_id
-    // payment_method_id
-    //"payment_method": "pm_card_visa", 
 }
 
-// export interface OrderPaymentInterface {
-//     onSubmitPayment: (paymentData: CardPaymentDataInterface) => void;
-// }
 
 export interface OrderPaymentInterface {
     paymentData: CardPaymentDataInterface;
@@ -105,7 +98,7 @@ export interface OrderItemRequestInterface {
     total_price: number;
 }
 
-export interface OrderRequestBodyInterface {    
+export interface OrderRequestBodyInterface {  
     customer_id: string;
     customer_username: string;
     customer_email: string;
@@ -114,15 +107,21 @@ export interface OrderRequestBodyInterface {
     farmer_email: string;
     invoice_id: string;
     total_price: number;
-    payment_status?: 'pending';
-    order_status: 'pending';
+    // payment_status?: 'pending';
+    payment_status?: OrderPaymentStatusType;
+    order_status: OrderStatusType;
     payment_type: 'cod' | 'stripe';
-    // payment_intent_id?: string; //NOT USED ON FRONTEND
     payment_method_id?: string;
     billing_address?: string;
     shipping_address: string;
     tracking_url?: string;
     orderItems: OrderItemRequestInterface[];
+}
+
+export interface OrderDocumentInterface extends OrderRequestBodyInterface{
+    order_id: string; //for retreiving  
+    created_at: Date | string;
+    updated_at: Date | string;
 }
 
 // Extracts only {id, email, username} from AuthUserInterface (Redux-auth user)
@@ -135,4 +134,16 @@ export interface OrderCreateDataInterface {
     cartData: CartFarmerGroupInterface;
     // Basic user info from Redux-auth user
     userData: MinimalUserInterface
+}
+
+export type SelectedOrderStatusType = {
+    orderID: string,
+    orderStatus: string
+}
+
+export interface OrderChangeStatusInterface {
+    orderID: string;
+    orderStatus: string;
+    onChangeStatus: (orderID: string, newStatus: OrderStatusType ) => Promise<void>;
+    onClose: () => void;
 }

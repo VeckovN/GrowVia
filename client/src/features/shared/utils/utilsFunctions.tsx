@@ -76,3 +76,56 @@ export const handleRemoveCartItem = (
 ): void => {
     dispatch(removeProduct({farmerID, productID}));
 }
+
+//map backend order statuses to UI related labels
+export const mapOrderStatusToUILabel = (status: string): string => {
+    switch (status) {
+        case 'pending':
+            return 'Requested';
+        case 'accepted':
+            return 'Accepted';
+        case 'processing':
+            return 'Packaged';
+        case 'shipped':
+            return 'To Courier';
+        case 'completed':
+            return 'Delivered';
+        case 'canceled':
+            return 'Canceled';
+        case 'rejected':
+            return 'Canceled';
+        default:
+            return 'Unknown';
+    }
+}; 
+
+export const getOrderBackgroundColor = (uiStatus: string): string => {
+    switch (uiStatus) {
+        case 'pending':
+            return 'bg-gray-100';
+        case 'accepted':
+            return 'bg-blue-100';
+        case 'processing':
+            return 'bg-indigo-200';
+        case 'shipped':
+            return 'bg-yellow-100';
+        case 'completed':
+            return 'bg-green-100';
+        case 'canceled':
+            return 'bg-red-100';
+        case 'rejected':
+            return 'bg-red-100';
+        default:
+            return 'bg-gray-200';
+    }
+};
+
+export const  formatOrderDate = (createdAt: string | Date): string => {
+    const date = new Date(createdAt);
+    const day = date.getDate();
+    // const month = date.toLocaleString('en-US', { month: 'short' }).toLowerCase();
+    const month = date.toLocaleString('en-US', { month: 'short' })
+    const year = date.getFullYear();
+
+    return `${day} ${month} ${year}`;
+}
