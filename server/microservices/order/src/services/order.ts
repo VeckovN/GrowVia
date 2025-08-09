@@ -32,7 +32,11 @@ const getOrderByID = async(orderID: string):Promise<OrderDocumentInterface | nul
 
 const getFarmerOrders = async(farmerID: string):Promise<OrderDocumentInterface[] | null> => {
     try {
-        const resultOrders = await pool.query(`SELECT * FROM public.orders WHERE farmer_id = $1`, [farmerID])
+        const resultOrders = await pool.query(`
+            SELECT * FROM public.orders 
+            WHERE farmer_id = $1
+            ORDER BY created_at DESC`,
+            [farmerID])
         
         if(resultOrders.rowCount === 0) return null;
 
@@ -252,7 +256,7 @@ const cancelOrder = async(orderID: string):Promise<void> => {
         );
     }
     else if(orderData.payment_type === "cod"){ //cash on delivery
-        await changeOrderStatus(orderID, "cancel");
+        await changeOrderStatus(orderID, "canceled");
     }
 }
 

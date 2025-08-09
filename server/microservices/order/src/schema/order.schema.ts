@@ -37,7 +37,7 @@ const OrderCreateZodSchema = z.object({
         'paid',
         'refunded',
         'canceled'
-    ]),
+    ]).optional(), //Only for stipe payment process
     payment_type: z.enum(['stripe', 'cod']),
     payment_method: z.string().optional(), //relaeted to stripe
     payment_intent_id: z.string().optional(),
