@@ -36,7 +36,7 @@ const orderTable = `
         farmer_email TEXT,
         invoice_id TEXT,
         total_price DECIMAL(10, 2) NOT NULL,
-        payment_status VARCHAR(50) NOT NULL,
+        payment_status VARCHAR(50),
         order_status VARCHAR(50) NOT NULL DEFAULT 'pending',
         payment_intent_id VARCHAR(255),
         payment_method VARCHAR(225),
