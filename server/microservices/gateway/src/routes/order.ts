@@ -1,5 +1,5 @@
 import express, { Router } from 'express';
-import { get, getFarmerOrders, create, cancel, approve, startProccess, startDelivery, finishDelivery } from '@gateway/controllers/order';
+import { get, getFarmerOrders, getCustomerOrders, create, cancel, approve, startProccess, startDelivery, finishDelivery } from '@gateway/controllers/order';
 import { checkUserAuth } from "@gateway/authMiddleware";
 // import { seedUser } from "@gateway/controllers/seed"; 
 
@@ -9,6 +9,7 @@ const router: Router = express.Router();
 const orderRoutes = (): Router => {
     router.get('/order/:orderID', checkUserAuth, get);
     router.get('/order/farmer/:farmerID', checkUserAuth, getFarmerOrders);
+    router.get('/order/customer/:customerID', checkUserAuth, getCustomerOrders);
     router.post('/order/create', checkUserAuth, create);
     router.put('/order/cancel/:orderID', checkUserAuth, cancel);
     router.put('/order/approve/:orderID', checkUserAuth, approve);
