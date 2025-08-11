@@ -26,6 +26,7 @@ import FarmerProfile from './features/farmer/components/FarmerProfile';
 // import FarmerSettings from './features/farmer/components/FarmerSettings';
 
 import CustomerProfile from './features/customer/components/CustomerProfile';
+import CustomerOrders from './features/customer/components/CustomerOrders';
 
 import { ModalProvider } from './features/shared/context/ModalContext';
 
@@ -144,7 +145,7 @@ const AppRouter: FC = () => {
             ),
             children: [
                 {path:'profile', element: <CustomerProfile/>},  
-                // {path:'orders', element: <CustomerOrders />}, 
+                {path:'orders', element: <CustomerOrders />}, 
                 // {path:'wishlist', element: <CustomerWishlist />}, 
                 {path:'settings', element: <Settings/>}, 
             ]
