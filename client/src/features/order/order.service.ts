@@ -70,15 +70,21 @@ export const orderApi = api.injectEndpoints({
             query: (farmerID: string) => `/order/farmer/${farmerID}`,
             providesTags: ['Order']
         }),
+        getOrdersByCustomerID: build.query<ResponseInterface, string>({
+            query: (customerID: string) => `/order/customer/${customerID}`,
+            providesTags: ['Order']
+        }),
     })
 })
 
 export const {
-   useCreateOrderMutation,
-   useAcceptOrderMutation,
-   useStartProccessMutation,
-   useStartDeliveryMutation,
-   useFinishOrderMutation,
-   useCancelOrderMutation,
-   useGetOrdersByFarmerIDQuery
+    useCreateOrderMutation,
+    useAcceptOrderMutation,
+    useStartProccessMutation,
+    useStartDeliveryMutation,
+    useFinishOrderMutation,
+    useCancelOrderMutation,
+    useGetOrdersByFarmerIDQuery,
+    useGetOrdersByCustomerIDQuery
+   
 } = orderApi;

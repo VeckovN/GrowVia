@@ -120,6 +120,48 @@ export const getOrderBackgroundColor = (uiStatus: string): string => {
     }
 };
 
+export const mapOrderCustomerStatusToUILabel = (status: string): string => {
+    switch (status) {
+        case 'pending':
+            return 'Requested';
+        case 'accepted':
+            return 'In progress';
+        case 'processing':
+            return 'In progress';
+        case 'shipped':
+            return 'In progress';
+        case 'completed':
+            return 'Delivered';
+        case 'canceled':
+            return 'Canceled';
+        case 'rejected':
+            return 'Canceled';
+        default:
+            return 'Unknown';
+    }
+}; 
+
+export const getCustomerOrderBackgroundColor = (uiStatus: string): string => {
+    switch (uiStatus) {
+        case 'pending':
+            return 'bg-gray-400';
+        case 'accepted':
+            return 'bg-yellow-400';
+        case 'processing':
+            return 'bg-yellow-400';
+        case 'shipped':
+            return 'bg-yellow-400';
+        case 'completed':
+            return 'bg-green-400';
+        case 'canceled':
+            return 'bg-red-400';
+        case 'rejected':
+            return 'bg-red-400';
+        default:
+            return 'bg-gray-400';
+    }
+};
+
 export const  formatOrderDate = (createdAt: string | Date): string => {
     const date = new Date(createdAt);
     const day = date.getDate();
