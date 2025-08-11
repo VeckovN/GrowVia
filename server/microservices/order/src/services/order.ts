@@ -30,6 +30,26 @@ const getOrderByID = async(orderID: string):Promise<OrderDocumentInterface | nul
 }
 
 
+const processOrderRows = async (orderRows: any): Promise<OrderDocumentInterface[]> => {
+
+    const orders: OrderDocumentInterface[] = [];
+
+    for(const orderRow of orderRows) {
+        const resultOrderItems = await pool.query(
+            `SELECT * FROM public.order_items WHERE order_id = $1 `, 
+            [orderRow.order_id]
+        );  
+
+        orders.push({
+            ...orderRow, //public.orders related data
+            orderItems: resultOrderItems.rows as OrderItemDocumentInterface[]
+        })
+    }
+
+    return orders;
+}
+
+//use the proccessOrderRows function avoid repeating the same logic as in getCustomerOrders
 const getFarmerOrders = async(farmerID: string):Promise<OrderDocumentInterface[] | null> => {
     try {
         const resultOrders = await pool.query(`
@@ -40,21 +60,25 @@ const getFarmerOrders = async(farmerID: string):Promise<OrderDocumentInterface[]
         
         if(resultOrders.rowCount === 0) return null;
 
-        const orders: OrderDocumentInterface[] = [];
+        return await processOrderRows(resultOrders.rows);
+    }
+    catch (error){
+        log.log("error", "Order service: farmer orders can't be found");
+        throw BadRequestError(`Failed to found farmers order by farmerID: ${error} `, "orderService getOrderByID method error");
+    }
+}
 
-        for(const orderRow of resultOrders.rows) {
-            const resultOrderItems = await pool.query(
-                `SELECT * FROM public.order_items WHERE order_id = $1 `, 
-                [orderRow.order_id]
-            );  
+const getCustomerOrders = async(customerID: string):Promise<OrderDocumentInterface[] | null> => {
+    try {
+        const resultOrders = await pool.query(`
+            SELECT * FROM public.orders 
+            WHERE customer_id = $1
+            ORDER BY created_at DESC`,
+            [customerID])
+        
+        if(resultOrders.rowCount === 0) return null;
 
-            orders.push({
-                ...orderRow,
-                orderItems: resultOrderItems.rows as OrderItemDocumentInterface[]
-            })
-        }
-
-        return orders;
+        return await processOrderRows(resultOrders.rows);
     }
     catch (error){
         log.log("error", "Order service: farmer orders can't be found");
@@ -523,6 +547,7 @@ const changeOrderStatus = async(orderID: string, newStatus: string, newPaymentSt
 export { 
     getOrderByID,
     getFarmerOrders,
+    getCustomerOrders,
     placePendingOrder,
     placeOrder,
     cancelOrder,

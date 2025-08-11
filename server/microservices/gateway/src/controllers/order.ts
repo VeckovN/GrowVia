@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { getOrderByID, getOrdersByFarmerID ,createOrder, approveOrder, orderProccess, orderDelivery, finishOrder, cancelOrder } from "@gateway/services/order.service";
+import { getOrderByID, getOrdersByFarmerID, getOrdersByCustomerID, createOrder, approveOrder, orderProccess, orderDelivery, finishOrder, cancelOrder } from "@gateway/services/order.service";
 import { AxiosResponse } from "axios";
 
 
@@ -10,6 +10,11 @@ export async function get(req:Request, res:Response):Promise<void> {
 
 export async function getFarmerOrders(req:Request, res:Response):Promise<void> {
     const response: AxiosResponse = await getOrdersByFarmerID(req.params.farmerID);
+    res.status(200).json({ message:response.data.message, orders:response.data.orders});
+}
+
+export async function getCustomerOrders(req:Request, res:Response):Promise<void> {
+    const response: AxiosResponse = await getOrdersByCustomerID(req.params.customerID);
     res.status(200).json({ message:response.data.message, orders:response.data.orders});
 }
 
