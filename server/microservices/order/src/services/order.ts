@@ -97,12 +97,15 @@ const placePendingOrder = async(orderData: OrderCreateInterface):Promise<OrderDo
         //2. Insert Order
         const orderInsertQuery = `
         INSERT INTO public.orders (
-            customer_id,
             farmer_id,
-            customer_email,
-            customer_username,
             farmer_email,
             farmer_username,
+            customer_id,
+            customer_email,
+            customer_username,
+            customer_first_name,
+            customer_last_name,
+            customer_phone,
             invoice_id,
             total_price, 
             order_status, 
@@ -112,22 +115,26 @@ const placePendingOrder = async(orderData: OrderCreateInterface):Promise<OrderDo
             payment_method_id,
             payment_method,
             payment_expires_at,
-            shipping_address, 
+            shipping_address,
+            shipping_postal_code, 
             billing_address, 
             delivery_date, 
             tracking_url
         )
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19) 
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23) 
         RETURNING order_id;
         `;
 
         const values = [
-            orderData.customer_id,
             orderData.farmer_id,
-            orderData.customer_email,
-            orderData.customer_username,
             orderData.farmer_email,
             orderData.farmer_username,
+            orderData.customer_id,
+            orderData.customer_email,
+            orderData.customer_username,
+            orderData.customer_first_name || null,
+            orderData.customer_last_name || null,
+            orderData.customer_phone || null,
             orderData.invoice_id || null,
             orderData.total_price,
             orderData.order_status || "pending", 
@@ -138,6 +145,7 @@ const placePendingOrder = async(orderData: OrderCreateInterface):Promise<OrderDo
             orderData.payment_method || null,
             orderData.payment_expires_at || null,
             orderData.shipping_address || null,
+            orderData.shipping_postal_code || null,
             orderData.billing_address || null,
             orderData.delivery_date || null,
             orderData.tracking_url || null
@@ -149,8 +157,17 @@ const placePendingOrder = async(orderData: OrderCreateInterface):Promise<OrderDo
 
         //3. Insert The Order Items  
         const orderItemInsertQuery = `
-            INSERT INTO order_items (order_id, product_id, quantity, unit_price, total_price)
-            VALUES ($1, $2, $3, $4, $5);
+            INSERT INTO order_items (
+                order_id,
+                product_id, 
+                product_name,
+                product_image_url,
+                product_unit,
+                quantity, 
+                unit_price, 
+                total_price
+            )
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8);
         `
 
         //loop through orderItems that passed as props of orderData
@@ -158,6 +175,9 @@ const placePendingOrder = async(orderData: OrderCreateInterface):Promise<OrderDo
             const orderItemValues = [
                 order_id, //same order id for each orderItem
                 item.product_id,
+                item.product_name,
+                item.product_image_url,
+                item.product_unit,
                 item.quantity,
                 item.unit_price,
                 item.total_price
