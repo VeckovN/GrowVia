@@ -161,15 +161,20 @@ const Order: FC = (): ReactElement => {
             toast.error("Validation faild!")
         }
     }
-
+console.log('cartData:', cartData);
 
     const makeOrder = async (data: OrderCreateDataInterface) => {
 
         const { orderData, paymentData, cartData, userData } = data;
 
         try {
+            console.log('cartData:');
+            
             const orderItems: OrderItemRequestInterface[] = cartData.products.map(el => ({
                 product_id: el.productID,
+                product_name: el.name,
+                product_image_url: el.imageUrl,
+                product_unit: el.unit,
                 quantity: el.quantity,
                 unit_price: el.price,
                 total_price: Number(el.totalPrice),
@@ -180,46 +185,45 @@ const Order: FC = (): ReactElement => {
                 return; // exit the function early to avoid using unassigned variable
             }
 
+            //same for 'cod' and 'stripe'
+            const baseOrderData: Partial<OrderRequestBodyInterface> ={
+                customer_id: String(userData.id!),
+                customer_username: userData.username,
+                customer_email: userData.email,
+                customer_first_name: orderData.firstName,
+                customer_last_name: orderData.lastName,
+                customer_phone: orderData.phone,
+                farmer_id: cartData.farmerID!, 
+                farmer_username: farmerResult?.farmer?.username ?? '',
+                farmer_email: farmerResult?.farmer?.email ?? '',
+                invoice_id: 'inv123123', //Later
+                total_price: subTotal,
+                order_status: 'pending',
+                shipping_address: `${orderData.address}, ${orderData.city}`, //from orderData
+                shipping_postal_code: orderData.postCode,
+                // billing_address: paymentData.address
+                tracking_url: '', // if needed
+                orderItems,
+            }
+
             let createOrderData: OrderRequestBodyInterface;
 
             if (orderData.paymentMethod === 'stripe') {
-
                 createOrderData = {
-                    customer_id: String(userData.id!),
-                    customer_username: userData.username,
-                    customer_email: userData.email,
-                    farmer_id: cartData.farmerID!, 
-                    farmer_username: farmerResult?.farmer.username ?? '',
-                    farmer_email: farmerResult?.farmer.email ?? '',
-                    invoice_id: 'inv123123', //Later
-                    total_price: subTotal,
+                    ...baseOrderData,
                     payment_type: 'stripe',
                     payment_status: 'pending', //default on create Order
                     order_status: 'pending',
                     payment_method_id: paymentData.paymentMethodID, //From stripe
-                    shipping_address: `${orderData.address}, ${orderData.city}`, //from orderData
-                    // billing_address: paymentData.address
-                    tracking_url: '', // if needed
-                    orderItems,
-                };
+                } as OrderRequestBodyInterface;
             }
             else {
                 createOrderData = {
-                    customer_id: String(userData.id!),
-                    customer_username: userData.username,
-                    customer_email: userData.email,
-                    farmer_id: cartData.farmerID!, //35
-                    farmer_username: farmerResult?.farmer.username ?? '',
-                    farmer_email: farmerResult?.farmer.email ?? '',
-                    invoice_id: 'inv123123', //Later
-                    total_price: subTotal,
-                    payment_type: 'cod', 
-                    order_status: 'pending', //default on create Order
-                    shipping_address: `${orderData.address}, ${orderData.city}`, //from orderData
-                    tracking_url: '', // if needed
-                    orderItems,
-                };
+                    ...baseOrderData,
+                    payment_type: 'cod'
+                } as OrderRequestBodyInterface;
             }
+            console.log("CREATE ORDER DATAL ", createOrderData);
 
             await createOrder(createOrderData).unwrap();
             dispatch(removeGroup({farmerID:farmerID}));

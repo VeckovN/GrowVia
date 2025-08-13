@@ -93,6 +93,9 @@ export interface OrderProductsListPropsInterface {
 //FOR API BODY REQUEST
 export interface OrderItemRequestInterface {
     product_id: string;
+    product_name: string;    
+    product_image_url: string;  
+    product_unit: string;
     quantity: number;
     unit_price: number;
     total_price: number;
@@ -102,18 +105,21 @@ export interface OrderRequestBodyInterface {
     customer_id: string;
     customer_username: string;
     customer_email: string;
+    customer_first_name?: string; // form field snapshot
+    customer_last_name?: string;  // form field snapshot
+    customer_phone?: string;      // form field snapshot
     farmer_id: string;
     farmer_username: string;
     farmer_email: string;
     invoice_id: string;
     total_price: number;
-    // payment_status?: 'pending';
     payment_status?: OrderPaymentStatusType;
     order_status: OrderStatusType;
     payment_type: 'cod' | 'stripe';
     payment_method_id?: string;
     billing_address?: string;
     shipping_address: string;
+    shipping_postal_code?: string;
     tracking_url?: string;
     orderItems: OrderItemRequestInterface[];
 }
