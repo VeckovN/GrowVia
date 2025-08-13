@@ -19,6 +19,7 @@ import ResetPassword from './features/auth/components/ResetPassword';
 import ConfirmEmail from './features/auth/components/ConfirmEmail';
 import Order from './features/order/pages/Order';
 import Settings from './features/shared/user/Settings';
+import OrderTrack from './features/order/pages/OrderTrack';
 
 import FarmerDashboard from './features/farmer/components/FarmerDashboard';
 import FarmerProducts from './features/farmer/components/FarmerProducts';
@@ -95,6 +96,16 @@ const AppRouter: FC = () => {
         //         </RequireAuthRoute>
         //     )
         // },
+        { 
+            path: '/order/track/:orderID',
+            element: (
+                <RequireAuthRoute allowedRoles={['customer', 'farmer']}>
+                    <MainLayout >
+                        <OrderTrack />
+                    </MainLayout>
+                </RequireAuthRoute>
+            )
+        },
         { 
             path: '/order/:farmerID',
             element: (
