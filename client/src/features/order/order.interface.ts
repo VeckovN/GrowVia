@@ -153,3 +153,16 @@ export interface OrderChangeStatusInterface {
     onChangeStatus: (orderID: string, newStatus: OrderStatusType ) => Promise<void>;
     onClose: () => void;
 }
+
+export interface OrderItemsListPropsInterface {
+    orderItems:  OrderItemRequestInterface[]
+}
+
+export interface OrderStatusTimeLineProps {
+    currentStatus: string
+}
+
+export interface OrderTrackSummaryCardProps {
+    order: OrderDocumentInterface | null;
+}
+
