@@ -16,10 +16,11 @@ export const postOrderNotification = async (
         'order-notification',
         'order-notification-key',
         logMessage,
-        JSON.stringify({order, notification})
+        // JSON.stringify({order, notification})
+        JSON.stringify({notification})
     )
-    
-    orderSocketIO.emit("order-notify", order, notification);
+
+    orderSocketIO.emit("order-notify", {order, notification});
 }
 
 //send notification to Notification service with email exhanger and key
@@ -45,5 +46,5 @@ export const postOrderNotificationWithEmail = async (
         JSON.stringify(payload)
     )
 
-    orderSocketIO.emit("order-notify", order, notification);
+    orderSocketIO.emit("order-notify", {order, notification});
 }   
