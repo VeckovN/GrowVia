@@ -105,9 +105,9 @@ async function createSocketIO(httpServer: http.Server): Promise<Server> {
     socketIO.on("connection", (socket) => {
         console.log(`Socket connected: ${socket.id}`);
 
-    socket.on("disconnect", (reason) => {
-        console.log(`Socket disconnected: ${socket.id}, reason: ${reason}`);
-        });
+        socket.on("disconnect", (reason) => {
+            console.log(`Socket disconnected: ${socket.id}, reason: ${reason}`);
+            });
     });
 
     return socketIO;
