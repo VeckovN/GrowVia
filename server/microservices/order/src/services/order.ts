@@ -5,7 +5,7 @@ import { pool } from '@order/postgreSQL';
 import { publishMessage } from '@order/rabbitmqQueues/producer';
 import { orderChannel } from '@order/server';
 import { orderSocketIO } from '@order/server';
-import { postOrderNotification, postOrderNotificationWithEmail } from '@order/helper';
+import { postOrderNotificationWithEmail } from '@order/helper';
 
 const log: Logger = winstonLogger(`${config.ELASTICSEARCH_URL}`, 'orderService', 'debug');
 
@@ -87,8 +87,6 @@ const getCustomerOrders = async(customerID: string):Promise<OrderDocumentInterfa
 }
 
 const placePendingOrder = async(orderData: OrderCreateInterface):Promise<OrderDocumentInterface> => {
-
-    console.log("PLACE PEDNIGN ORDER: ", orderData);
     try {
         //Transaction: Together as one (Both succeed - order is fully placed, Or both fail - no partial data left in the database). )
         //1. Start Transaction
@@ -193,33 +191,43 @@ const placePendingOrder = async(orderData: OrderCreateInterface):Promise<OrderDo
         const emailMessage: OrderEmailMessageInterface = {
             template: "orderPlaced", //email template name 
             type: "place", //panding status
-            orderUrl: `${config.CLIENT_URL}/order/${order_id}`,
+            orderUrl: `${config.CLIENT_URL}/order/track/${order_id}`,
             orderID: order_id,
             invoiceID: orderData.invoice_id,
             receiverEmail: orderData.farmer_email, //to the farmer (farmet got the notification)
             farmerUsername: orderData.farmer_username,
             customerUsername: orderData.customer_username,
+            customerEmail: orderData.customer_email,
             totalPrice: orderData.total_price,
             orderItems: orderData.orderItems
         }
 
-        const notificationMessage = ` You've got order request from user: ${orderData.customer_username} `
-        const logMessage = 'Send order email data to notification service';
+        const notificationMessage = `You've got order request from user: ${orderData.customer_username}`;
         const order:OrderDocumentInterface = { ...orderData, order_id};
 
         const notification: NotificationInterface = {
-            type: 'Order', 
-            orderID: order_id,
-            senderID: orderData.farmer_id,  
-            senderUsername: orderData.farmer_username,
-            receiverID: orderData.customer_id,
-            receiverUsername: orderData.customer_username,
+            type: 'order', // must match enum in schema
+            sender: {
+                id: orderData.customer_id,
+                name: `${orderData.customer_first_name} ${orderData.customer_last_name}`.trim(),
+            },
+            receiver: {
+                id: orderData.farmer_id,
+                name: orderData.farmer_username,
+            },
             message: notificationMessage,
-            isRead: false
-        }
+            isRead: false,
+            bothUsers: false, // or true if needed
+            order: {
+                orderId: order_id,
+                status: orderData.order_status || 'pending',
+            },
 
-        console.log("PlaceOrder Notification being sent: ", notification);
+            createdAt: new Date().toISOString(),
+        };
 
+
+        const logMessage = 'Send Order placed email Data to Notification service';
         //send email and socket event
         await postOrderNotificationWithEmail( 
             orderChannel,
@@ -229,6 +237,7 @@ const placePendingOrder = async(orderData: OrderCreateInterface):Promise<OrderDo
             order,
             notification
         );
+        
 
         const resultOrder:OrderDocumentInterface = { ...orderData, order_id };
         return resultOrder; 
@@ -247,7 +256,6 @@ const placePendingOrder = async(orderData: OrderCreateInterface):Promise<OrderDo
 
 //place order (until the farmer approve it) -- panding state  
 const placeOrder = async(orderData: OrderCreateInterface):Promise<void> => {
-    console.log(" PlaceORder data: ", orderData);
 
     if(!["stripe", "cod"].includes(orderData.payment_type)){
         throw BadRequestError(`Failed to place Order, invalid payment method passed `, "orderService createOrder method error");
@@ -277,8 +285,6 @@ const cancelOrder = async(orderID: string):Promise<void> => {
     if(!orderData)
         throw NotFoundError("Failed to find the order, orderID doesn't exist", "orderService farmerApproveOrder failed")
     
-    console.log(" Cancel data: ", orderData);
-    
     //only 'panding' orders can be canceled
     if(orderData.order_status !== 'pending')
         throw BadRequestError(`Failed to cancel Order, only pending order can be canceled `, "orderService cancelOrder method error");
@@ -301,22 +307,65 @@ const cancelOrder = async(orderID: string):Promise<void> => {
     }
     else if(orderData.payment_type === "cod"){ //cash on delivery
         await changeOrderStatus(orderID, "canceled");
+        
+        const emailMessage: OrderEmailMessageInterface = {
+            template: "orderCanceled", //email template name 
+            type: "canceled", //panding status
+            orderUrl: `${config.CLIENT_URL}/order/track/${orderID}`,
+            orderID: orderID,
+            invoiceID: orderData.invoice_id,
+            receiverEmail: orderData.customer_email, //to the farmer (farmet got the notification)
+            farmerUsername: orderData.farmer_username,
+            customerUsername: orderData.customer_username,
+            totalPrice: orderData.total_price,
+            orderItems: orderData.orderItems
+        }
+
+        const notificationMessage = `You're order has been canceled: #${orderData.order_id?.slice(0,8)}`;
+        const order:OrderDocumentInterface = { ...orderData, order_id:orderID};
+
+        const notification: NotificationInterface = {
+            type: 'order', // must match enum in schema
+            sender: {
+                
+                id: orderData.farmer_id,
+                name: orderData.farmer_username,
+            },
+            receiver: {
+                id: orderData.customer_id,
+                name: `${orderData.customer_first_name} ${orderData.customer_last_name}`.trim(),
+                
+            },
+            message: notificationMessage,
+            isRead: false,
+            bothUsers: false, // or true if needed
+            order: {
+                orderId: orderID,
+                status: orderData.order_status || 'pending',
+            },
+            createdAt: new Date().toISOString(),
+        };
+
+        const logMessage = 'Send Cancel Order email Data to Notification service';
+        await postOrderNotificationWithEmail( 
+            orderChannel,
+            orderSocketIO,
+            emailMessage,
+            logMessage,
+            order,
+            notification
+        );
     }
 }
-
-//on farmer approve order (status changed to 'accepted' and payment process starting -> produce/consume)
+ 
 const farmerApproveOrder = async(orderID: string): Promise<void> => {
     const orderData:OrderDocumentInterface | null = await getOrderByID(orderID);
     if(!orderData)
         throw NotFoundError("Failed to find the order, orderID doesn't exist", "orderService farmerApproveOrder failed")
 
-    console.log("FarmerApproveOrder -- get Order By ID: ", orderData);
-
     if(!["stripe", "cod"].includes(orderData.payment_type)){
         throw BadRequestError(`Failed to place Order, invalid payment method passed `, "orderService createOrder method error");
     }
-
-    //verify orderData 
 
     if(orderData.payment_type === 'stripe') {
 
@@ -338,6 +387,7 @@ const farmerApproveOrder = async(orderID: string): Promise<void> => {
             throw BadRequestError(`Failed to approve order, payment authorization expired `, "orderService FarmerApproveOrder method error"); 
         }
 
+        //sent to Payment Service
         await publishMessage(
             orderChannel,
             // 'accept-order-payment',
@@ -345,6 +395,7 @@ const farmerApproveOrder = async(orderID: string): Promise<void> => {
             'accept-reject-order-payment',
             'accept-reject-order-payment-key',
             'Order approved data sent to the Payment service',
+            // JSON.stringify({type: "orderApproved", data: orderData}),
             JSON.stringify({type: "orderApproved", data: orderData}),
         );
 
@@ -354,10 +405,56 @@ const farmerApproveOrder = async(orderID: string): Promise<void> => {
         if(!orderData.order_id)
             throw NotFoundError("Failed to find the order, orderID doesn't exist", "orderService farmerApproveOrder with cod paymentMethod failed")
         
-
         await changeOrderStatus(orderData.order_id, 'accepted');
-        //THE ORDER MUST BE CHANGED TO 'accepted'
-        // await changeOrderStatus(orderData.order_id, 'pending');
+        
+        const notificationMessage = `Your request order #${orderID.slice(0,8)}... has been approved`;
+
+        //REFACTOR: use receiver/sender isntead of customer/farmer
+        const emailMessage: OrderEmailMessageInterface = {
+            template: "orderApproved", //email template name 
+            type: "accepted", //panding status
+            orderUrl: `${config.CLIENT_URL}/order/track/${orderID}`,
+            orderID: orderID,
+            invoiceID: orderData.invoice_id,
+            receiverEmail: orderData.customer_email, //to the farmer (farmet got the notification)
+            farmerUsername: orderData.farmer_username,
+            farmerEmail: orderData.farmer_email,
+            customerUsername: orderData.customer_username,
+            totalPrice: orderData.total_price,
+            orderItems: orderData.orderItems
+        }
+
+        const notification: NotificationInterface = {
+            type: 'order', // must match enum in schema
+            sender: {
+                id: orderData.farmer_id,
+                name: orderData.farmer_username,
+                // farmerAvatarUrl isn't part of Order data
+                // avatarUrl: orderData?|| '', // fetch from user service / redux state
+            },
+            receiver: {
+                id: orderData.customer_id,
+                name: `${orderData.customer_first_name} ${orderData.customer_last_name}`.trim(),
+            },
+            message: notificationMessage,
+            isRead: false,
+            bothUsers: false, // or true if needed
+            order: {
+                orderId: orderID,
+                status: orderData.order_status || 'pending',
+            },
+            createdAt: new Date().toISOString()
+        };
+
+        const logMessage = 'Send Farmer approved - "cod" email Data to Notification service';
+        await postOrderNotificationWithEmail( 
+            orderChannel,
+            orderSocketIO,
+            emailMessage,
+            logMessage,
+            orderData,
+            notification
+        );
     }
 }
 
@@ -366,14 +463,13 @@ const farmerRejectOrder = async(orderData: OrderDocumentInterface): Promise<void
         throw BadRequestError(`Failed to place Order, invalid payment method passed `, "orderService createOrder method error");
     }
 
-    //verify orderData 
-
     if(!orderData.order_id)
         throw NotFoundError("Failed to find the order, orderID doesn't exist", "orderService farmerApproveOrder with cod paymentMethod failed")
     
     await changeOrderStatus(orderData.order_id, 'rejected');
 
     if(orderData.payment_type === 'stripe') {
+        //to Payment service
         await publishMessage(
             orderChannel,
             // 'accept-order-payment',
@@ -386,8 +482,6 @@ const farmerRejectOrder = async(orderData: OrderDocumentInterface): Promise<void
     }
 }   
 
-
-//Once payment is captured and  the order is acceptet farmer's is starting: packagin the product, arranging logistics.
 const farmerStartOrderProccess = async(orderID: string): Promise<void> => { 
     try{  
         const orderData:OrderDocumentInterface | null = await getOrderByID(orderID);
@@ -396,26 +490,66 @@ const farmerStartOrderProccess = async(orderID: string): Promise<void> => {
         
         await changeOrderStatus(orderID, 'processing');
 
-        const notificationMessage = ` Your order ${orderID} has begun processing `
-        const logMessage = 'Send order email data to notification service';
-        const notification: NotificationInterface = {
-            type: 'Order', 
+        const notificationMessage = `Your order #${orderID.slice(0,8)}... has begun processing`;
+
+        const emailMessage: OrderEmailMessageInterface = {
+            template: "orderPackaged", //email template name 
+            type: "packaged", //panding status
+            orderUrl: `${config.CLIENT_URL}/order/track/${orderID}`,
             orderID: orderID,
-            senderID: orderData.farmer_id,   
-            senderUsername: orderData.farmer_username,
-            receiverID: orderData.customer_id, 
-            receiverUsername: orderData.customer_username,
-            message: notificationMessage,
-            isRead: false 
+            invoiceID: orderData.invoice_id,
+            receiverEmail: orderData.customer_email, //to the farmer (farmet got the notification)
+            farmerUsername: orderData.farmer_username,
+            customerUsername: orderData.customer_username,
+            totalPrice: orderData.total_price,
+            orderItems: orderData.orderItems
         }
 
-        console.log("Darmer Start Notification being sent: ", notification);
+        const notification: NotificationInterface = {
+            type: 'order', // must match enum in schema
+            sender: {
+                id: orderData.farmer_id,
+                name: orderData.farmer_username,
+                // farmerAvatarUrl isn't part of Order data
+                // avatarUrl: orderData?|| '', // fetch from user service / redux state
+            },
+            receiver: {
+                id: orderData.customer_id,
+                name: `${orderData.customer_first_name} ${orderData.customer_last_name}`.trim(),
+            },
+            message: notificationMessage,
+            isRead: false,
+            bothUsers: false, // or true if needed
+            order: {
+                orderId: orderID,
+                status: orderData.order_status || 'pending',
+            },
+            createdAt: new Date().toISOString(),
+        };
+ 
+        //send email
+        // await publishMessage(
+        //     orderChannel,
+        //     'order-email-notification',
+        //     'order-email-key',
+        //     'Send notfication email order is on the way to notification service',
+        //     JSON.stringify(emailMessage)
+        // )
 
-        //publish notification (customer)
          //socket event without sending email
-         await postOrderNotification( 
+        // await postOrderNotification( 
+        //     orderChannel,
+        //     orderSocketIO,
+        //     logMessage,
+        //     orderData,
+        //     notification
+        // );
+
+        const logMessage = 'Send Order Start Process email Data to Notification service';
+        await postOrderNotificationWithEmail( 
             orderChannel,
             orderSocketIO,
+            emailMessage,
             logMessage,
             orderData,
             notification
@@ -428,8 +562,6 @@ const farmerStartOrderProccess = async(orderID: string): Promise<void> => {
     }
 }
 
-//This status means the order has left the warehouse and is on its way to the custome
-//Sending tracking information, //Updating inventory, Notifying the customer.
 const farmerStartOrderDelivery = async(orderID: string):Promise<void> => {
     try{
         const orderData:OrderDocumentInterface | null = await getOrderByID(orderID);
@@ -441,8 +573,7 @@ const farmerStartOrderDelivery = async(orderID: string):Promise<void> => {
         const emailMessage: OrderEmailMessageInterface = {
             template: "orderOnTheWay", //email template name 
             type: "onTheWay", 
-            // orderUrl: `${config.CLIENT_URL}/order/${orderData.order_id}`,
-            orderUrl: `${config.CLIENT_URL}/order/${orderID}`,
+            orderUrl: `${config.CLIENT_URL}/order/track/${orderID}`,
             orderID: orderID,
             invoiceID: orderData.invoice_id,
             receiverEmail: orderData.customer_email,
@@ -452,29 +583,31 @@ const farmerStartOrderDelivery = async(orderID: string):Promise<void> => {
             orderItems: orderData.orderItems
         }
 
-        await publishMessage(
-            orderChannel,
-            'order-email-notification',
-            'order-email-key',
-            'Send notfication email order is on the way to notification service',
-            JSON.stringify(emailMessage)
-        )
+        const notificationMessage = `Your orderID: #${ orderID.slice(0,8) }... is now out for delivery`;
 
-        const notificationMessage = ` Your orderID: ${ orderID } is now out for delivery `
-        const logMessage = `Send notfication email order is on the way to notification service`;
         const notification: NotificationInterface = {
-            type: 'Order', 
-            orderID: orderID,
-            senderID: orderData.farmer_id,  
-            senderUsername: orderData.farmer_username,
-            receiverID: orderData.customer_id,
-            receiverUsername: orderData.customer_username,
+            type: 'order', // must match enum in schema
+            sender: {
+                id: orderData.farmer_id,
+                name: orderData.farmer_username,
+                // farmerAvatarUrl isn't part of Order data
+                // avatarUrl: orderData?|| '', // fetch from user service / redux state
+            },
+            receiver: {
+                id: orderData.customer_id,
+                name: `${orderData.customer_first_name} ${orderData.customer_last_name}`.trim(),
+            },
             message: notificationMessage,
             isRead: false,
-        }
+            bothUsers: false, // or true if needed
+            order: {
+                orderId: orderID,
+                status: orderData.order_status || 'pending',
+            },
+            createdAt: new Date().toISOString(),
+        };
 
-        console.log("farmer start order delivery Notification being sent: ", notification);
-
+        const logMessage = `Send Order Is On The Way email Data to Notification service`;
         await postOrderNotificationWithEmail( 
             orderChannel,
             orderSocketIO,
@@ -483,6 +616,14 @@ const farmerStartOrderDelivery = async(orderID: string):Promise<void> => {
             orderData,
             notification
         );
+
+        // await postOrderNotification( 
+        //     orderChannel,
+        //     orderSocketIO,
+        //     logMessage,
+        //     orderData,
+        //     notification
+        // );
 
         //Ack expected in consumer (after the productService decrease order products)
         //PUBLISH TO PRODUCT SERVICE (to decrease products amount that are delivering)       
@@ -513,7 +654,6 @@ const farmerFinishOrderDelivery = async(orderID: string):Promise<void> => {
         log.log("error", "Order service: order can't be finished/delivered");
         throw BadRequestError(`Failed to finish order delivery: ${error} `, "orderService farmerStartOrderDeliveryProcess method error");
     }
-
 }
 
 const changeOrderStatus = async(orderID: string, newStatus: string, newPaymentStatus?: string): Promise<void> => {
@@ -553,16 +693,13 @@ const changeOrderStatus = async(orderID: string, newStatus: string, newPaymentSt
             throw NotFoundError(`Order with ID ${orderID} not found `, "orderService changeStatus method error");
         }
 
-        console.log(`Order ${orderID} status changed to ${newStatus}`);
         log.info(`Order ${orderID} status changed to ${newStatus}`);
     }
     catch(error){
-        console.log("error", "Order service: order status can't be changed");
         log.log("error", "Order service: order status can't be changed");
         throw BadRequestError(`Failed to change order status: ${error} `, "orderService changeStatus method error");
     }
 }
-
 
 export { 
     getOrderByID,
