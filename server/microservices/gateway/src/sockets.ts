@@ -48,12 +48,11 @@ const getSocketIO = ():Server =>{
 
 
 const configureSocketEvents = (io: Server):void =>{
-    // //Services Socket Connections:
-    //Connect to external services
     orderSocketServiceConnection(io);
     
     //client connections (origin -> CLIENT_URL)
     io.on('connection', async(socket: Socket) => {
+
         socket.on('category', async(category: string, username:string) => { 
             await setSelectedProductCategory(`selectedCategory:${username}`, category)
         })
@@ -86,7 +85,7 @@ const orderSocketServiceConnection = (io:Server):void => {
     })
 
     orderSocketClient.on('connect', () =>{
-        log.info('Gateway Service socket connected');
+        log.info('Order Service socket connected');
     })
 
     orderSocketClient.on('disconnect', () =>{
@@ -94,12 +93,18 @@ const orderSocketServiceConnection = (io:Server):void => {
         // orderSocketClient.connect();
     });
 
-    //listener on socket.emit from Order Notification
-    orderSocketClient.on('order notify', (order, notification) => {
+    //listener on socket.emit from Order Service (on socketIO.emit('order-notify))
+    orderSocketClient.on('order-notify', (order, notification) => {
         //when the event is reveived send it directly to the 'client'  
-        io.emit("order notification", order, notification);
+        //client listen on order-notificaton 
+        io.emit("order-notification", order, notification);
     })
 
 }
+
+//Second-Part Sass-Iot related
+// const iotSocketServiceConnection = (io:Server):void => {
+
+// }
 
 export { configureSocketEvents, initializeSocketIO, getSocketIO }

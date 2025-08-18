@@ -52,6 +52,7 @@ async function OrderEmailConsumer(channel: Channel): Promise<void> {
 
         channel.consume((await orderEmailQueue).queue, async (msg: ConsumeMessage | null)=>{
             console.log("MSG:", JSON.parse(msg!.content.toString()));
+            
             const { 
                 // message,
                 // type,
@@ -71,8 +72,10 @@ async function OrderEmailConsumer(channel: Channel): Promise<void> {
             } = JSON.parse(msg!.content.toString());
             //temple = 'orderPlaced', ' ', ' '
             
+            //TODO: Change farmerUsername with 'farmName' -> should be refactored
             const locals: EmailLocalsInterface = {
-                // appLink: `${config.CLIENT_URL}`, //app link is client URL (app link)
+                appLink: `${config.CLIENT_URL}`, //app link is client URL (app link)
+                appIcon: `https://res.cloudinary.com/dqloq0g97/image/upload/v1749724665/LogoIcon_xkmuzp.svg`,
                 // username,
                 // verifyLink,
                 // resetLink
@@ -82,11 +85,14 @@ async function OrderEmailConsumer(channel: Channel): Promise<void> {
                 receiverEmail,
                 farmerUsername,
                 customerUsername,
+                customerEmail,
+                farmerEmail,
                 totalPrice,
                 orderItems
             };
 
-            console.log("")
+            console.log("LOCALSSS :" , locals);
+
             //send emails to both users
             if(bothUsers){
                 console.log("BOTHUSERS Notification");
@@ -99,11 +105,10 @@ async function OrderEmailConsumer(channel: Channel): Promise<void> {
             else {
                 console.log("SINGLEEEE  Notification: ", notification);
                 await sendEmail(template, receiverEmail, locals);
-                //storeNotification
+
                 if(notification){
                     await storeNotification(notification);
                 }
-                // await storeNotification(notification);
             }
 
             channel.ack(msg!);
@@ -132,11 +137,9 @@ async function OrderNotificationConsumer(channel: Channel): Promise<void> {
                 //bothUsers
             } = JSON.parse(msg!.content.toString());
 
-            //just store notification
             if(notification){
                 await storeNotification(notification);
             }
-            // await storeNotification(notification);
             
             channel.ack(msg!);
         });
@@ -160,7 +163,6 @@ async function PaymentEmailConsumer(channel: Channel): Promise<void> {
         channel.consume((await paymentEmailQueue).queue, async (msg: ConsumeMessage | null)=>{
             console.log(JSON.parse(msg!.content.toString()));
             //send emails
-
 
             channel.ack(msg!);
         });
