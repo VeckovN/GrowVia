@@ -4,6 +4,7 @@ import { ObjectSchema, AnyObject } from 'yup';
 import { ProductDocumentInterface } from '../product/product.interface';
 import { FarmerDocumentInterface } from '../farmer/farmer.interface';
 import { OrderDocumentInterface } from '../order/order.interface';
+import { NotificationInterface } from '../notifications/notifications.interface';
 import { UnitType } from './utils/data';
 
 export interface CircleIconButtonInterface {
@@ -77,9 +78,12 @@ export interface ResponseInterface{
     farmer?: FarmerDocumentInterface; 
     order?: OrderDocumentInterface
     orders?: OrderDocumentInterface[];
+    notification?: NotificationInterface;
+    notifications?: NotificationInterface[];
     //TO DO: Refactor gateway response props -> replace '{user} with respective user type -> 
     //For 'Farmer related requestes return 'farmer' instead of 'user' and 'customer' instead of 'user' as well 
     total?: number; //for elasticSearch total results
+    
 }
 
 export interface PaginationInterface {

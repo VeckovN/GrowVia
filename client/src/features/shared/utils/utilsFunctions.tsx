@@ -1,6 +1,7 @@
 import { AppDispatch } from "../../../store/store";
 import { CartProductInterface } from "../../cart/cart.interface";
 import { addProduct, increaseProduct, decreaseProduct, removeProduct } from "../../cart/cart.reducers";
+import { NotificationInterface } from "../../notifications/notifications.interface";
 
 export const saveDataToLocalStorage = (key: string, data: string): void =>{
     //data object should be JSON stringified
@@ -162,7 +163,7 @@ export const getCustomerOrderBackgroundColor = (uiStatus: string): string => {
     }
 };
 
-export const  formatOrderDate = (createdAt: string | Date): string => {
+export const formatOrderDate = (createdAt: string | Date): string => {
     const date = new Date(createdAt);
     const day = date.getDate();
     // const month = date.toLocaleString('en-US', { month: 'short' }).toLowerCase();
@@ -170,4 +171,35 @@ export const  formatOrderDate = (createdAt: string | Date): string => {
     const year = date.getFullYear();
 
     return `${day} ${month} ${year}`;
+}
+
+//DON't FORGET FOR PR: 
+// - install date-fns liobrary to calculate the time elapsed until the notifications was received
+export const mapNotificationsData = (n: any, userType: string): NotificationInterface => {
+    return {
+        id: n._id,
+        type: n.type,
+        message: n.message,
+
+        senderID: n.sender?.id ?? "",
+        senderName: n.sender?.name ?? "",
+        senderAvatarUrl: n.sender?.avatarUrl ?? undefined,
+        receiverID: n.receiver?.id ?? "",
+        receiverName: n.receiver?.name ?? "",
+
+        createdAt: n.createdAt,
+        isRead: n.isRead, // BE => FE rename
+
+        orderID: n.order?.orderId ?? undefined,
+        orderStatus: n.order?.status ?? undefined,
+
+        //for all n.type ==='order' instead when is n.order?.status === 'pending' it chould lead to /order/view
+        link: n.type === "order" 
+        ? 
+            n.order?.status === 'pending' && userType === 'farmer'
+                ? `/order/overview/${n.order?.orderId}`
+                : `/order/track/${n.order?.orderId}`
+        :
+            undefined
+    };
 }

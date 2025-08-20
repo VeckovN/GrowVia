@@ -3,12 +3,14 @@ import { Link, NavLink, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { useAppSelector } from '../../../store/store';
 import { useResentEmailVerificationMutation } from '../../auth/auth.service';
+import { ReduxStateInterface } from '../../../store/store.interface';
 import HeaderIconBadge from "./HeaderIconBadge";
 import Search from './Search';
 import ProfileDropdown from './ProfileDropdown';
+import NotificationsDropdown from '../../notifications/components/NotificationsDropdown';
 import CartDropdown from '../../cart/components/CartDropdown';
-import { ReduxStateInterface } from '../../../store/store.interface';
 import useOnClickOutside from '../hooks/useOnClickOutside';
+import useNotificationsDropdown from '../hooks/useNotificationsDropdown';
 
 import LogoIcon from '../../../assets/header/LogoIcon.svg';
 import Cart from '../../../assets/header/ShoppingCart.svg';
@@ -21,6 +23,7 @@ const Header: FC = (): ReactElement => {
     const navigate = useNavigate();
     const authUser = useAppSelector((state: ReduxStateInterface) => state.authUser)
     const cart = useAppSelector((state: ReduxStateInterface) => state.cart)
+    const notifications = useAppSelector((state: ReduxStateInterface) => state.notifications);
 
     const isCustomer: boolean = authUser.userType === 'customer';
     const isVerified = !authUser.verificationEmailToken;
@@ -30,19 +33,13 @@ const Header: FC = (): ReactElement => {
     const cartDropdownRef = useRef<HTMLDivElement>(null);
     const [isProfileOpen, setIsProfileOpen] = useOnClickOutside(profileDropdownRef, false);
     const [isCartOpen, setIsCartOpen] = useOnClickOutside(cartDropdownRef, false);
+    const { notificationsDropwdownRef, isNotificationsOpen, toggleNotificationsDropdown} = useNotificationsDropdown();
 
     const cartData = cart?.data ?? [];
     const totalQuantity = cartData.reduce((total, group) => {
         return total + group.products.reduce((sum, product) => sum + product.quantity, 0);
     }, 0)
-
-    //Bussines Logic Decision:
-    // Decided to keep 'Profile', 'Cart', and 'Notification' modals within the Header component,
-    // instead of moving them to a separate global modal management (e.g. ModalContext).
-    const toggleProfileDropdown = (): void => {
-        setIsProfileOpen(!isProfileOpen);
-    }
-
+    
     useEffect(() => {
         if (isCartOpen) {
             const originalStyle = document.body.style.overflow;
@@ -53,6 +50,10 @@ const Header: FC = (): ReactElement => {
             }
         }
     }, [isCartOpen])
+
+    const toggleProfileDropdown = (): void => {
+        setIsProfileOpen(!isProfileOpen);
+    }
 
     const toggleCartDropdown = ():void => {
         setIsCartOpen(!isCartOpen);        
@@ -123,8 +124,8 @@ const Header: FC = (): ReactElement => {
                                 <HeaderIconBadge
                                     icon={Bell}
                                     alt="notifications"
-                                    content={5}
-                                    onClick={() => alert("User Notifications")}
+                                    content={notifications?.unreadCount ?? 0}
+                                    onClick={toggleNotificationsDropdown}
                                 />
                                 <HeaderIconBadge
                                     icon={Heart}
@@ -155,6 +156,15 @@ const Header: FC = (): ReactElement => {
                             </div>
                         }
 
+                        {isNotificationsOpen &&
+                            <div ref={notificationsDropwdownRef} className='w-full absolute top-10'>
+                                <NotificationsDropdown 
+                                    notifications={notifications.list}
+                                    unreadCount={notifications.unreadCount}
+                                />
+                            </div>
+                        }
+
                         {isCartOpen && 
                             <div className={`
                                 fixed inset-0 z-40 bg-black/50`}>
@@ -171,7 +181,6 @@ const Header: FC = (): ReactElement => {
                                     />
                                 </div>
                             </div>
-
                         }
 
                     </div>

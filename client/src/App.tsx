@@ -1,24 +1,36 @@
-import { FC, ReactElement, useState } from 'react'
+import { FC, ReactElement, useEffect } from 'react'
 import { BrowserRouter } from 'react-router-dom'
 import { Toaster } from 'react-hot-toast';
-
 import AppRouter from './AppRoutes'
+import { useAppDispatch, useAppSelector } from './store/store';
+import { connectSocket, disconnectSocket } from './sockets/socket';
+import { registerNotificationEvents } from './sockets/registerSocketEvents';
+import { ReduxStateInterface } from './store/store.interface';
+import ScrollToTop from './features/ScrollToTop';
 
 const App: FC =(): ReactElement => {
+  const dispatch = useAppDispatch();
+  const authUser = useAppSelector((state: ReduxStateInterface) => state.authUser)
+
+  useEffect(() => {
+    if (!authUser?.id) return;
+    const socket = connectSocket(); //singleton instance
+ 
+    registerNotificationEvents(socket, dispatch, authUser?.id, authUser?.userType);
+
+    return () => { //clean up
+      disconnectSocket(); //on app close, disconnect it from socket intance
+    }
+  },[authUser?.id])
 
   return (
     <>
       <BrowserRouter>
+        <ScrollToTop />
         <div className='mx-auto max-w-[1320px] 0 min-h-screen bg-mainBackground'> 
           <AppRouter />
         </div>
 
-         {/*
-          Global Toast Configuration:
-          - Pre-defines styles for all toast types (default, success, error)
-          - Actual toast calls are managed via toastUtils.ts wrappers ('showSuccess', 'showError', etc)
-          - Custom toasts (upload progress, etc) use these base styles
-        */}
         <Toaster
           position='top-right'
           containerClassName="mt-12"

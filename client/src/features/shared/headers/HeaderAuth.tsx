@@ -3,7 +3,6 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import LogoIcon from '../../../assets/header/LogoIcon.svg';
 
 const HeaderAuth: FC = (): ReactElement => {
-    //Sign-up context now only appears on the sign-in page
     const navigate = useNavigate();
     const location = useLocation();
     const isSignIn = location.pathname === '/signin';
@@ -40,7 +39,6 @@ const HeaderAuth: FC = (): ReactElement => {
                         }
                     </div>
                 </div>
-
             </nav>
         </header>
     )

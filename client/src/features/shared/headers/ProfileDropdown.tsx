@@ -5,6 +5,7 @@ import { useDispatch } from 'react-redux';
 import { useLogoutMutation } from '../../auth/auth.service';
 import { removeUserFromSessionStorage } from '../utils/utilsFunctions';
 import { clearAuth } from '../../auth/auth.reducers';
+import { clearNotifications } from '../../notifications/notifications.reducers';
 import { toast } from 'react-hot-toast';
 
 const ProfileDropdown: FC<ProfileDropdownProps> = ({ authUser, closeProfileDropdown }) => {
@@ -16,6 +17,7 @@ const ProfileDropdown: FC<ProfileDropdownProps> = ({ authUser, closeProfileDropd
         try {
             await logout();
             dispatch(clearAuth());
+            dispatch(clearNotifications());
             removeUserFromSessionStorage();
             toast.success("You're logged out");
             navigate('/signin');

@@ -12,6 +12,7 @@ import LoadingSpinner from '../../shared/page/LoadingSpinner';
 import SelectField from '../../shared/inputs/SelectField';
 import FarmerOrderChangeStatus from './FarmerOrderChangeStatus';
 import useOnClickOutside from '../../shared/hooks/useOnClickOutside';
+import { getSocket } from '../../../sockets/socket';
 
 const DEFAULT_PROPS: OrderFilterOptionsInterface = {
     sort: 'newest',
@@ -54,6 +55,32 @@ const FarmerOrders: FC = (): ReactElement => {
             setSelectedOrder(null);
         }
     }, [isChangeStatusOpen, selectedOrder])
+
+    useEffect(() => {
+        const socket = getSocket();
+        if(!socket) return;
+
+        const handleOrderNotification = ({order}: { order: OrderDocumentInterface }) => {
+            const orderData: OrderDocumentInterface = order;
+            const receiverID = order.farmer_id;
+            const currentUserID = String(authUser.id);
+            
+            if(receiverID === currentUserID ){
+                //listen only on "pending"
+                if(orderData.order_status !== 'pending')
+                    return;
+
+                setOrders(prev => [orderData, ...prev]);
+            }
+        }
+
+        socket.on('order-notification', handleOrderNotification);
+
+        return () =>{
+            //pass samedefined func hanlder to remove the same reference 
+            socket.off('order-notification', handleOrderNotification);
+        }
+    },[]);
 
     const sizeSelectOptions = [
         { label: 'Show: 8', value: '8' },
@@ -179,9 +206,13 @@ const FarmerOrders: FC = (): ReactElement => {
                 </div>
             </div>
 
-            <div className='mt-8 w-full relativea'>
-
-                {orders.map((order) => (
+            <div className='mt-8 w-full'>
+                {orders.length === 0 ? (
+                    <div className='text-center text-lg lg:text-xl text-gray-500 py-16'>
+                        You have no orders yet.
+                    </div>
+                ) : (
+                orders.map((order) => (
                     <div
                         key={order.order_id}
                         className={`
@@ -244,7 +275,7 @@ const FarmerOrders: FC = (): ReactElement => {
                                         Customer:
                                     </div>
                                     <div>
-                                        {order.customer_username}
+                                        {`${order.customer_first_name} ${order.customer_last_name}`}
                                     </div>
                                 </div>
                             </div>
@@ -343,8 +374,9 @@ const FarmerOrders: FC = (): ReactElement => {
                         </div>
 
                     </div>
-
-                ))}
+                
+                )) 
+            )}
             </div>
 
         </div>

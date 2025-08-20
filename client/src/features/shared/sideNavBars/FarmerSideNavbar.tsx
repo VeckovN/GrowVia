@@ -1,10 +1,13 @@
-import { FC } from 'react';
+import { FC , memo} from 'react';
 import { NavLink } from 'react-router-dom';
+import { useAppSelector } from '../../../store/store';
+import { ReduxStateInterface } from '../../../store/store.interface';
+import useNotificationsDropdown from '../hooks/useNotificationsDropdown';
 import HeaderIconBadge from '../headers/HeaderIconBadge';
+import NotificationsDropdown from '../../notifications/components/NotificationsDropdown';
 
 import LogoIcon from '../../../assets/header/LogoIcon.svg';
 import Bell from '../../../assets/header/Bell.svg'
-
 import HomeIcon from '../../../assets/navBar/Home.svg';
 import ProfileIcon from '../../../assets/navBar/Profile.svg';
 import ProductIcon from '../../../assets/navBar/Products.svg';
@@ -12,11 +15,23 @@ import OrdersIcon from '../../../assets/navBar/Orders.svg';
 import SettingsIcon from '../../../assets/navBar/Settings.svg';
 import LockerIcon from '../../../assets/navBar/Locker.svg';
 
-const FarmerSideNavbar:FC = () => {
+const FarmerSideNavbar:FC = memo(() => {
+    const notifications = useAppSelector((state: ReduxStateInterface) => state.notifications);
+    const { notificationsDropwdownRef, isNotificationsOpen, toggleNotificationsDropdown} = useNotificationsDropdown();
 
     return (
         <nav className='w-[270px] bg-white'>
+
             <div className='flex items-center py-4 relative'>
+                {isNotificationsOpen &&
+                    <div ref={notificationsDropwdownRef} className='w-full absolute top-14 left-[100px] z-10'>
+                        <NotificationsDropdown 
+                            notifications={notifications.list}
+                            unreadCount={notifications.unreadCount}
+                        />
+                    </div>
+                }
+
                 <img
                     className='w-8 h-8'
                     src={LogoIcon}
@@ -30,11 +45,12 @@ const FarmerSideNavbar:FC = () => {
                     <HeaderIconBadge
                         icon={Bell}
                         alt="notifications"
-                        content='5'
-                        onClick={() => alert("User Notifications")}
+                        content={notifications.unreadCount ?? 0}
+                        onClick={toggleNotificationsDropdown}
                     />
                 </div>
             </div>
+
             <ul className='w-full'>
                 <li className='w-full transition-colors duration-200 '>
                     <NavLink
@@ -144,7 +160,6 @@ const FarmerSideNavbar:FC = () => {
                     </NavLink>
                 </li>
 
-
                <li className='w-full mt-10 cursor-pointer'>
                     <div className='flex items-center w-full h-12 p-2 px-4 hover:bg-green2 transition-colors duration-200'>
                         <img
@@ -159,6 +174,6 @@ const FarmerSideNavbar:FC = () => {
             </ul>
         </nav>  
     )
-}
+});
 
 export default FarmerSideNavbar

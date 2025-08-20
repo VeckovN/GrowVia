@@ -4,19 +4,21 @@ import { useAppSelector } from '../../../store/store';
 import { ReduxStateInterface } from '../../../store/store.interface';
 import HeaderIconBadge from './HeaderIconBadge';
 import useOnClickOutside from '../hooks/useOnClickOutside';
+import useNotificationsDropdown from '../hooks/useNotificationsDropdown';
 import ProfileDropdown from './ProfileDropdown';
+import NotificationsDropdown from '../../notifications/components/NotificationsDropdown';
 
 import LogoIcon from '../../../assets/header/LogoIcon.svg';
 import Bell from '../../../assets/header/Bell.svg';
 import CustomerTestIcon from '../../../assets/header/CustomerTest.svg';
 
-//Commit: add avatar image from authUser state
-
 const FarmerHeader:FC = () => {
     const authUser = useAppSelector((state: ReduxStateInterface) => state.authUser)
+    const notifications = useAppSelector((state: ReduxStateInterface) => state.notifications);
     const profileDropdownRef = useRef<HTMLDivElement>(null);
-    const [isProfileOpen, setIsProfileOpen] = useOnClickOutside(profileDropdownRef, false);
-    
+    const [isProfileOpen, setIsProfileOpen] = useOnClickOutside(profileDropdownRef, false); 
+    const { notificationsDropwdownRef, isNotificationsOpen, toggleNotificationsDropdown} = useNotificationsDropdown();
+
     const toggleProfileDropdown = (): void => {
         setIsProfileOpen(!isProfileOpen);
     }
@@ -47,8 +49,8 @@ const FarmerHeader:FC = () => {
                 <HeaderIconBadge
                     icon={Bell}
                     alt="notifications"
-                    content={5}
-                    onClick={() => alert("User Notifications")}
+                    content={notifications.unreadCount ?? 0}
+                    onClick={() => toggleNotificationsDropdown()}
                 />
 
                 <HeaderIconBadge
@@ -64,7 +66,16 @@ const FarmerHeader:FC = () => {
                     <div ref={profileDropdownRef} className='absolute top-10 z-10'>
                         <ProfileDropdown authUser={authUser} closeProfileDropdown={closeProfileDropdown} />
                     </div>
-                 }
+                }
+
+                {isNotificationsOpen &&
+                    <div ref={notificationsDropwdownRef} className='w-full min-w-[240px] absolute top-10 right-2 z-10'>
+                        <NotificationsDropdown 
+                            notifications={notifications.list}
+                            unreadCount={notifications.unreadCount}
+                        />
+                    </div>
+                }
             </div>
         </header>
     )
