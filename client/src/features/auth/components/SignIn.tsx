@@ -4,7 +4,7 @@ import toast from 'react-hot-toast';
 import TextField from '../../shared/inputs/TextField';
 import { useAppDispatch } from '../../../store/store';
 import { setAuthUser} from '../auth.reducers';
-import { saveDataToSessionStorage } from '../../shared/utils/utilsFunctions';
+import { saveDataToSessionStorage, mapNotificationsData } from '../../shared/utils/utilsFunctions';
 
 import GoogleIcon from '../../../assets/google.svg';
 import BackGroundImage from '../../../assets/AuthBackground.jpg';
@@ -13,7 +13,10 @@ import { FaRegEyeSlash } from "react-icons/fa";
 
 import { useSignInMutation } from '../auth.service';
 import { SignInPayloadInterface } from '../auth.interfaces';
+import { NotificationInterface } from '../../notifications/notifications.interface';
 import { useSchemaValidation } from '../../shared/hooks/useSchemaValidation';
+import { useLazyGetNotificationsQuery } from '../../notifications/notifications.service';
+import { setNotifications } from '../../notifications/notifications.reducers';
 
 import { signInSchema } from '../auth.schema';
 
@@ -28,9 +31,12 @@ const SignIn: FC = (): ReactElement => {
     const [actionError, setActionError] = useState('');
 
     const [schemaValidation, validationErrors] = useSchemaValidation({schema: signInSchema, userData});
-    //the first property is function 'signIn' 
     //other properties are (included in RTK) as 'isLoading','isSuccess','isError' status props -> status based on that 'signIn' execution
     const [signIn, { isLoading }] = useSignInMutation();
+
+    //The skipToken on RTK could be used for auto-fetching wiht useGetNotificationsQuery
+    // // const [ getNotifications, {data: notifications, error, isLoading} ] = useLazyGetNotificationsQuery(); //declarative way
+    const [ getNotifications ] = useLazyGetNotificationsQuery(); //imperative
 
     const getFieldError = (fieldName: string) => validationErrors[fieldName];
 
@@ -38,18 +44,24 @@ const SignIn: FC = (): ReactElement => {
         try{
             const isValid = await schemaValidation();
             if(isValid){
-                //we must to .unwrap() result to get raw data -> without it we won't get correct result
                 const result = await signIn(userData).unwrap();
                 dispatch(setAuthUser(result.user));
 
                 const isLoggedIn = JSON.stringify(true);
                 const username = JSON.stringify(result.user?.username);
-
                 saveDataToSessionStorage(isLoggedIn, username);
+
+                const userID = String(result.user?.id);
+                const userType = result.user?.userType ?? '';
+
+                const notificationsResult = await getNotifications(userID);
+                const notifications = notificationsResult?.data?.notifications ?? [];
+                const mappedNotifications:NotificationInterface[] = notifications?.map(n => mapNotificationsData(n, userType));
+                dispatch(setNotifications(mappedNotifications));
 
                 toast.success(`${result.message}`);
 
-                if (result.user?.userType === 'farmer'){
+                if (userType === 'farmer'){
                     navigate('/farmer');
                 }
                 else{
