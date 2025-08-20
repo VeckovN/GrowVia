@@ -8,7 +8,7 @@ import { setupListeners } from '@reduxjs/toolkit/query';
 import { api } from './api';
 import authReducer from '../features/auth/auth.reducers';
 import cartReducer from '../features/cart/cart.reducers';
-
+import notificationReducer from '../features/notifications/notifications.reducers';
 
 const persistConfig = {
     key: 'root',
@@ -21,8 +21,8 @@ const persistConfig = {
 export const combineReducer = combineReducers({
     [api.reducerPath]: api.reducer,
     authUser: authReducer, //auth slice reducer
-    cart: cartReducer
-
+    cart: cartReducer,
+    notifications: notificationReducer
 });
 
 export const rootReducers: Reducer = (state, action) => {
