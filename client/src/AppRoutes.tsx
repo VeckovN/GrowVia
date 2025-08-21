@@ -10,6 +10,8 @@ import ProductOverview from './features/product/components/ProductOverview';
 import FarmerOverview from './features/farmer/components/FarmerOverview';
 import FarmerOrders from './features/farmer/components/FarmerOrders';
 
+import RequireCustomerOrGuestRoute from './features/RequireCustomerOrGuestRoute';
+import RequireGuestRoute from './features/RequireGuestRoute';
 import RequireAuthRoute from './features/RequireAuthRoute';
 
 import SignIn from './features/auth/components/SignIn';
@@ -36,44 +38,96 @@ const AppRouter: FC = () => {
     const routes: RouteObject[] = [
         {
             path: '/',
-            element: <MainLayout> <Index/> </MainLayout>
+            element: (
+                <RequireCustomerOrGuestRoute>
+                    <MainLayout> 
+                        <Index/> 
+                    </MainLayout>
+                </RequireCustomerOrGuestRoute> 
+            )
         },
         {
             path: '/market',
-            element: <MainLayout> <Market/> </MainLayout>
+            element: (
+                <RequireCustomerOrGuestRoute>
+                    <MainLayout> 
+                        <Market/>  
+                    </MainLayout>
+                </RequireCustomerOrGuestRoute> 
+            )
         },
         {
             path: '/farmers',
-            element: <MainLayout> <Market/> </MainLayout>
+            element: (
+                <RequireCustomerOrGuestRoute>
+                    <MainLayout> 
+                        <Market/>  
+                    </MainLayout>
+                </RequireCustomerOrGuestRoute> 
+            )
         },
-
         {
             path: '/product/overview/:id',
-            element: <MainLayout> <ProductOverview /> </MainLayout>
+            element: (
+                <RequireCustomerOrGuestRoute>
+                    <MainLayout> 
+                        <ProductOverview />  
+                    </MainLayout>
+                </RequireCustomerOrGuestRoute> 
+            )
         },
-
         {
             path: '/farmer/overview/:id',
-            element: <MainLayout> <FarmerOverview /> </MainLayout>
+            element: (
+                <RequireCustomerOrGuestRoute>
+                    <MainLayout> 
+                        <FarmerOverview /> 
+                    </MainLayout>
+                </RequireCustomerOrGuestRoute> 
+            )
         },
 
         //Signup/SignIn 
         //Main Layout with different Header->AuthHeader
         {
             path: '/signup',
-            element: <MainLayout authPage={true}> <SignUp/> </MainLayout>
+            element: (
+                <RequireGuestRoute>
+                    <MainLayout authPage={true}> 
+                        <SignUp/> 
+                    </MainLayout>
+                </RequireGuestRoute>
+            )
         },
         {
             path: '/signin',
-            element: <MainLayout authPage={true}> <SignIn/> </MainLayout>
+            element: (
+                <RequireGuestRoute>
+                    <MainLayout authPage={true}> 
+                        <SignIn/>
+                    </MainLayout>
+                </RequireGuestRoute>
+            )
         },
         {
             path: '/forgot-password',
-            element: <MainLayout authPage={true}> <ForgotPassword/> </MainLayout>
+            element: (
+                <RequireGuestRoute>
+                    <MainLayout authPage={true}> 
+                        <ForgotPassword/>
+                    </MainLayout>
+                </RequireGuestRoute>
+            )
         },
         { //When user click on "change Password" on received mail
             path: '/reset-password',
-            element: <MainLayout authPage={true}> <ResetPassword/> </MainLayout>
+            element: (
+                <RequireGuestRoute>
+                    <MainLayout authPage={true}> 
+                        <ResetPassword/>
+                    </MainLayout>
+                </RequireGuestRoute>
+            )
         },
         
         //for logged users
@@ -161,7 +215,6 @@ const AppRouter: FC = () => {
                 {path:'settings', element: <Settings/>}, 
             ]
         }
-
     ]
 
     return useRoutes(routes);
