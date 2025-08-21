@@ -84,12 +84,8 @@ export interface FarmerProductsTableProps {
     onPaginationChange: (newPagination: Partial<FarmerProductPaginationInterface>) => void;
 }
 
+
 export interface GalleryImageInterface {
     url: string,
     publicID: string,
-}
-
-export interface OrderFilterOptionsInterface {
-    sort?: 'newest' | 'oldest' | 'requested' | 'accepted' | 'packaged' | 'toCurier' | 'delivered' | 'canceled';
-    size?: number;
 }

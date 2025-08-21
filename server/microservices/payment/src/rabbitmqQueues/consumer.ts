@@ -4,13 +4,29 @@ import { Logger } from "winston";
 import { Channel, ConsumeMessage } from 'amqplib';
 import { config } from '@payment/config';
 import { publishMessage } from "@payment/rabbitmqQueues/producer";
+// import { createCustomer } from "@Payment/services/customer";
+// import { createFarmer } from "@Payment/services/farmer";
 
 const log:Logger = winstonLogger(`${config.ELASTICSEARCH_URL}`, 'paymentRabbitMQConsumer', 'debug');
+
+
+// const stripe = new Stripe(config.STRIPE_SECRET_KEY as string, {
+//     //check for apiVersion
+//     apiVersion: '2023-08-16', 
+// });
+
+
 const stripe: Stripe = new Stripe(config.STRIPE_SECRET_KEY!, {
     apiVersion: '2025-02-24.acacia', 
     typescript: true
-});
+  });
 
+//There's no need for creating customer account (intent will be created)
+//in backend only createing end-point (intent not customer option)
+//On Frontend Uses client_secret for confirmation
+//Use payment_type to reference saved payment details (instead of tokens).
+
+//customer requested order (order created) and payment should be capture -> before farmer accept it
 const orderPaymentDirectConsumer = async (channel:Channel):Promise<void> => {
     ///consume from Authentication (on signup)
     try{
@@ -27,13 +43,14 @@ const orderPaymentDirectConsumer = async (channel:Channel):Promise<void> => {
         channel.consume((await paymentQueue).queue, async (msg: ConsumeMessage | null)=>{
             if(!msg) return;
             try{
+                //msg! garante that msg is not null or undefined
                 const {type, data} = JSON.parse(msg!.content.toString());
                 
                 //taking data for order placing (create token and return back to the order service)
-                if(type == 'orderPlaced'){    
-
+                if(type == 'orderPlaced'){      
+                    console.log("\n Order data received: ", data);
+            
                     const totalPrice = Number(data.total_price);
-
                     let serviceFee: number;
                     if (totalPrice < 40)
                         serviceFee = (0.04 * totalPrice) + 2;
@@ -41,10 +58,14 @@ const orderPaymentDirectConsumer = async (channel:Channel):Promise<void> => {
                         serviceFee = 0.04 * totalPrice;
                     
                     const amountValue = Math.floor((totalPrice + serviceFee) * 100);
+                    
                     const paymentIntent = await stripe.paymentIntents.create({
                         amount: amountValue,
+                        // currency: 'eur',
                         currency: 'usd',
-                        payment_method: data.payment_method_id, 
+                        //For testing use data.payment_method
+                        payment_method: data.payment_method, //using only for testing
+                        // payment_method: data.payment_method_id, //using only for testing
                         confirm: true, // Auto-confirms for testing
                         capture_method: 'manual', // For farmer approval flow
                         metadata: { order_id: data.order_id},
@@ -53,12 +74,14 @@ const orderPaymentDirectConsumer = async (channel:Channel):Promise<void> => {
                             allow_redirects: 'never', // Avoid redirect payment methods
                         },
                     });
-                 
+
                     const updatedData = { 
                         ...data, 
                         payment_intent_id: paymentIntent.id,
                         payment_method_id: data.payment_method_id,
-                        payment_expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) // 7 days   
+                        payment_method: data.payment_method,
+                        payment_expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) // 7 days  
+                        // payment_expires_at: new Date(Date.now() + 7) // 7 days  
                     }; 
                 
                     //Returns Payment Token to Order Service (via consumer)

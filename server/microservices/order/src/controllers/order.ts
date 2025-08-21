@@ -7,8 +7,6 @@ import {
     farmerApproveOrder,
     cancelOrder,
     getOrderByID,
-    getFarmerOrders,
-    getCustomerOrders,
     farmerStartOrderProccess,
     farmerStartOrderDelivery,
     farmerFinishOrderDelivery
@@ -19,16 +17,6 @@ from "@order/services/order";
 const getOrder = async(req:Request, res:Response):Promise<void> => {
     const order: OrderDocumentInterface | null = await getOrderByID(req.params.orderID);
     res.status(200).json({message:"Order data by orderID", order: order});
-}   
-
-const getOrdersByFarmerID = async(req:Request, res:Response):Promise<void> => {
-    const orders: OrderDocumentInterface[] | null = await getFarmerOrders(req.params.farmerID);
-    res.status(200).json({message:"Orders data by farmerID", orders: orders});
-}   
-
-const getOrdersByCustomerID = async(req:Request, res:Response):Promise<void> => {
-    const orders: OrderDocumentInterface[] | null = await getCustomerOrders(req.params.customerID);
-    res.status(200).json({message:"Orders data by farmerID", orders: orders});
 }   
 
 const placeCustomerOrder = async(req:Request, res:Response):Promise<void> => {
@@ -78,8 +66,6 @@ const finishOrder = async(req:Request, res:Response):Promise<void> => {
 
 export {
     getOrder,
-    getOrdersByFarmerID,
-    getOrdersByCustomerID,
     placeCustomerOrder,
     cancelPlacedOrder,
     approveOrder,
