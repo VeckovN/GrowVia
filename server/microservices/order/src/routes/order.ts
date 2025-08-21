@@ -1,6 +1,8 @@
 import express, { Router } from "express";
 import { 
     getOrder,
+    getOrdersByFarmerID,
+    getOrdersByCustomerID,
     placeCustomerOrder,
     cancelPlacedOrder,
     approveOrder,
@@ -14,6 +16,8 @@ const router:Router = express.Router();
 
 export const orderRoutes = (): Router => {
     router.get('/:orderID', getOrder);  
+    router.get('/farmer/:farmerID', getOrdersByFarmerID);  
+    router.get('/customer/:customerID', getOrdersByCustomerID);  
     router.post('/create', placeCustomerOrder);  
     router.put('/cancel/:orderID', cancelPlacedOrder);  
     router.put('/approve/:orderID', approveOrder);  

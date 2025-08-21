@@ -44,7 +44,7 @@
   "dependencies": {
     "@elastic/elasticsearch": "^8.17.0",
     "@types/glob": "^8.1.0",
-    "@veckovn/growvia-shared": "^1.1.9",
+    "@veckovn/growvia-shared": "^1.2.1",
     "amqplib": "^0.10.3",
     "compression": "^1.8.0",
     "cors": "^2.8.5",

@@ -13,6 +13,9 @@ const OrderCreateZodSchema = z.object({
             /^[a-zA-Z][a-zA-Z0-9_]*$/,
             "Username must start with a letter and can only contain letters, numbers, and underscores"
         ),
+    customer_first_name: z.string().max(50, "First name too long").optional(),
+    customer_last_name: z.string().max(50, "Last name too long").optional(),
+    customer_phone: z.string().max(20, "Phone number too long").optional(),
     farmer_email: z.string().min(1, "Farmer Email is required").email("Invalid email format"),
     farmer_username: z.string()
         .min(3, "Farmer Username too short")
@@ -37,7 +40,7 @@ const OrderCreateZodSchema = z.object({
         'paid',
         'refunded',
         'canceled'
-    ]),
+    ]).optional(), //Only for stipe payment process
     payment_type: z.enum(['stripe', 'cod']),
     payment_method: z.string().optional(), //relaeted to stripe
     payment_intent_id: z.string().optional(),
@@ -45,6 +48,7 @@ const OrderCreateZodSchema = z.object({
     // payment_expires_at: z.date().optional(), 
     payment_expires_at: z.string().optional(), 
     shipping_address: z.string().max(100, "Address too long").optional(),
+    shipping_postal_code: z.string().max(20, "Postal code too long").optional(),
     billing_address: z.string().max(100, "Address too long").optional(),
     delivery_date: z.string().optional(),
     tracking_url: z.string().optional(),
@@ -59,6 +63,8 @@ const OrderUpdateZodSchema = OrderCreateZodSchema.partial();
 const OrderItemCreateZodSchema = z.object({
     order_id: z.string().uuid("Invalid order ID").min(1, "Order ID is required"),
     product_id: z.string().min(1, "Product ID is required"),
+    product_name: z.string().min(1, "Product name is required"),
+    product_image_url: z.string().url("Invalid product image URL"),
     quantity: z.number().min(1, "Quantity must be at least 1"),
     unit_price: z.number().min(0, "Unit price must be non-negative"),
     total_price: z.number().min(0, "Total price must be non-negative"),

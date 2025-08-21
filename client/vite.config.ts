@@ -1,6 +1,7 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import tscongPaths from 'vite-tsconfig-paths';
+import svgr from 'vite-plugin-svgr';
 
 // https://vite.dev/config/
 export default defineConfig({
@@ -13,6 +14,11 @@ export default defineConfig({
     }),
     //and every time we have changes, we want to have automatical reload
     tscongPaths(),
+    svgr({
+      svgrOptions: {
+        icon: true, // optional, makes svg size behave like an icon
+      },
+    }),
   ],
   resolve: {
     alias: {

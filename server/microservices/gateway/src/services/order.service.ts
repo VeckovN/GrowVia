@@ -10,6 +10,16 @@ async function getOrderByID(orderID: string):Promise<AxiosResponse> {
     return res;
 }
 
+async function getOrdersByFarmerID(farmerID: string):Promise<AxiosResponse> {
+    const res: AxiosResponse = await orderAxiosInstance.get(`/farmer/${farmerID}`);
+    return res;
+}
+
+async function getOrdersByCustomerID(customerID: string):Promise<AxiosResponse> {
+    const res: AxiosResponse = await orderAxiosInstance.get(`/customer/${customerID}`);
+    return res;
+}
+
 async function createOrder(product: OrderCreateInterface):Promise<AxiosResponse> {
     const res: AxiosResponse = await orderAxiosInstance.post(`/create`, product);
     return res;
@@ -44,6 +54,8 @@ async function finishOrder(orderID: string):Promise<AxiosResponse> {
 export {
     orderAxiosInstance,
     getOrderByID,
+    getOrdersByFarmerID,
+    getOrdersByCustomerID,
     createOrder,
     cancelOrder,
     approveOrder,
