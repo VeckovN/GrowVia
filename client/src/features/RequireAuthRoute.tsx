@@ -20,7 +20,6 @@ const RequireAuthRoute = ({
         }
     }, [error]);
 
-    // Show nothing while loading (or a loading spinner)
     if (isLoading) return null;
 
     const userRole = data?.user?.userType;
@@ -34,7 +33,9 @@ const RequireAuthRoute = ({
     // Handle unauthorized roles
     if (!allowedRoles.includes(userRole)) {
         toast.error("You don't have permission to access this resource");
-        return <Navigate to="/" replace />;
+        
+        if(userRole === 'farmer') return <Navigate to='/farmer' replace/>
+        if(userRole === 'customer') return <Navigate to='/' replace/>
     }
 
     return <>{children}</>
