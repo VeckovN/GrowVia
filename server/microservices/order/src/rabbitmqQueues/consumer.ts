@@ -27,7 +27,7 @@ const placeOrderPaymentDirectConsumer = async (channel:Channel):Promise<void> =>
                 const { type, data } = JSON.parse(msg!.content.toString());
                 
                 if(type == 'paymentTokenized') {
-                    console.log("Order Service consumer on, type: 'paymentTokenized'")
+                    console.log("Order Service consumer on, type: 'paymentTokenized' ")
                     await placePendingOrder(data);
                     channel.ack(msg!); //Ack after successful processing 
                 }
@@ -64,7 +64,6 @@ const farmerAcceptOrderPaymentDirectConsumer = async (channel:Channel):Promise<v
                 const {type, data} = JSON.parse(msg!.content.toString());
                 console.log("DATA REEEEE: ", data);
 
-                //this sent on Payment service  successfull 'orderApproved' consumer
                 if(type == 'ApprovePaymentSuccess'){            
                     console.log("\n Order place Data: ", data);
                     await changeOrderStatus(data.order_id, 'accepted', 'paid');
@@ -82,31 +81,22 @@ const farmerAcceptOrderPaymentDirectConsumer = async (channel:Channel):Promise<v
                         totalPrice: data.total_price,
                         orderItems: data.orderItems
                     }
-                    
-                    const notificationMessage = `Your orderID: #${data.order_id.slice(0,8)}... approved by farmer: ${data.farmer_username}`;
-                    const notification: NotificationInterface = {
-                        type: 'order', // must match enum in schema
-                        sender: {
-                            id: data.farmer_id,
-                            name: data.farmer_username,
-                            // farmerAvatarUrl isn't part of Order data
-                            // avatarUrl: orderData?|| '', // fetch from user service / redux state
-                        },
-                        receiver: {
-                            id: data.customer_id,
-                            name: `${data.customer_first_name} ${data.customer_last_name}`.trim(),
-                        },
-                        message: notificationMessage,
-                        isRead: false,
-                        bothUsers: false, // or true if needed
-                        order: {
-                            orderId: data.order_id,
-                            status: data.order_status || 'pending',
-                        },
-                        createdAt: new Date().toISOString(),
-                    };
 
-                    const logMessage = 'Send Farmer Approve email Data to Notification service';
+                    const notificationMessage = `Your orderID: ${data.order_id} approved by farmer: ${data.farmer_username} `
+                    const logMessage = 'Send farmer approve email data to notification service';
+                    const notification: NotificationInterface = {
+                        type: 'Order', 
+                        orderID: data.order_id,
+                        senderID: data.farmer_id,  
+                        senderUsername: data.farmer_username,
+                        receiverID: data.customer_id,
+                        receiverUsername: data.customer_username,
+                        message: notificationMessage,
+                        isRead: false
+                    }
+            
+                    console.log("Consumer ApprovePaymentSuccess Notification being sent: ", notification);
+
                     //send email and socket event
                     await postOrderNotificationWithEmail( 
                         orderChannel,
@@ -118,6 +108,7 @@ const farmerAcceptOrderPaymentDirectConsumer = async (channel:Channel):Promise<v
                     );
 
                     log.info("Order Service: order approved - payment succeeded message recevied");
+                    // log.info("User Service Data recieved from Authentication service");
                 }
 
                 //payment Fail on orderAccepted
@@ -141,30 +132,24 @@ const farmerAcceptOrderPaymentDirectConsumer = async (channel:Channel):Promise<v
                         bothUsers: true
                     }
 
-                    const notificationMessage = `Your payment failed on order: #${data.order_id.slice(0,8)}...`;
+                    const notificationMessage = ` Your payment failed on order: ${data.order_id} `
+                    const logMessage = 'Send order reject email to users to notification service';
                     const notification: NotificationInterface = {
-                        type: 'order', // must match enum in schema
-                        sender: {
-                            id: data.farmer_id,
-                            name: data.farmer_username,
-                            // farmerAvatarUrl isn't part of Order data
-                            // avatarUrl: orderData?|| '', // fetch from user service / redux state
-                        },
-                        receiver: {
-                            id: data.customer_id,
-                            name: `${data.customer_first_name} ${data.customer_last_name}`.trim(),
-                        },
+                        type: 'Order', 
+                        orderID: data.order_id,
+                        senderID: data.farmer_id,  
+                        senderUsername: data.farmer_username,
+                        senderEmail: data.farmer_email,
+                        receiverID: data.customer_id,
+                        receiverUsername: data.customer_username,
+                        receiverEmail: data.customer_email,
                         message: notificationMessage,
                         isRead: false,
-                        bothUsers: false, // or true if needed
-                        order: {
-                            orderId: data.order_id,
-                            status: data.order_status || 'pending',
-                        },
-                        createdAt: new Date().toISOString(),
-                    };
+                        bothUsers: true
+                    }
+
+                    console.log("Consumer ApprovePatmenyFailed Notification being sent: ", notification);
             
-                    const logMessage = 'Send Order Reject to users email data to Notification service';
                     //send email and socket event
                     await postOrderNotificationWithEmail( 
                         orderChannel,
@@ -194,30 +179,21 @@ const farmerAcceptOrderPaymentDirectConsumer = async (channel:Channel):Promise<v
                         orderItems: data.orderItems
                     }
 
-                    const notificationMessage = `Your requested order has canceled by: ${data.farmer_username}`
+                    const notificationMessage = ` Your requested order has canceled by: ${data.farmer_username} `
+                    const logMessage = 'Send order cancel email to users to notification service';
                     const notification: NotificationInterface = {
-                        type: 'order', // must match enum in schema
-                        sender: {
-                            id: data.farmer_id,
-                            name: data.farmer_username,
-                            // farmerAvatarUrl isn't part of Order data
-                            // avatarUrl: orderData?|| '', // fetch from user service / redux state
-                        },
-                        receiver: {
-                            id: data.customer_id,
-                            name: `${data.customer_first_name} ${data.customer_last_name}`.trim(),
-                        },
+                        type: 'Order', 
+                        orderID: data.order_id,
+                        senderID: data.farmer_id,  
+                        senderUsername: data.farmer_username,
+                        receiverID: data.customer_id,
+                        receiverUsername: data.customer_username,
                         message: notificationMessage,
-                        isRead: false,
-                        bothUsers: false, // or true if needed
-                        order: {
-                            orderId: data.order_id,
-                            status: data.order_status || 'pending',
-                        },
-                        createdAt: new Date().toISOString(),
-                    };
+                        isRead: false
+                    }
 
-                    const logMessage = 'Send Order Cancel email to Notification service';
+                    console.log("consumer paymentCanceled Notification being sent: ", notification);
+            
                     //send email and socket event
                     await postOrderNotificationWithEmail( 
                         orderChannel,

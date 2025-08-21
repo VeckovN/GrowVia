@@ -97,20 +97,11 @@ async function startHttpAndSocketServer(app:Application):Promise<void> {
 async function createSocketIO(httpServer: http.Server): Promise<Server> {
     const socketIO: Server = new Server(httpServer, {
         cors: {
-            origin: '*',
-            methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH']
+          origin: '*',
+          methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH']
         }
-    });
-
-    socketIO.on("connection", (socket) => {
-        console.log(`Socket connected: ${socket.id}`);
-
-        socket.on("disconnect", (reason) => {
-            console.log(`Socket disconnected: ${socket.id}, reason: ${reason}`);
-            });
-    });
-
-    return socketIO;
+      });
+      return socketIO;
 }
 
 export function start(app:Application){

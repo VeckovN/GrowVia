@@ -8,10 +8,7 @@ import CustomerLayout from './layouts/components/CustomerLayout';
 import Market from './features/market/components/Market';
 import ProductOverview from './features/product/components/ProductOverview';
 import FarmerOverview from './features/farmer/components/FarmerOverview';
-import FarmerOrders from './features/farmer/components/FarmerOrders';
 
-import RequireCustomerOrGuestRoute from './features/RequireCustomerOrGuestRoute';
-import RequireGuestRoute from './features/RequireGuestRoute';
 import RequireAuthRoute from './features/RequireAuthRoute';
 
 import SignIn from './features/auth/components/SignIn';
@@ -19,9 +16,7 @@ import SignUp from './features/auth/components/SignUp';
 import ForgotPassword from './features/auth/components/ForgotPassword';
 import ResetPassword from './features/auth/components/ResetPassword';
 import ConfirmEmail from './features/auth/components/ConfirmEmail';
-import Order from './features/order/pages/Order';
 import Settings from './features/shared/user/Settings';
-import OrderTrack from './features/order/pages/OrderTrack';
 
 import FarmerDashboard from './features/farmer/components/FarmerDashboard';
 import FarmerProducts from './features/farmer/components/FarmerProducts';
@@ -29,107 +24,54 @@ import FarmerProfile from './features/farmer/components/FarmerProfile';
 // import FarmerSettings from './features/farmer/components/FarmerSettings';
 
 import CustomerProfile from './features/customer/components/CustomerProfile';
-import CustomerOrders from './features/customer/components/CustomerOrders';
 
 import { ModalProvider } from './features/shared/context/ModalContext';
 
 
 const AppRouter: FC = () => {
     const routes: RouteObject[] = [
+        //Main Layout
         {
             path: '/',
-            element: (
-                <RequireCustomerOrGuestRoute>
-                    <MainLayout> 
-                        <Index/> 
-                    </MainLayout>
-                </RequireCustomerOrGuestRoute> 
-            )
+            element: <MainLayout> <Index/> </MainLayout>
         },
         {
             path: '/market',
-            element: (
-                <RequireCustomerOrGuestRoute>
-                    <MainLayout> 
-                        <Market/>  
-                    </MainLayout>
-                </RequireCustomerOrGuestRoute> 
-            )
+            element: <MainLayout> <Market/> </MainLayout>
         },
         {
             path: '/farmers',
-            element: (
-                <RequireCustomerOrGuestRoute>
-                    <MainLayout> 
-                        <Market/>  
-                    </MainLayout>
-                </RequireCustomerOrGuestRoute> 
-            )
+            element: <MainLayout> <Market/> </MainLayout>
         },
+
         {
             path: '/product/overview/:id',
-            element: (
-                <RequireCustomerOrGuestRoute>
-                    <MainLayout> 
-                        <ProductOverview />  
-                    </MainLayout>
-                </RequireCustomerOrGuestRoute> 
-            )
+            element: <MainLayout> <ProductOverview /> </MainLayout>
         },
+
         {
             path: '/farmer/overview/:id',
-            element: (
-                <RequireCustomerOrGuestRoute>
-                    <MainLayout> 
-                        <FarmerOverview /> 
-                    </MainLayout>
-                </RequireCustomerOrGuestRoute> 
-            )
+            element: <MainLayout> <FarmerOverview /> </MainLayout>
         },
 
         //Signup/SignIn 
         //Main Layout with different Header->AuthHeader
         {
             path: '/signup',
-            element: (
-                <RequireGuestRoute>
-                    <MainLayout authPage={true}> 
-                        <SignUp/> 
-                    </MainLayout>
-                </RequireGuestRoute>
-            )
+            element: <MainLayout authPage={true}> <SignUp/> </MainLayout>
         },
         {
             path: '/signin',
-            element: (
-                <RequireGuestRoute>
-                    <MainLayout authPage={true}> 
-                        <SignIn/>
-                    </MainLayout>
-                </RequireGuestRoute>
-            )
+            element: <MainLayout authPage={true}> <SignIn/> </MainLayout>
         },
         {
             path: '/forgot-password',
-            element: (
-                <RequireGuestRoute>
-                    <MainLayout authPage={true}> 
-                        <ForgotPassword/>
-                    </MainLayout>
-                </RequireGuestRoute>
-            )
+            element: <MainLayout authPage={true}> <ForgotPassword/> </MainLayout>
         },
         { //When user click on "change Password" on received mail
             path: '/reset-password',
-            element: (
-                <RequireGuestRoute>
-                    <MainLayout authPage={true}> 
-                        <ResetPassword/>
-                    </MainLayout>
-                </RequireGuestRoute>
-            )
+            element: <MainLayout authPage={true}> <ResetPassword/> </MainLayout>
         },
-        
         //for logged users
         { //When user click on "change Password" on received mail
             path: '/confirm-email',
@@ -139,37 +81,6 @@ const AppRouter: FC = () => {
                 </RequireAuthRoute>
             )
             // element: <MainLayout authPage={true}> <ConfirmEmail/> </MainLayout>
-        },
-        // { 
-        //     path: '/order/overview/:orderID',
-        //     element: (
-        //         <RequireAuthRoute allowedRoles={['customer', 'farmer']}>
-        //             <MainLayout >
-        //                 <OrderOverview >
-        //             </MainLayout>
-        //         </RequireAuthRoute>
-        //     )
-        // },
-        { 
-            path: '/order/track/:orderID',
-            element: (
-                <RequireAuthRoute allowedRoles={['customer', 'farmer']}>
-                    <MainLayout >
-                        <OrderTrack />
-                    </MainLayout>
-                </RequireAuthRoute>
-            )
-        },
-        { 
-            path: '/order/:farmerID',
-            element: (
-                <RequireAuthRoute allowedRoles={['customer']}>
-                    <MainLayout >
-                        {/* Order Page */}
-                        <Order/> 
-                    </MainLayout>
-                </RequireAuthRoute>
-            )
         },
         {
             path: '/farmer',
@@ -191,7 +102,7 @@ const AppRouter: FC = () => {
                             <FarmerProducts />
                         </ModalProvider>
                     }, 
-                {path:'orders', element: <FarmerOrders />}, 
+                // {path:'/orders', element: <FarmerOrders />}, 
                 {path:'settings', element: <Settings/>}, 
             ]
         },
@@ -210,11 +121,12 @@ const AppRouter: FC = () => {
             ),
             children: [
                 {path:'profile', element: <CustomerProfile/>},  
-                {path:'orders', element: <CustomerOrders />}, 
+                // {path:'orders', element: <CustomerOrders />}, 
                 // {path:'wishlist', element: <CustomerWishlist />}, 
                 {path:'settings', element: <Settings/>}, 
             ]
         }
+
     ]
 
     return useRoutes(routes);

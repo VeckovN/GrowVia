@@ -28,25 +28,21 @@ const orderTable = `
 
     CREATE TABLE IF NOT EXISTS public.orders (
         order_id UUID DEFAULT uuid_generate_v4(),  -- UUID for unique order ID
-        farmer_id TEXT NOT NULL,  -- Farmer ID from User Serivce
-        farmer_username TEXT,
-        customer_id TEXT NOT NULL,  -- Customer id from User Service
+        customer_id TEXT NOT NULL,  -- MongoDB ObjectId stored as TEXT (or VARCHAR)
         customer_username TEXT, 
-        customer_email TEXT,  -- Form 'email' doesn't have to match User Service 'email'
-        customer_first_name TEXT,  -- Form 'customer_first_name' doesn't have to match User Service 'first_name'
-        customer_last_name TEXT, -- Form 'customer_last_name' doesn't have to match User Service 'last_name'
-        customer_phone TEXT,  -- Form 'customer_phone' doesn't have to match User Service 'phone'
+        customer_email TEXT,
+        farmer_id TEXT NOT NULL,  -- MongoDB ObjectId stored as TEXT (or VARCHAR)
+        farmer_username TEXT,
         farmer_email TEXT,
         invoice_id TEXT,
         total_price DECIMAL(10, 2) NOT NULL,
-        payment_status VARCHAR(50),
+        payment_status VARCHAR(50) NOT NULL,
         order_status VARCHAR(50) NOT NULL DEFAULT 'pending',
         payment_intent_id VARCHAR(255),
         payment_method VARCHAR(225),
         payment_method_id VARCHAR(255),
         payment_type VARCHAR(50),
-        shipping_address TEXT, -- Contian address and city together 'Address,City'
-        shipping_postal_code TEXT,
+        shipping_address TEXT,
         billing_address TEXT,
         delivery_date TIMESTAMP,
         payment_expires_at TIMESTAMP,
@@ -60,10 +56,7 @@ const orderTable = `
     CREATE TABLE IF NOT EXISTS public.order_items (
         order_item_id UUID DEFAULT uuid_generate_v4(),  -- UUID for unique order item ID
         order_id UUID NOT NULL,  -- Foreign key to the order
-        product_id TEXT NOT NULL,  -- Product ID from Product Service
-        product_name TEXT NOT NULL, --Save for snapshot (at the time of order creation)
-        product_image_url TEXT NOT NULL, -- Save for snapshot (at the time of order creation)
-        product_unit TEXT NOT NULL, -- Save for snapshot
+        product_id TEXT NOT NULL,  -- MongoDB ObjectId stored as TEXT (referencing the product)
         quantity INT NOT NULL,  -- Number of products in the order
         unit_price DECIMAL(10, 2) NOT NULL,  -- Price of the product at the time of purchase
         total_price DECIMAL(10, 2) NOT NULL,  -- total price for this item (quantity * unit_price)

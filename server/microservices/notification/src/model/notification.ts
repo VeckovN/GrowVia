@@ -7,29 +7,19 @@ const NotificationSchema: Schema = new Schema(
         // id automaticaly created
         type: {
             type: String,
-            enum: ['order', 'iot', 'authentication', 'rating', 'general', 'system'], // Add more types if needed
+            enum: ['Order', 'Authentication', 'General'], // Add more types if needed
             required: true,
         },
-        sender: {
-            id: { type: String, required: true },
-            name: { type: String, required: true },
-            avatarUrl: { type: String }
-        },
-        receiver: {
-            id: { type: String, required: true },
-            name: { type: String, required: true }
-        },
+        senderID: { type: mongoose.Schema.Types.ObjectId, index:true, require:true}, //User id  from Users Service DB (mongoDB as well)
+        senderUsername: { type: String, required: true },
+        senderEmail: { type: String},
+        receiverID: { type: mongoose.Schema.Types.ObjectId, index:true, require:true}, //User id  from Users Service DB (mongoDB as well)
+        receiverUsername: { type: String, required: true },
+        receiverEmail: { type: String},
         message: { type: String, required: true },
-        isRead: { type: Boolean, default: false },
-        //Type specific fields - optional
-        order: {
-            orderId: { type: String }, // string or ObjectId
-            status: { type: String }
-        },
-        iot: {  
-            iotStatus: { type: String}
-        },
-        bothUsers: { type: Boolean, default: false}, //This flag should be used to tell that notification is related to both users (receiver/sender) -> for PaymentFailed for example
+        isRead: { type: Boolean, default: false},
+        orderID: { type: String },
+        bothUsers: { type: Boolean, default: false}
     },
     {
         timestamps: true,

@@ -1,17 +1,22 @@
 import { NotificationInterface } from "@veckovn/growvia-shared";
 import { NotificationModel } from "@notification/model/notification";
+import mongoose from 'mongoose'
+
 
 const storeNotification = async(notification: NotificationInterface): Promise<NotificationInterface> => {
-    const data:NotificationInterface = await NotificationModel.create(notification);
+    const notificationObject:NotificationInterface = {
+        ...notification,
+        receiverID: new mongoose.Types.ObjectId(notification.receiverID),
+        senderID: new mongoose.Types.ObjectId(notification.senderID)
+    }
+    
+    const data:NotificationInterface = await NotificationModel.create(notificationObject);
     return data;
 }
 
-//get first 10
 const getNotificationsByID = async(userID: string): Promise<NotificationInterface[]> => {
     //TODO: paggination
-    const notifications: NotificationInterface[] = await NotificationModel.find({"receiver.id": userID})
-        .sort({ createdAt: -1})
-        .limit(10)
+    const notifications: NotificationInterface[] = await NotificationModel.find({receiverID: userID});
     return notifications;
 }
 
