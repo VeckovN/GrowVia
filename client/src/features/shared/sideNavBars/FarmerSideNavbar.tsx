@@ -1,10 +1,11 @@
-import { FC , memo} from 'react';
+import { FC, memo } from 'react';
 import { NavLink } from 'react-router-dom';
 import { useAppSelector } from '../../../store/store';
 import { ReduxStateInterface } from '../../../store/store.interface';
-import useNotificationsDropdown from '../hooks/useNotificationsDropdown';
 import HeaderIconBadge from '../headers/HeaderIconBadge';
 import NotificationsDropdown from '../../notifications/components/NotificationsDropdown';
+import useNotificationsDropdown from '../hooks/useNotificationsDropdown';
+import useLogout from '../hooks/useLogout';
 
 import LogoIcon from '../../../assets/header/LogoIcon.svg';
 import Bell from '../../../assets/header/Bell.svg'
@@ -14,14 +15,16 @@ import ProductIcon from '../../../assets/navBar/Products.svg';
 import OrdersIcon from '../../../assets/navBar/Orders.svg';
 import SettingsIcon from '../../../assets/navBar/Settings.svg';
 import LockerIcon from '../../../assets/navBar/Locker.svg';
+import LogutIcon from '../../../assets/navBar/Logout.svg';
 
 const FarmerSideNavbar:FC = memo(() => {
     const notifications = useAppSelector((state: ReduxStateInterface) => state.notifications);
     const { notificationsDropwdownRef, isNotificationsOpen, toggleNotificationsDropdown} = useNotificationsDropdown();
+    const logoutHandler = useLogout();
 
     return (
         <nav className='w-[270px] bg-white'>
-
+            
             <div className='flex items-center py-4 relative'>
                 {isNotificationsOpen &&
                     <div ref={notificationsDropwdownRef} className='w-full absolute top-14 left-[100px] z-10'>
@@ -160,11 +163,14 @@ const FarmerSideNavbar:FC = memo(() => {
                     </NavLink>
                 </li>
 
-               <li className='w-full mt-10 cursor-pointer'>
+               <li 
+                    className='w-full mt-10 cursor-pointer' 
+                    onClick={logoutHandler}
+                >
                     <div className='flex items-center w-full h-12 p-2 px-4 hover:bg-green2 transition-colors duration-200'>
                         <img
                             className='w-4 h-4 '
-                            src={HomeIcon}
+                            src={LogutIcon}
                             alt='logo'
                         />
                         <div className='relative w-full flex items-center text-green10 pl-2 '> SignOut </div>

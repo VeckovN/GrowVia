@@ -31,6 +31,8 @@ const authApi = api.injectEndpoints({ //in api(createApi) we'we created endpoint
             },
             invalidatesTags: ['Auth']
         }),
+        // Manually clear cache -Needed because RequireGuestRoute calls getCurrentUser. 
+        // Without clearing cache, it would return the old user after logout.
         logout: build.mutation<ResponseInterface, void>({
             query() {
                 return {
@@ -38,7 +40,17 @@ const authApi = api.injectEndpoints({ //in api(createApi) we'we created endpoint
                     method: 'POST'
                 };
             },
-            invalidatesTags: ['Auth']
+            async onQueryStarted(_, { dispatch, queryFulfilled }) {
+                try {
+                    await queryFulfilled;
+                    // Remove cached current user immediately after logout
+                    dispatch(
+                        api.util.resetApiState()
+                    );
+                } catch {
+                    // ignore errors
+                }
+            },
         }),
         forgotPassword: build.mutation<ResponseInterface, string>({
             query(email) {

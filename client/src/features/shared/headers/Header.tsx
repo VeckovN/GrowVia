@@ -59,6 +59,10 @@ const Header: FC = (): ReactElement => {
         setIsCartOpen(!isCartOpen);        
     }
 
+    const closeProfileDropdown = ():void =>{
+        setIsProfileOpen(false);
+    }
+
     const onCloseCartDropdown = ():void => {
         setIsCartOpen(false);
     }
@@ -152,7 +156,7 @@ const Header: FC = (): ReactElement => {
 
                         {isProfileOpen &&
                             <div ref={profileDropdownRef} className='absolute top-10'>
-                                <ProfileDropdown authUser={authUser} />
+                                <ProfileDropdown authUser={authUser} closeProfileDropdown={closeProfileDropdown}/>
                             </div>
                         }
 

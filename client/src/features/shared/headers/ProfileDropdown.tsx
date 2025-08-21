@@ -1,31 +1,11 @@
 import { FC } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { ProfileDropdownProps } from '../interfaces';
-import { useDispatch } from 'react-redux';
-import { useLogoutMutation } from '../../auth/auth.service';
-import { removeUserFromSessionStorage } from '../utils/utilsFunctions';
-import { clearAuth } from '../../auth/auth.reducers';
-import { clearNotifications } from '../../notifications/notifications.reducers';
-import { toast } from 'react-hot-toast';
+
+import useLogout from '../hooks/useLogout';
 
 const ProfileDropdown: FC<ProfileDropdownProps> = ({ authUser, closeProfileDropdown }) => {
-    const navigate = useNavigate();
-    const dispatch = useDispatch();
-    const [logout] = useLogoutMutation();
-
-    const logoutHanlder = async (): Promise<void> => {
-        try {
-            await logout();
-            dispatch(clearAuth());
-            dispatch(clearNotifications());
-            removeUserFromSessionStorage();
-            toast.success("You're logged out");
-            navigate('/signin');
-        }
-        catch (error) {
-            console.log("Logout error:");
-        }
-    }
+    const logoutHandler = useLogout()
 
     return (
         <div className='bg-white border border-greyB rounded-xl'>
@@ -40,29 +20,29 @@ const ProfileDropdown: FC<ProfileDropdownProps> = ({ authUser, closeProfileDropd
 
                 { authUser.userType === 'farmer' ?
                 <>
-                    <li className='w-full p-2 px-3 hover:bg-gray-100 transition-colors duration-200'>
+                    <li className="w-full">
                         <Link
-                            //customer/account or farmer/customer 
-                            to={`/farmer `}
+                            className="block w-full p-2 px-3 hover:bg-gray-100 transition-colors duration-200"
+                            to="/farmer"
                             onClick={closeProfileDropdown}
                         >
                             Dashboard
                         </Link>
                     </li>
 
-                    <li className='w-full p-2 px-3 hover:bg-gray-100 transition-colors duration-200'>
+                    <li className="w-full">
                         <Link
-                            //customer/account or farmer/customer 
-                            to={`/farmer/profile`}
+                            to="/farmer/profile"
                             onClick={closeProfileDropdown}
+                            className="block w-full p-2 px-3 hover:bg-gray-100 transition-colors duration-200"
                         >
                             Profile
                         </Link>
                     </li>
 
-                    <li className='w-full p-2 px-3 hover:bg-gray-100 transition-colors duration-200'>
+                    <li className='w-full '>
                         <Link
-                            //customer/account or farmer/customer 
+                            className="block w-full p-2 px-3 hover:bg-gray-100 transition-colors duration-200" 
                             to={`/farmer/products`}
                             onClick={closeProfileDropdown}
                         >
@@ -70,21 +50,26 @@ const ProfileDropdown: FC<ProfileDropdownProps> = ({ authUser, closeProfileDropd
                         </Link>
                     </li>
 
-                    <li className='w-full p-2 px-3 disabled text-gray-300'>
+                    {/* <li className='w-full'>
                         <Link
-                            //customer/account or farmer/customer 
-                            to={`/farmer/products `}
+                            className="block w-full p-2 px-3 text-gray-300 cursor-default transition-colors duration-200" 
+                            to={`/farmer/iot `}
                             onClick={closeProfileDropdown}
                         >
                             Iot Management
                         </Link>
+                    </li> */}
+                    <li className="w-full">
+                        <span className="block w-full p-2 px-3 text-gray-300 cursor-default transition-colors duration-200">
+                            IoT Management
+                        </span>
                     </li>
                 </>
                 :
                 //not farmer -> its customer
-                <li className='w-full p-2 px-3 hover:bg-gray-100 transition-colors duration-200'>
+                <li className='w-full'>
                     <Link
-                        //customer/account or farmer/customer 
+                        className="block w-full p-2 px-3 hover:bg-gray-100 transition-colors duration-200" 
                         to={`/${authUser.userType}/profile `}
                         onClick={closeProfileDropdown}
                     >
@@ -94,8 +79,9 @@ const ProfileDropdown: FC<ProfileDropdownProps> = ({ authUser, closeProfileDropd
 
                 }
                 
-                <li className='p-2 px-3 hover:bg-gray-100 transition-colors duration-200'>
+                <li className='w-full'>
                     <Link
+                        className="block w-full p-2 px-3 hover:bg-gray-100 transition-colors duration-200" 
                         to={`/${authUser.userType}/orders `}
                         onClick={closeProfileDropdown}
                     >
@@ -103,8 +89,9 @@ const ProfileDropdown: FC<ProfileDropdownProps> = ({ authUser, closeProfileDropd
                     </Link>
                 </li>
 
-                <li className='p-2 px-3 hover:bg-gray-100 transition-colors duration-200'>
+                <li className='w-full'>
                     <Link
+                        className="block w-full p-2 px-3 hover:bg-gray-100 transition-colors duration-200" 
                         to={`/${authUser.userType}/settings `}
                         onClick={closeProfileDropdown}
                     > 
@@ -115,7 +102,7 @@ const ProfileDropdown: FC<ProfileDropdownProps> = ({ authUser, closeProfileDropd
 
             <div
                 className='p-2 px-3 rounded-b-xl hover:bg-gray-100 transition-colors duration-200 cursor-pointer'
-                onClick={logoutHanlder}
+                onClick={logoutHandler}
             >
                 Logout
             </div>
