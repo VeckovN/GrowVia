@@ -1,3 +1,7 @@
+import { SignUpFormInterface } from '../../auth/auth.interfaces';
+import { GalleryImageInterface } from '../../farmer/farmer.interface';
+import { CategoryItemPropsInterface } from '../interfaces';
+
 import fruit from '../../../assets/categories/fruit.svg';
 import vegetables from '../../../assets/categories/vegetables.svg';
 
@@ -13,14 +17,6 @@ import gallery4 from '../../../assets/farmers/gallery/Card4.jpg';
 import gallery5 from '../../../assets/farmers/gallery/Card5.jpg';
 import gallery6 from '../../../assets/farmers/gallery/Card6.jpg';
 
-import { SignUpFormInterface } from '../../auth/auth.interfaces';
-import { GalleryImageInterface } from '../../farmer/farmer.interface';
-
-export interface productCategoriesInterface {
-    id: string | number,
-    name: string,
-    icon: string
-}
 
 
 //from growvia-shared library(used in backend microservices)
@@ -33,7 +29,7 @@ export const DEFAULT_IMAGE: {url:string, publicID:string} = {
     publicID: ''
 }
 
-export const productCategories: productCategoriesInterface[] = [
+export const productCategories: CategoryItemPropsInterface[] = [
 // export const productCategories = [
     {
         id: 'f1',

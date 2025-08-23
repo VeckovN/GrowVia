@@ -1,8 +1,8 @@
 import { FC, ReactElement } from "react"
 import { useAppDispatch } from "../../../store/store";
-import { addProduct } from "../../cart/cart.reducers";
-import { MarketListInterface } from "../market.interface";
 import ProductMarketCard from "../../product/components/ProductMarketCard";
+import MarketFarmerCard from "./MarketFarmerCard";
+import { MarketListInterface } from "../market.interface";
 import { CartProductInterface } from "../../cart/cart.interface";
 import { handleAddToCart } from "../../shared/utils/utilsFunctions";
 
@@ -16,7 +16,7 @@ const MarketList:FC<MarketListInterface> = ({mode, items=[]}):ReactElement => {
     return (
         <div className="bg-red-300a">
             {mode === 'products' ? (
-                <div className='bg-red-400a grid grid-cols-[repeat(auto-fit,_minmax(200px,_1fr))] w-fulla justify-items-center gap-x-3 gap-y-3'>
+                <div className='grid grid-cols-[repeat(auto-fit,_minmax(200px,_1fr))] justify-items-center gap-x-3 gap-y-3'>
                     {items.map(product =>(
                         <ProductMarketCard
                             key={product.id}
@@ -27,10 +27,14 @@ const MarketList:FC<MarketListInterface> = ({mode, items=[]}):ReactElement => {
                     ))}
                 </div>
             ) : (
-                <div className="farmer-grid">
-                    {items.map(farmer =>(
-                        <div> {farmer.farmName}</div>
-                        // <FarmerCard key={product?.id} farmer={farmer}/>
+                <div className="grid grid-cols-[repeat(auto-fit,minmax(380px,1fr))] justify-items-center gap-x-3 gap-y-3 ">
+                    {items.slice(0,12).map(farmer =>(
+                        <div className='max-w-[400px]'>
+                            <MarketFarmerCard 
+                                key={farmer.id} 
+                                farmer={farmer}
+                            />
+                        </div>
                     ))}
                 </div>
             )            
