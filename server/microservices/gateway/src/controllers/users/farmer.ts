@@ -3,6 +3,7 @@ import {
     getFarmerDetailsByID,
     getFarmerDetailsByUsername,
     getFarmerDetailsByEmail,
+    getSerachFarmers,
     getNewestFarmers,
     updateFarmerData
 } from "@gateway/services/user.service";
@@ -23,6 +24,20 @@ export async function getByEmail(req:Request, res:Response):Promise<void>{
     const response: AxiosResponse = await getFarmerDetailsByEmail(req.params.email); 
     res.status(200).json({ message:response.data.message, user:response.data.user});
 }
+
+export async function serachFarmers(req:Request, res:Response):Promise<void>{
+    const from = parseInt(req.query.from as string) || 0;
+    const size = parseInt(req.query.size as string) || 12;
+    const farmerQuery = (req.query.farmerQuery as string) || '';
+
+    const response: AxiosResponse = await getSerachFarmers({from, size, farmerQuery});
+    res.status(200).json({ 
+        message:response.data.message, 
+        farmers:response.data.farmers, 
+        total:response.data.total
+    });
+}
+
 export async function newestFarmers(req:Request, res:Response):Promise<void>{
     const limit = parseInt(req.params.limit);
     const response: AxiosResponse = await getNewestFarmers(limit); 

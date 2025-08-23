@@ -1,7 +1,7 @@
 import { createAxiosInstance } from "@gateway/axios";
 import { config } from '@gateway/config';
 import { AxiosResponse } from "axios";
-import { CustomerDocumentInterface, FarmerDocumentInterface } from "@veckovn/growvia-shared"
+import { CustomerDocumentInterface, FarmerDocumentInterface, FarmerSearchOptionsInterface } from "@veckovn/growvia-shared"
 
 const usersAxiosInstance = createAxiosInstance(`${config.USER_SERVICE_URL}/api/v1/users`, 'user');
 
@@ -64,6 +64,12 @@ async function getFarmerDetailsByEmail(email: string):Promise<AxiosResponse> {
     return res;
 }
 
+async function getSerachFarmers(params: FarmerSearchOptionsInterface ):Promise<AxiosResponse> {
+    const res: AxiosResponse = await usersAxiosInstance.get('/farmer/search', { params });
+    return res;
+}
+
+
 async function getNewestFarmers(limit: number):Promise<AxiosResponse> {
     const res: AxiosResponse = await usersAxiosInstance.get(`/farmer/newest/${limit}`);
     return res;
@@ -88,6 +94,7 @@ export {
     getFarmerDetailsByID,
     getFarmerDetailsByUsername,
     getFarmerDetailsByEmail,
+    getSerachFarmers,
     getNewestFarmers,
     updateFarmerData
 }
