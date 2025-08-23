@@ -83,7 +83,6 @@ export interface ResponseInterface{
     //TO DO: Refactor gateway response props -> replace '{user} with respective user type -> 
     //For 'Farmer related requestes return 'farmer' instead of 'user' and 'customer' instead of 'user' as well 
     total?: number; //for elasticSearch total results
-    
 }
 
 export interface PaginationInterface {
@@ -91,6 +90,14 @@ export interface PaginationInterface {
     totalPages: number;
     onPageChange: (page: number) => void;
 }
+
+export interface CategoryItemPropsInterface {
+    id: string | number,
+    name: string,
+    icon: string
+    onCategoryClick?: () => void;
+}
+
 
 export interface ProfileDropdownProps {
     authUser: AuthUserInterface;
@@ -144,8 +151,8 @@ export interface FarmerItemInterface {
 
 export interface SlideListInterface {
     title:string,
-    data: ProductDocumentInterface[],
-    isLoading: boolean
+    data?: ProductDocumentInterface[],
+    isLoading?: boolean
 }
 
 export interface BreadcrumbsPropsInterface {

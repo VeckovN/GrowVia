@@ -16,9 +16,11 @@ export interface FilterPropInterface {
 export interface MarketListInterface {
     mode: 'products' | 'farmers',
     items: ProductDocumentInterface[] | FarmerDocumentInterface[];
-    // products?: ProductDocumentInterface[];
-    // farmers?: FarmerDocumentInterface[];
     isLoading?: boolean;
+}
+
+export interface MarketFarmerCardInterface {
+    farmer: FarmerDocumentInterface;
 }
 
 export interface SortInterface {
@@ -28,6 +30,11 @@ export interface SortInterface {
 }
 
 export interface SearchParamsInterface {
+    //Text search for products
+    query?: string;
+    //Text serach for farmers
+    farmerQuery?: string;
+
     // Pagination related
     from?: number;
     size?: number;
@@ -49,7 +56,10 @@ export interface ProductRelatedPropsInterface {
 }
 
 export interface SortPropInterface {
+    mode: "products" | "farmers";
+    onModeChange: (mode: "products" | "farmers") => void;
     onSortApply: (sorts: SortInterface) => void;
+    onFarmerSearch: (farmerQuery: string) => void;
     productRelated: ProductRelatedPropsInterface;
 }
 
