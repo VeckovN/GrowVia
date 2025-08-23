@@ -39,6 +39,37 @@ const getFarmerByEmail = async(email: string): Promise<FarmerDocumentInterface |
     return farmerUser;
 }
 
+const searchFarmers = async(
+    from: number, 
+    size:number, 
+    farmerQuery:string
+// ): Promise<FarmerDocumentInterface[]> =>{
+): Promise<{farmers:FarmerDocumentInterface[], total:number}> =>{
+    const query: any = {}
+
+    if(farmerQuery || farmerQuery.trim() !==""){
+        query.farmName = { $regex: `^${farmerQuery.trim()}`, $options: "i" };
+    }
+
+    const [farmers, total] = await Promise.all([
+        FarmerModel.find(query)
+        .skip(from || 0)
+        .limit(size || 12)
+        .sort({ createdAt: -1 })
+        .exec(),
+
+        FarmerModel.countDocuments(query)
+    ])
+
+    // const farmers: FarmerDocumentInterface[] = await FarmerModel.find(query)
+    //     .skip(from || 0)
+    //     .limit(size || 12)
+    //     .sort({ createdAt: -1 })
+    //     .exec();
+
+    return {farmers, total};
+}
+
 const getNewest = async(limit: number = 10): Promise<FarmerDocumentInterface[]> =>{
     const newestFarmers: FarmerDocumentInterface[] = await FarmerModel
         .find()
@@ -114,6 +145,7 @@ export {
     getFarmerByID,
     getFarmerByUsername,
     getFarmerByEmail,
+    searchFarmers,
     getNewest,
     updateFarmerDataByID,
 }
