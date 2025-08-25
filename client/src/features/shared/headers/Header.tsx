@@ -161,7 +161,7 @@ const Header: FC = (): ReactElement => {
                         }
 
                         {isNotificationsOpen &&
-                            <div ref={notificationsDropwdownRef} className='w-full absolute top-10'>
+                            <div ref={notificationsDropwdownRef} className='w-full absolute top-10 z-20'>
                                 <NotificationsDropdown 
                                     notifications={notifications.list}
                                     unreadCount={notifications.unreadCount}
