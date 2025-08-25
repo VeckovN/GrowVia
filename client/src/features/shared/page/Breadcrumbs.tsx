@@ -12,7 +12,7 @@ const Breadcrumbs:FC<BreadcrumbsPropsInterface> = ({items}):ReactElement =>{
             <React.Fragment key={`${el.label}`}>  
                 {index !== items.length -1 ? (
                     <>
-                        <a href={el.href ?? ''}>{el.label}</a>
+                        <a href={el.href ?? ''} className='hover:underline underline-offset-4'>{el.label}</a>
                         <GoChevronRight className='text-xl pl-[-20px]'/>
                     </>
                 ): (
