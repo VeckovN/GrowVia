@@ -63,13 +63,13 @@ const FarmerHeader:FC = () => {
                 />
 
                 {isProfileOpen &&
-                    <div ref={profileDropdownRef} className='absolute top-10 z-10'>
+                    <div ref={profileDropdownRef} className='min-w-[220px] absolute top-10 z-10'>
                         <ProfileDropdown authUser={authUser} closeProfileDropdown={closeProfileDropdown} />
                     </div>
                 }
 
                 {isNotificationsOpen &&
-                    <div ref={notificationsDropwdownRef} className='w-full min-w-[240px] absolute top-10 right-2 z-10'>
+                    <div ref={notificationsDropwdownRef} className='w-full min-w-[240px] absolute top-10 right-2 z-20'>
                         <NotificationsDropdown 
                             notifications={notifications.list}
                             unreadCount={notifications.unreadCount}
