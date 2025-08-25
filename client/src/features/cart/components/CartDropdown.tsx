@@ -50,16 +50,9 @@ const CartDropdown: FC<CartDropdownProps> = ({isCustomer, cart, closeCartDropdow
                 <div className='text-xl hover:text-2xl cursor-pointer w-9' onClick={closeCartDropdown}>
                     {`<--`}
                 </div>
-                <h2 className='font-semibold xs:text-lg md:text-xla'>
+                <h2 className='mx-auto font-semibold xs:text-lg'>
                     Your Shopping Cart
                 </h2>
-
-                <button className='
-                    p-1 px-4 text-xs xs:text-sm xs:px-5 xs:p-[5px] font-medium rounded
-                    bg-green2 border border-greyB hover:bg-green3 hover:text-whitea hover:font-semibold'
-                >
-                    View all
-                </button>
            </div>
 
            <div className='w-full flex flex-col gap-y-1'>
@@ -105,7 +98,7 @@ const CartDropdown: FC<CartDropdownProps> = ({isCustomer, cart, closeCartDropdow
                         </div>
                         ))
                     :
-                        <div className=''>
+                        <div className='mt-1 ml-5 text-lg'>
                             Empty cart
                         </div>
                 }
