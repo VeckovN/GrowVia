@@ -1,5 +1,4 @@
 import { createSlice, Slice, PayloadAction} from "@reduxjs/toolkit";
-// import { CartProductInterface, FarmerCartGroupInterface, CartStateInterface} from "./cart.interface";
 import { CartProductInterface, CartStateInterface} from "./cart.interface";
 
 export const initialCart: CartStateInterface = {
@@ -35,16 +34,17 @@ const cartSlice: Slice = createSlice({
                 })
             }
         },
-
         increaseProduct: (
             state,
             action: PayloadAction<{ farmerID: string; productID: string }>
         ) => {
             const group = state.data.find(f => f.farmerID === action.payload.farmerID);
             const product = group?.products.find(p => p.productID === action.payload.productID);
-            if (product) product.quantity += 1;
+            if (product) {
+                product.quantity += 1; // incremented immediately
+                product.totalPrice = (product.quantity * product.price).toFixed(2);
+            }
         },
-        // like "-"
         decreaseProduct: (
             state,
             action: PayloadAction<{ farmerID: string; productID: string }>
@@ -57,32 +57,45 @@ const cartSlice: Slice = createSlice({
                 }
                 else{
                     product.quantity -= 1;
+                    product.totalPrice = (product.quantity * product.price).toFixed(2);
                 }
             }
+
+            if(group.products.length === 0){
+                state.data = state.data.filter(f => f.farmerID !== action.payload.farmerID)
+            }
         },
-        // remove whole product from cart
         removeProduct: (
             state,
             action: PayloadAction<{ farmerID: string; productID: string }>
         ) => {
             const group = state.data.find(f => f.farmerID === action.payload.farmerID);
-            if (group) {
-                group.products = group.products.filter(p => p.productID !== action.payload.productID);
-                if (group.products.length === 0) {
+            
+            if(!group) return;
+
+            group.products = group.products.filter(p => p.productID !== action.payload.productID);
+            
+            if (group.products.length === 0) {
                 // remove entire farmer group if no more products
                 state.data = state.data.filter(f => f.farmerID !== action.payload.farmerID);
-                }
             }
+
+        },
+        //on Make order remove the whole group 
+        removeGroup: (
+            state,
+            action: PayloadAction<{ farmerID: string }>
+        ) => {
+            state.data = state.data.filter(f => f.farmerID !== action.payload.farmerID);
         },
 
         clearCart: (state) => {
             state.data = [];
         }
-        
     }
 });
 
 export const clearCart = cartSlice.actions.clearCart as () => PayloadAction<undefined>;
-export const { addProduct, increaseProduct, decreaseProduct, removeProduct } = cartSlice.actions;
+export const { addProduct, increaseProduct, decreaseProduct, removeProduct, removeGroup } = cartSlice.actions;
 export default cartSlice.reducer;
 
