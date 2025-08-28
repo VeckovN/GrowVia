@@ -22,13 +22,25 @@ const getOrder = async(req:Request, res:Response):Promise<void> => {
 }   
 
 const getOrdersByFarmerID = async(req:Request, res:Response):Promise<void> => {
-    const orders: OrderDocumentInterface[] | null = await getFarmerOrders(req.params.farmerID);
-    res.status(200).json({message:"Orders data by farmerID", orders: orders});
+    const farmerID = req.params.farmerID;
+
+    const from = parseInt(req.query.from as string);
+    const size = parseInt(req.query.size as string);
+    const sort = (req.query.sort as 'newest' | 'oldest' )|| 'requested' || 'accepted' || 'processing' || 'shipped' || 'canceled' || 'delivered';
+    
+    const { orders, total } : { orders:OrderDocumentInterface[] | null, total:number } = await getFarmerOrders(farmerID, from, size, sort);
+    res.status(200).json({message:"Orders data by farmerID", orders, total});
 }   
 
 const getOrdersByCustomerID = async(req:Request, res:Response):Promise<void> => {
-    const orders: OrderDocumentInterface[] | null = await getCustomerOrders(req.params.customerID);
-    res.status(200).json({message:"Orders data by farmerID", orders: orders});
+    const customerID = req.params.customerID;
+    
+    const from = parseInt(req.query.from as string);
+    const size = parseInt(req.query.size as string);
+    const sort = (req.query.sort as 'newest' | 'oldest' )|| 'requested' || 'inProgress' || 'canceled' || 'delivered';
+
+    const { orders, total } : { orders:OrderDocumentInterface[] | null, total:number } = await getCustomerOrders(customerID, from, size, sort);
+    res.status(200).json({message:"Orders data by farmerID", orders , total});
 }   
 
 const placeCustomerOrder = async(req:Request, res:Response):Promise<void> => {
@@ -50,7 +62,6 @@ const placeCustomerOrder = async(req:Request, res:Response):Promise<void> => {
     }
 }
 
-//approve/${orderID}
 const approveOrder = async(req:Request, res:Response):Promise<void> => {
     await farmerApproveOrder(req.params.orderID);
     res.status(200).json({message:`Farmer approved order`});

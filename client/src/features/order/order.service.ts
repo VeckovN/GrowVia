@@ -1,6 +1,6 @@
 import { ResponseInterface } from "../shared/interfaces";
 import { api } from "../../store/api";
-import { OrderRequestBodyInterface } from "./order.interface";
+import { OrderRequestBodyInterface, OrdersGetRequestProps } from "./order.interface";
 
 export const orderApi = api.injectEndpoints({
     endpoints: (build) => ({
@@ -70,12 +70,18 @@ export const orderApi = api.injectEndpoints({
             query: (orderID: string) => `/order/${orderID}`,
             providesTags: ['Order']
         }),
-        getOrdersByFarmerID: build.query<ResponseInterface, string>({
-            query: (farmerID: string) => `/order/farmer/${farmerID}`,
+        getOrdersByFarmerID: build.query<ResponseInterface, OrdersGetRequestProps>({
+            query: ({farmerID, from, size, sort}) => ({
+                url: `/order/farmer/${farmerID}`, //farmerID from 'req.farmerID'
+                params: {from ,size, sort} //all others with req.query   
+            }),
             providesTags: ['Order']
         }),
-        getOrdersByCustomerID: build.query<ResponseInterface, string>({
-            query: (customerID: string) => `/order/customer/${customerID}`,
+        getOrdersByCustomerID: build.query<ResponseInterface, OrdersGetRequestProps>({
+            query: ({customerID, from, size, sort}) => ({
+                url: `/order/customer/${customerID}`,
+                params: {from ,size, sort}    
+            }),
             providesTags: ['Order']
         }),
     })

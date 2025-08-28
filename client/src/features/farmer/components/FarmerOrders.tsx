@@ -11,6 +11,7 @@ import { mapOrderStatusToUILabel, getOrderBackgroundColor, formatOrderDate } fro
 import LoadingSpinner from '../../shared/page/LoadingSpinner';
 import SelectField from '../../shared/inputs/SelectField';
 import FarmerOrderChangeStatus from './FarmerOrderChangeStatus';
+import Pagination from '../../shared/page/Pagination';
 import useOnClickOutside from '../../shared/hooks/useOnClickOutside';
 import { getSocket } from '../../../sockets/socket';
 
@@ -27,20 +28,42 @@ const FarmerOrders: FC = (): ReactElement => {
     const [options, setOptions] = useState<OrderFilterOptionsInterface>({ ...DEFAULT_PROPS });
     const [selectedOrder, setSelectedOrder] = useState<SelectedOrderStatusType | null>(null);
     const changeStatusDropdownRef = useRef<HTMLDivElement>(null);
+    const ordersTopScrollRef = useRef<HTMLDivElement>(null);
     const [isChangeStatusOpen, setChangeStatusOpen] = useOnClickOutside(changeStatusDropdownRef, false);
-
+    const [pagination, setPagination] = useState({
+        currentPage: 1,
+        totalPages: 1,
+    })
     //another approach 'skipToken' instead of 'skip'
     //Don't fire the query at all if the value 'farmerID' is invalid
     const { data, isLoading } = useGetOrdersByFarmerIDQuery(
-        farmerID ?? skipToken
+        farmerID 
+        ? {
+            farmerID,
+            from: (pagination.currentPage -1 ) * Number(options.size),
+            size: options.size ?? 12,
+            sort: options.sort ?? 'newest'
+        }
+        : skipToken
     );
-    // const {data:productsData, isLoading:isProductLoading} = useGetProductByFarmerIDQuery({farmerID:id as string, from:0, size:8});
-    const [acceptOrder, { isLoading: isAccepted }] = useAcceptOrderMutation();
+
+    const [acceptOrder] = useAcceptOrderMutation();
     const [startProccess] = useStartProccessMutation();
     const [startDelivery] = useStartDeliveryMutation();
     const [finishOrder] = useFinishOrderMutation();
     const [cancelOrder] = useCancelOrderMutation();
 
+    useEffect(() => {
+        if (data?.total) {
+
+            setPagination((prev) => ({
+                ...prev,
+                totalPages: Math.ceil(Number(data?.total) / Number(options.size)),
+            }));
+
+        }
+    }, [data?.total, options.size]);
+    
     // Keep a local copy of fetched orders for instant UI updates on changes (e.g., status updates)
     // to avoid unnecessary RTK Query refetches.
     useEffect(() => {
@@ -49,7 +72,15 @@ const FarmerOrders: FC = (): ReactElement => {
         }
     }, [data]);
 
-    //When modal is closed by clicking outside(hook related)m also clear selectedOrder
+    useEffect(() => {
+        if(ordersTopScrollRef.current) {
+            ordersTopScrollRef.current.scrollIntoView({
+                behavior: "smooth",
+                block: "start"
+            }) 
+        }
+    }, [pagination.currentPage])
+
     useEffect(() => {
         if (!isChangeStatusOpen && selectedOrder !== null) {
             setSelectedOrder(null);
@@ -66,7 +97,6 @@ const FarmerOrders: FC = (): ReactElement => {
             const currentUserID = String(authUser.id);
             
             if(receiverID === currentUserID ){
-                //listen only on "pending"
                 if(orderData.order_status !== 'pending')
                     return;
 
@@ -91,11 +121,11 @@ const FarmerOrders: FC = (): ReactElement => {
     const sortSelectOptions = [
         { label: 'Newest', value: 'newest' },
         { label: 'Oldest', value: 'oldest' },
-        { label: 'Requested Orders', value: 'requested' },
+        { label: 'Requested Orders', value: 'pending' },
         { label: 'Accepted Orders', value: 'accepted' },
-        { label: 'Packaged Orders', value: 'packaged' },
-        { label: 'To Courier', value: 'toCurier' },
-        { label: 'Delivered Orders', value: 'delivered' },
+        { label: 'Packaged Orders', value: 'processing' },
+        { label: 'To Courier', value: 'shipped' },
+        { label: 'Delivered Orders', value: 'completed' },
         { label: 'Canceled Orders', value: 'canceled' },
     ]
 
@@ -105,6 +135,13 @@ const FarmerOrders: FC = (): ReactElement => {
         setOptions(prev => ({
             ...prev,
             [name]: name === 'size' ? Number(value) : value
+        }))
+    }
+
+    const handlePageChange = (newPage: number):void => {
+        setPagination(prev => ({
+            ...prev,
+            currentPage: newPage
         }))
     }
 
@@ -180,7 +217,10 @@ const FarmerOrders: FC = (): ReactElement => {
     }
 
     return (
-        <div className='w-full'>
+        <div 
+            ref={ordersTopScrollRef}
+            className='w-full' 
+        >
             <h3 className='hidden sm:block text-xl font-medium ml-3 '>
                 Orders
             </h3>
@@ -377,6 +417,14 @@ const FarmerOrders: FC = (): ReactElement => {
                 
                 )) 
             )}
+            </div>
+
+             <div className='my-6 bg-red-100a w-full'>
+                <Pagination
+                    currentPage={pagination.currentPage} 
+                    totalPages={pagination.totalPages}
+                    onPageChange={handlePageChange}
+                />
             </div>
 
         </div>

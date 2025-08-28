@@ -1,4 +1,4 @@
-import { FC, ReactElement, useState, useEffect, ChangeEvent } from 'react';
+import { FC, ReactElement, useState, useEffect, useRef, ChangeEvent } from 'react';
 import toast from 'react-hot-toast';
 import { skipToken } from '@reduxjs/toolkit/query';
 import { useNavigate } from 'react-router-dom';
@@ -11,28 +11,85 @@ import { mapOrderCustomerStatusToUILabel, getCustomerOrderBackgroundColor, forma
 import LoadingSpinner from '../../shared/page/LoadingSpinner';
 import SelectField from '../../shared/inputs/SelectField';
 import { getSocket } from '../../../sockets/socket';
-
 import DownloadIcon from '../../../assets/download.svg';
 
 const CustomerOrders:FC = ():ReactElement => {
     const navigate = useNavigate();
     const authUser = useAppSelector((state: ReduxStateInterface) => state.authUser)
     const customerID = authUser.id;
-
+    const loaderRef = useRef<HTMLDivElement | null>(null);
     const [orders, setOrders] = useState<OrderDocumentInterface[]>([]);
     const [sort, setSort] = useState<string>('newest');
+    const [from, setFrom] = useState<number>(0);
+    const [hasMore, setHasMore] = useState<boolean>(true);
+    const size = 5;
 
-    const { data, isLoading } = useGetOrdersByCustomerIDQuery(
-        customerID ?? skipToken
+    const { data, isLoading, isFetching} = useGetOrdersByCustomerIDQuery(
+        customerID 
+        ? {
+            customerID,
+            from: from,
+            size:  size, //by defualt
+            sort: sort ?? 'newest'
+        }
+        : skipToken,
+        {refetchOnMountOrArgChange: true}
     );
 
     const [cancelOrder] = useCancelOrderMutation();
 
+    const handleSortChange = (newSort: string) =>{
+        if(newSort !== sort) setSort(newSort);
+    }
+
     useEffect(() => {
-        if (data?.orders) {
+        setFrom(0);
+        setHasMore(true);
+    }, [sort]);
+
+    useEffect(() => {
+        if (!data?.orders) return;
+
+        if(from === 0)
             setOrders(data.orders);
+        else
+            setOrders((prev) => [...prev, ...data?.orders ?? []]);
+
+        if (data.orders.length < size) {
+            setHasMore(false);
         }
+        
     }, [data]);
+
+    //BUG fixed: Where 'IntersectionObserver' that immediately created wehn the component renders
+    //SO the loaderRef.curent minght not exist yet in DOM
+    //!!! setTimeout or requestAnimationFrame delays the callback until the next browser repaint
+    useEffect(() => {
+        const rafId = requestAnimationFrame(() => {
+            if (!loaderRef.current || !hasMore) return;
+
+            const observer = new IntersectionObserver(
+                (entries) => {
+                    const first = entries[0];
+                    if (first.isIntersecting && !isFetching && hasMore) {
+                        setFrom((prev) => prev + size);
+                    }
+                },
+                { threshold: 0.1 }
+            );
+
+            observer.observe(loaderRef.current);
+
+            return () => {
+                if (loaderRef.current) observer.unobserve(loaderRef.current);
+                observer.disconnect(); 
+            };
+        });
+
+        return () => cancelAnimationFrame(rafId);
+
+    }, [isFetching, sort, hasMore]); 
+
 
     useEffect(() => {
         const socket = getSocket();
@@ -40,8 +97,6 @@ const CustomerOrders:FC = ():ReactElement => {
 
         //We used same 'channel' for 'global' notification in App.js
         //so we have to use stable hanlde func (reference) and pass it to both .on and .off  
-        
-        // const handleOrderNotification = ({ order, notification }: { order: OrderDocumentInterface; notification: NotificationInterface }) => {
         const handleOrderNotification = ({order}: { order: OrderDocumentInterface }) => {
             const orderData: OrderDocumentInterface = order;
             const receiverID = order.customer_id;
@@ -96,9 +151,9 @@ const CustomerOrders:FC = ():ReactElement => {
     const sortSelectOptions = [
         { label: 'Newest', value: 'newest' },
         { label: 'Oldest', value: 'oldest' },
-        { label: 'Requested', value: 'requested' },
+        { label: 'Requested', value: 'pending' },
         { label: 'In Progress', value: 'inProgress' },
-        { label: 'Delivered', value: 'delivered' },
+        { label: 'Delivered', value: 'completed' },
         { label: 'Canceled ', value: 'canceled' },
     ]
 
@@ -137,7 +192,7 @@ const CustomerOrders:FC = ():ReactElement => {
                         name='sort'
                         value={sort || ''}
                         options={sortSelectOptions}
-                        onChange={(e:ChangeEvent<HTMLSelectElement>) => setSort((e.target.value))}
+                        onChange={(e:ChangeEvent<HTMLSelectElement>) => handleSortChange((e.target.value))}
                     />
                 </div>
             </div>
@@ -148,8 +203,14 @@ const CustomerOrders:FC = ():ReactElement => {
                         You have no orders yet.
                     </div>
                 ) : (
-                    orders.map(order => (
-                        <div className='flex flex-col text-sm xs:text-base font-lato max-w-[800px] mx-auto gap-y-2 px-2 sm:px-4 py-3 mb-6 border border-greyB rounded-md'>
+                    <>
+                    {orders.map(order => (
+                        <div 
+                            key={order.order_id}
+                            className='
+                                flex flex-col text-sm xs:text-base font-lato mx-auto  max-w-[800px]
+                                gap-y-2 px-2 sm:px-4 py-3 mb-6 border border-greyB rounded-md'
+                        >
     
                             <div className='flex justify-between text-gray-600 font-light'>
                                 <div>OrderID: <span className='font-semibold text-black'>#{order.order_id.slice(0,8)}</span></div>
@@ -216,9 +277,22 @@ const CustomerOrders:FC = ():ReactElement => {
                                     </button>
                                 </div>
                             </div>
-    
                         </div>
-                    )) 
+
+                    ))}
+
+                    {/* remove ref whne 'hasMore is false */}
+                    {hasMore ? (
+                        <div ref={loaderRef} className="h-1 flex items-center justify-center z-20">
+                            {isFetching && <span className="text-gray-600">Loading more...</span>}
+                        </div>
+                    ) : (
+                        <div className='flex justify-center'>
+                            <span className="my-4 text-gray-500 text-center">No more orders</span>
+                        </div>
+                    )}
+
+                    </>
                 )}
 
             </div>

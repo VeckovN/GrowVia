@@ -50,17 +50,46 @@ const processOrderRows = async (orderRows: any): Promise<OrderDocumentInterface[
 }
 
 //use the proccessOrderRows function avoid repeating the same logic as in getCustomerOrders
-const getFarmerOrders = async(farmerID: string):Promise<OrderDocumentInterface[] | null> => {
+const getFarmerOrders = async(
+    farmerID: string, 
+    from:number, 
+    size:number, 
+    sort:string
+):Promise<{orders: OrderDocumentInterface[] | null; total:number }> => {
     try {
-        const resultOrders = await pool.query(`
-            SELECT * FROM public.orders 
-            WHERE farmer_id = $1
-            ORDER BY created_at DESC`,
-            [farmerID])
-        
-        if(resultOrders.rowCount === 0) return null;
+        let whereClause = "WHERE farmer_id = $1";
+        const params: any[] = [farmerID]; //value for a clause
+        let orderBy = "created_at DESC"; //default
 
-        return await processOrderRows(resultOrders.rows);
+        if (sort === 'newest') orderBy = "created_at DESC";
+        else if (sort === 'oldest') orderBy = "created_at ASC";
+        else if (["pending", "accepted", "canceled", "rejected", "processing", "shipped", "completed"].includes(sort)) {
+            whereClause += " AND order_status = $2";
+            params.push(sort);
+        }
+
+        const totalResult = await pool.query(
+            `SELECT COUNT(*) FROM public.orders ${whereClause}`,
+        params
+        );
+
+        const total = Number(totalResult.rows[0].count);
+
+        // for example there is only one params 'params[0] => $1 i want next ($2) params.lenght + 1 for 'size'
+        const resultOrders = await pool.query(`
+                SELECT * FROM public.orders 
+                ${whereClause}
+                ORDER BY ${orderBy}
+                LIMIT $${params.length + 1} OFFSET $${params.length + 2}`
+            ,
+            [...params, size, from]
+        )
+        
+        if(resultOrders.rowCount === 0) return {orders:null, total:0};
+
+        const orders = await processOrderRows(resultOrders.rows);
+
+        return { orders, total}
     }
     catch (error){
         log.log("error", "Order service: farmer orders can't be found");
@@ -68,17 +97,51 @@ const getFarmerOrders = async(farmerID: string):Promise<OrderDocumentInterface[]
     }
 }
 
-const getCustomerOrders = async(customerID: string):Promise<OrderDocumentInterface[] | null> => {
+const getCustomerOrders = async(
+    customerID: string, 
+    from:number, 
+    size:number, 
+    sort:string
+):Promise<{orders: OrderDocumentInterface[] | null; total:number }> => {
     try {
-        const resultOrders = await pool.query(`
-            SELECT * FROM public.orders 
-            WHERE customer_id = $1
-            ORDER BY created_at DESC`,
-            [customerID])
-        
-        if(resultOrders.rowCount === 0) return null;
+        let whereClause = "WHERE customer_id = $1";
+        const params: any[] = [customerID]; //value for clause
+        let orderBy = "created_at DESC"; //default
 
-        return await processOrderRows(resultOrders.rows);
+        if (sort === 'newest') orderBy = "created_at DESC";
+        else if (sort === 'oldest') orderBy = "created_at ASC";
+        else if( sort === 'inProgress'){
+            whereClause += " AND order_status IN ($2, $3, $4)"
+            params.push("accepted", "processing", "shipped");
+        }
+        else if (["pending", "canceled", "rejected", "completed"].includes(sort)) {
+            whereClause += " AND order_status = $2";
+            params.push(sort);
+        }
+
+        const totalResult = await pool.query(
+            `SELECT COUNT(*) FROM public.orders ${whereClause}`,
+        params
+        );
+
+        const total = Number(totalResult.rows[0].count);
+
+        // for example there is only one params 'params[0] => $1 i want next ($2) params.lenght + 1 for 'size'
+        const resultOrders = await pool.query(`
+                SELECT * FROM public.orders 
+                ${whereClause}
+                ORDER BY ${orderBy}
+                LIMIT $${params.length + 1} OFFSET $${params.length + 2}`
+            ,
+            [...params, size, from]
+        )
+        
+        if(resultOrders.rowCount === 0) return {orders:null, total:0};
+
+        const orders = await processOrderRows(resultOrders.rows);
+
+        // return await processOrderRows(resultOrders.rows);
+        return { orders, total}
     }
     catch (error){
         log.log("error", "Order service: farmer orders can't be found");
