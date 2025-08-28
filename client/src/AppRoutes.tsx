@@ -1,4 +1,4 @@
-import {FC, Suspense } from 'react';
+import { FC } from 'react';
 import { Outlet, RouteObject, useRoutes } from 'react-router-dom';
 
 import Index from './features/index/Index';
@@ -22,11 +22,11 @@ import ConfirmEmail from './features/auth/components/ConfirmEmail';
 import Order from './features/order/pages/Order';
 import Settings from './features/shared/user/Settings';
 import OrderTrack from './features/order/pages/OrderTrack';
+import OrderOverview from './features/order/pages/OrderOverview';
 
 import FarmerDashboard from './features/farmer/components/FarmerDashboard';
 import FarmerProducts from './features/farmer/components/FarmerProducts';
 import FarmerProfile from './features/farmer/components/FarmerProfile';
-// import FarmerSettings from './features/farmer/components/FarmerSettings';
 
 import CustomerProfile from './features/customer/components/CustomerProfile';
 import CustomerOrders from './features/customer/components/CustomerOrders';
@@ -138,18 +138,17 @@ const AppRouter: FC = () => {
                     <ConfirmEmail/>
                 </RequireAuthRoute>
             )
-            // element: <MainLayout authPage={true}> <ConfirmEmail/> </MainLayout>
         },
-        // { 
-        //     path: '/order/overview/:orderID',
-        //     element: (
-        //         <RequireAuthRoute allowedRoles={['customer', 'farmer']}>
-        //             <MainLayout >
-        //                 <OrderOverview >
-        //             </MainLayout>
-        //         </RequireAuthRoute>
-        //     )
-        // },
+        { 
+            path: '/order/overview/:orderID',
+            element: (
+                <RequireAuthRoute allowedRoles={['customer', 'farmer']}>
+                    <MainLayout >
+                        <OrderOverview />
+                    </MainLayout>
+                </RequireAuthRoute>
+            )
+        },
         { 
             path: '/order/track/:orderID',
             element: (
@@ -165,7 +164,6 @@ const AppRouter: FC = () => {
             element: (
                 <RequireAuthRoute allowedRoles={['customer']}>
                     <MainLayout >
-                        {/* Order Page */}
                         <Order/> 
                     </MainLayout>
                 </RequireAuthRoute>
@@ -179,7 +177,6 @@ const AppRouter: FC = () => {
                 </RequireAuthRoute>
             ),
             children: [
-                // {path:'dashboard', element: <FarmerDashboard />}, 
                 {index: true, element: <FarmerDashboard />}, 
                 {path:'profile', element: <FarmerProfile />}, 
                 {
@@ -195,10 +192,6 @@ const AppRouter: FC = () => {
                 {path:'settings', element: <Settings/>}, 
             ]
         },
-
-        // Combine MainLayout and CustomerLayout to keep the global Header at the top
-        // By nesting CustomerLayout inside MainLayout, the Header stays consistent across pages
-        // without needing to manually include it in CustomerLayout.
         {
             path: '/customer',
             element: (
