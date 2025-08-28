@@ -31,6 +31,11 @@ export interface OrderPriceInfoInterface {
     total: number;
 }
 
+export interface OrderSummaryDetailsPropInterface
+    extends
+    OrderDataInterface,
+    OrderPriceInfoInterface { }
+
 export interface OrderCheckoutInterface {
     cartData: CartFarmerGroupInterface;
     orderData: OrderDataInterface;
@@ -166,3 +171,10 @@ export interface OrderTrackSummaryCardProps {
     order: OrderDocumentInterface | null;
 }
 
+export interface OrdersGetRequestProps {
+    customerID?: string,
+    farmerID?: string,
+    from: number,
+    size: number;
+    sort: string; //make type
+}
