@@ -10,14 +10,18 @@ async function getOrderByID(orderID: string):Promise<AxiosResponse> {
     return res;
 }
 
-async function getOrdersByFarmerID(farmerID: string):Promise<AxiosResponse> {
-    const res: AxiosResponse = await orderAxiosInstance.get(`/farmer/${farmerID}`);
+async function getOrdersByFarmerID(farmerID: string, from:number, size:number, sort:string):Promise<AxiosResponse> {
+    const res: AxiosResponse = await orderAxiosInstance.get(`/farmer/${farmerID}`, {
+        params: { from, size, sort }
+    });
     return res;
 }
 
-async function getOrdersByCustomerID(customerID: string):Promise<AxiosResponse> {
-    const res: AxiosResponse = await orderAxiosInstance.get(`/customer/${customerID}`);
-    return res;
+async function getOrdersByCustomerID(customerID: string, from:number, size:number, sort:string):Promise<AxiosResponse> {
+    const res: AxiosResponse = await orderAxiosInstance.get(`/customer/${customerID}`, {
+        params: { from, size, sort }
+    });
+    return res; 
 }
 
 async function createOrder(product: OrderCreateInterface):Promise<AxiosResponse> {
