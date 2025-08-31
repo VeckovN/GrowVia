@@ -238,7 +238,7 @@ const CustomerOrders:FC = ():ReactElement => {
                                     md:flex-row md:gap-x-4 
                                 '>
                                     <div className='border-l-2 border-greyB pl-2' >Order Date: <span className='font-light'>{formatOrderDate(order.created_at)}</span> </div>
-                                    <div className='border-l-2 border-greyB pl-2 md:pl-0 md:border-0 '>Farmer: <span className='font-light'>--farmerName---</span> </div>
+                                    <div className='border-l-2 border-greyB pl-2 md:pl-0 md:border-0 '>Farmer: <span className='font-light'>{order.farm_name}</span> </div>
                                 </div>
                             </div>
     
