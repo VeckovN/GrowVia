@@ -140,7 +140,6 @@ const getCustomerOrders = async(
 
         const orders = await processOrderRows(resultOrders.rows);
 
-        // return await processOrderRows(resultOrders.rows);
         return { orders, total}
     }
     catch (error){
@@ -161,6 +160,7 @@ const placePendingOrder = async(orderData: OrderCreateInterface):Promise<OrderDo
             farmer_id,
             farmer_email,
             farmer_username,
+            farm_name,
             customer_id,
             customer_email,
             customer_username,
@@ -182,7 +182,7 @@ const placePendingOrder = async(orderData: OrderCreateInterface):Promise<OrderDo
             delivery_date, 
             tracking_url
         )
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23) 
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24) 
         RETURNING order_id;
         `;
 
@@ -190,6 +190,7 @@ const placePendingOrder = async(orderData: OrderCreateInterface):Promise<OrderDo
             orderData.farmer_id,
             orderData.farmer_email,
             orderData.farmer_username,
+            orderData.farm_name,
             orderData.customer_id,
             orderData.customer_email,
             orderData.customer_username,

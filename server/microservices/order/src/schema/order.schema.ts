@@ -24,6 +24,9 @@ const OrderCreateZodSchema = z.object({
             /^[a-zA-Z][a-zA-Z0-9_]*$/,
             "Username must start with a letter and can only contain letters, numbers, and underscores"
     ),
+    farm_name: z.string()
+        .min(1, "Farm name is required")
+        .max(100, "Farm name too long"),
     invoice_id: z.string().min(1, "Order Invoice iD is required").max(50, "Invoice ID too long"),
     total_price: z.number().min(0.01, "Amount must be at least 0.01").max(100000, "Amount too large"),
     order_status: z.enum([
