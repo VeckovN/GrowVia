@@ -30,6 +30,7 @@ const orderTable = `
         order_id UUID DEFAULT uuid_generate_v4(),  -- UUID for unique order ID
         farmer_id TEXT NOT NULL,  -- Farmer ID from User Serivce
         farmer_username TEXT,
+        farm_name TEXT, 
         customer_id TEXT NOT NULL,  -- Customer id from User Service
         customer_username TEXT, 
         customer_email TEXT,  -- Form 'email' doesn't have to match User Service 'email'

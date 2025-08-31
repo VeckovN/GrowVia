@@ -161,15 +161,11 @@ const Order: FC = (): ReactElement => {
             toast.error("Validation faild!")
         }
     }
-console.log('cartData:', cartData);
 
     const makeOrder = async (data: OrderCreateDataInterface) => {
-
         const { orderData, paymentData, cartData, userData } = data;
 
         try {
-            console.log('cartData:');
-            
             const orderItems: OrderItemRequestInterface[] = cartData.products.map(el => ({
                 product_id: el.productID,
                 product_name: el.name,
@@ -196,6 +192,7 @@ console.log('cartData:', cartData);
                 farmer_id: cartData.farmerID!, 
                 farmer_username: farmerResult?.farmer?.username ?? '',
                 farmer_email: farmerResult?.farmer?.email ?? '',
+                farm_name: cartData.farmName ?? '',
                 invoice_id: 'inv123123', //Later
                 total_price: subTotal,
                 order_status: 'pending',
@@ -223,13 +220,12 @@ console.log('cartData:', cartData);
                     payment_type: 'cod'
                 } as OrderRequestBodyInterface;
             }
-            console.log("CREATE ORDER DATAL ", createOrderData);
-
+         
             await createOrder(createOrderData).unwrap();
             dispatch(removeGroup({farmerID:farmerID}));
-
             toast.success("You successfully requested order, Please wait on farmer approval")
             navigate('/');
+
         } catch (error) {
             console.error("create Order error: ", error);
             toast.error('Create order error, please try again!');

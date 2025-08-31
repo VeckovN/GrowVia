@@ -116,6 +116,7 @@ export interface OrderRequestBodyInterface {
     farmer_id: string;
     farmer_username: string;
     farmer_email: string;
+    farm_name: string;
     invoice_id: string;
     total_price: number;
     payment_status?: OrderPaymentStatusType;
