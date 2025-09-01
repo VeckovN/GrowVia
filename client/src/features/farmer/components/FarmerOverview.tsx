@@ -6,7 +6,7 @@ import LoadingSpinner from '../../shared/page/LoadingSpinner';
 import ProductsSlideList from '../../shared/productsList/ProductsSlideList';
 import SocialLinks from '../../shared/user/SocialLinks';
 import FarmerGalleryGrid from './FarmerGalleryGrid';
-import { SOCIAL, farmerGalleryImages } from '../../shared/utils/data';
+import { SOCIAL } from '../../shared/utils/data';
 
 const FarmerOverview: FC = (): ReactElement => {
     const { id } = useParams()
@@ -55,9 +55,9 @@ const FarmerOverview: FC = (): ReactElement => {
                     <SocialLinks links={socialLinks}/>
                 </div>
 
-                <div className='relative top-[-8rem] h-60 max-w-md'>
+                <div className='relativea absolute top-[-5rem] h-60a max-w-md'>
                     <img
-                        className='bg-red-500 relative top-[-7rem]a sm:left-0 left-4a w-44 h-36 object-cover rounded-xl'
+                        className='relative top-[-7rem]a sm:left-0 left-4a w-44 h-36 object-cover rounded-xl'
                         src={farmer?.profileAvatar?.url}
                     />
 
@@ -67,54 +67,50 @@ const FarmerOverview: FC = (): ReactElement => {
                             <p className='text-sm font-lato'>{`${farmer?.location?.address}, ${farmer?.location?.city}`}</p>
                         </div>
 
-                        <p className='mt-4 font-sm font-lato '>
-                            Lorem Ipsum is simply dummy text of the printing and typesetting industry. 
-                            Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, 
-                        </p>
                     </div>
                 </div>
-
                 
-                <div className='bg-red-600a'>
-                    <nav className='
-                        flex flex-col relativea left-1/2a -translate-x-1/2a list-none border-b-2 border-greyB overflow-x-auto
-                        lg:left-autoa lg:translate-x-auto lg:max-w-4xl
-                    '>
-                        <ul className='flex text-md font-poppins whitespace-nowrap cursor-pointer'>
-                            <li className='border-b-2 px-5 py-2 hover:border-green6 hover:text-green6'>
-                                About
-                            </li>
-                            <li className='border-b-2 px-5 py-2 lg:px-3 hover:border-green6 hover:text-green6'>
-                                Products
-                            </li>
-                            <li className='border-b-2 px-5 py-2 lg:px-3 hover:border-green6 hover:text-green6'>
-                                Gallery
-                            </li>
-                            <li className='border-b-2 px-5 py-2 lg:px-3 hover:border-green6 hover:text-green6'>
-                                Location
-                            </li>
-                            
-                        </ul>
-                    </nav>
-                </div>
 
-                <div className='pt-10'>
-                    <h2 className='font-semibold text-2xl'> Product Description</h2>
-                    <p className='pt-4 text-md text-gray-700 leading-normal'>
-                        {farmer?.description}
-                    </p>
-                </div>
+                <div className='mt-36 flex flex-col gap-y-16 '>
+                
+                    <div className='w-full'>
+                        <nav className='flex flex-col border-b border-gray-300 overflow-x-auto lg:max-w-4xla'>
+                            <ul className='flex text-md font-poppins whitespace-nowrap cursor-pointer'>
+                                <li className='border-b-2 border-transparent px-5 py-2 sm:px-7 hover:border-green-600 hover:text-green-600'>
+                                    About
+                                </li>
+                                <li className='border-b-2 border-transparent px-5 py-2 sm:px-7 hover:border-green-600 hover:text-green-600'>
+                                    Products
+                                </li>
+                                <li className='border-b-2 border-transparent px-5 py-2 sm:px-7 hover:border-green-600 hover:text-green-600'>
+                                    Gallery
+                                </li>
+                                <li className='border-b-2 border-transparent px-5 py-2 sm:px-7 hover:border-green-600 hover:text-green-600'>
+                                    Location
+                                </li>
+                            </ul>
+                        </nav>
+                    </div>
 
-                <div className='pt-10'>
-                    <ProductsSlideList
-                        title="Products"
-                        data={productsData?.products ?? []}
-                        isLoading={isProductLoading}
-                    />
-                </div>
+                    <div className='w-full'>
+                        <h2 className='font-semibold text-2xl'> About</h2>
+                        <p className='pt-4 text-md text-gray-700 leading-normal'>
+                            {farmer?.description}
+                        </p>
+                    </div>
 
-                <div className='pt-10'>
-                    <FarmerGalleryGrid images={farmerGalleryImages}/>
+                    <div className='w-full'>
+                        <ProductsSlideList
+                            title="Products"
+                            data={productsData?.products ?? []}
+                            isLoading={isProductLoading}
+                        />
+                    </div>
+
+                    <div className='w-full'>
+                        <h2 className='font-semibold text-2xl'> Gallery</h2>
+                        <FarmerGalleryGrid images={farmer?.profileImages ?? [] }/>
+                    </div>
                 </div>
             </div>
         </div>
