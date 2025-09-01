@@ -7,12 +7,8 @@ import SuggestedFarmers from './farmers/SuggestedFarmers';
 import MarketMessage from './marketplaceMessage/MarketMessage';
 import ProductsSlideList from '../shared/productsList/ProductsSlideList';
 
-
 const Index: FC = (): ReactElement => {
-    //Get productData here
-    const {data:productsData, isLoading: isProductLoading, refetch} = useGetNewestProductsQuery('8');
-
-    console.log("productsData: ", productsData);
+    const {data:productsData, isLoading: isProductLoading, refetch} = useGetNewestProductsQuery('12');
 
     return( 
     <div className='w-full'>
@@ -26,11 +22,11 @@ const Index: FC = (): ReactElement => {
             />
         </div>
         <div className='px-7'>
-            <SuggestedFarmers
-                title="Farmers"
-            />
+            <SuggestedFarmers/>
         </div>
-        <MarketMessage/>
+        <div className='my-10'>
+            <MarketMessage/>
+        </div>
     </div>
     )
 }
