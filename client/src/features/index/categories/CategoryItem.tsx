@@ -1,18 +1,15 @@
 import { FC, ReactElement } from 'react';
-import { productCategoriesInterface } from '../../shared/utils/data';
+import { CategoryItemPropsInterface } from '../../shared/interfaces';
 
-
-const CategoryItem:FC<productCategoriesInterface> = ({id, name, icon}):ReactElement =>{
+const CategoryItem:FC<CategoryItemPropsInterface> = ({name, icon, onCategoryClick}):ReactElement =>{    
     return(
-        //use 'group' - 'group-hover' utill class to make h3 text bold on hovers over the root <div>
         <div 
-            key={id}
             className='
                 group
-                flex flex-col items-center justify-center w-[120px] h-[120px] min-w-[100px] min-h-[100px] border-2 border-greyB rounded-lg bg-white cursor-pointer
+                flex flex-col items-center justify-center w-[100px] h-[100px] xs:w-[120px] xs:h-[120px] min-w-[100px] min-h-[100px] border-2 border-greyB rounded-lg bg-white cursor-pointer
                 hover:border-4 
             '
-            onClick={()=>alert(`category: ${name}`)}
+            onClick={onCategoryClick}
         >
             <div className='bg-category w-[70%] h-[70%] rounded-full border-2 flex items-center justify-center'>
                 <img 
@@ -22,7 +19,7 @@ const CategoryItem:FC<productCategoriesInterface> = ({id, name, icon}):ReactElem
                 />
             </div>
 
-            <h3 className='text-sm group-hover:font-semibold'>
+            <h3 className='text-xs xs:text-sm group-hover:font-semibold'>
                 {name}
             </h3>
         </div>
