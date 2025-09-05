@@ -1,5 +1,6 @@
-import { FarmerLocationInterface } from "../auth/auth.interfaces";
+import { AuthUserInterface, FarmerLocationInterface } from "../auth/auth.interfaces";
 import { ProductDocumentInterface } from "../product/product.interface";
+import { ValidationErrorMap } from "../shared/hooks/useSchemaValidation";
 
 export interface FarmerProductsTableInterface {
     id: string,
@@ -21,6 +22,7 @@ export interface FarmerProfileInterface {
     location?: FarmerLocationInterface,
     profileAvatarFile?: string,
     backgroundImageFile?: string,
+    profileImagesFile?: string[],
     // profileAvatarImages?: string[],
     description?: string,
     socialLinks?: { name: string, url: string }[],
@@ -47,12 +49,15 @@ export interface FarmerDocumentInterface {
         url: string;
         publicID: string;
     };
-    profileImages?: [
-        {
-            url: string;
-            publicID: string;
-        }
-    ];
+    profileImages?:
+    {
+        url: string;
+        publicID: string;
+    }[];
+    //publicID's for images that will be removed from cloudinary
+    removedImages?: [
+        publicID: string 
+    ]
     fullName?: string;
     farmName?: string;
     location?: {
@@ -92,4 +97,31 @@ export interface GalleryImageInterface {
 export interface OrderFilterOptionsInterface {
     sort?: 'newest' | 'oldest' | 'requested' | 'accepted' | 'packaged' | 'toCurier' | 'delivered' | 'canceled';
     size?: number;
+}
+
+export interface ProfileHeaderProps {
+    backgroundSrc: string;
+    avatarSrc: string;
+    backgroundInputRef: React.RefObject<HTMLInputElement | null>;
+    avatarInputRef: React.RefObject<HTMLInputElement | null>;
+    selectedImages: any;
+    onImageFileChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+    onRemoveImage: (type: 'avatar' | 'background') => void;
+}
+
+export interface InfoFormProps {
+    userData: FarmerProfileInterface;
+    authUser: AuthUserInterface;
+    validationErrors: ValidationErrorMap;
+    onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => void;
+    getBorderErrorStyle: (field: string) => string;
+    handleSocialChange: (index: number, value: string) => void;
+}
+
+export interface ProfileImagesProps {
+    existingImages: { url: string; publicID: string }[];
+    previewImages: string[];
+    onImagesChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+    onRemoveExisting: (index: number) => void;
+    onRemovePreview: (index: number) => void;
 }
