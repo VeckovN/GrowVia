@@ -3,7 +3,7 @@ import "react-photo-album/masonry.css";
 import PhotoAlbum from "react-photo-album";
 import { GalleryImageInterface } from '../farmer.interface';
 
-const FarmerGalleryGrid:FC<{images: GalleryImageInterface[]}> = ({ images }): ReactElement => {
+const GalleryGrid:FC<{images: GalleryImageInterface[]}> = ({ images }): ReactElement => {
 
     const photos = images.slice(0,6).map(img => ({ //first 6 images
         src: img.url,
@@ -13,8 +13,8 @@ const FarmerGalleryGrid:FC<{images: GalleryImageInterface[]}> = ({ images }): Re
 
     return (
         <div className='w-full max-w-[800px]a mx-auto'>
-
-            {photos.length > 6 && 
+            {/* BUG FIXED: replace photo.length (that is always 6 due to .slice(0,6)) to images.length */}
+            {images.length > 6 && 
                 <div className='w-full flex justify-end'>
                     <button 
                         className='font-lato text-sm sm:text-base border rounded-lg border-black p-2 hover:bg-grey'
@@ -50,4 +50,4 @@ const FarmerGalleryGrid:FC<{images: GalleryImageInterface[]}> = ({ images }): Re
     )
 }
 
-export default FarmerGalleryGrid
+export default GalleryGrid

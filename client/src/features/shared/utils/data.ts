@@ -1,28 +1,22 @@
 import { SignUpFormInterface } from '../../auth/auth.interfaces';
-import { GalleryImageInterface } from '../../farmer/farmer.interface';
 import { CategoryItemPropsInterface } from '../interfaces';
 
-import fruit from '../../../assets/categories/fruit.svg';
+import grape from '../../../assets/categories/grape.svg';
 import vegetables from '../../../assets/categories/vegetables.svg';
+import dairyProducts from '../../../assets/categories/cheese.svg';
+import wheat from '../../../assets/categories/wheat.svg';
+import jam from '../../../assets/categories/jam-jar.svg';
+import eggs from '../../../assets/categories/eggs.svg';
+import herbs from '../../../assets/categories/herbs.svg';
 
 import background1 from '../../../assets/farmers/bg1.jpg';
 import avatar1 from '../../../assets/farmers/avatar1.jpg';
 import background2 from '../../../assets/farmers/bg2.jpg';
 import avatar2 from '../../../assets/farmers/avatar2.jpg';
 
-import gallery1 from '../../../assets/farmers/gallery/Card1.jpg';
-import gallery2 from '../../../assets/farmers/gallery/Card2.jpg';
-import gallery3 from '../../../assets/farmers/gallery/Card3.jpg';
-import gallery4 from '../../../assets/farmers/gallery/Card4.jpg';
-import gallery5 from '../../../assets/farmers/gallery/Card5.jpg';
-import gallery6 from '../../../assets/farmers/gallery/Card6.jpg';
-
-
-
 //from growvia-shared library(used in backend microservices)
 export const UNIT_TYPES = ["piece", "kg", "g", "liter", "ml"] as const;
 export type UnitType = (typeof UNIT_TYPES)[number];
-
 
 export const DEFAULT_IMAGE: {url:string, publicID:string} = {
     url: avatar1,
@@ -34,7 +28,7 @@ export const productCategories: CategoryItemPropsInterface[] = [
     {
         id: 'f1',
         name: "Fruit",
-        icon: fruit,
+        icon: grape,
     },
     {
         id: 'v2',
@@ -44,28 +38,28 @@ export const productCategories: CategoryItemPropsInterface[] = [
     {
         id: 'pd3',
         name: "Dairy Products",
-        icon: fruit,
+        icon: dairyProducts,
     },
     {
         id: 'g4',
         name: "Grains",
-        icon: fruit,
+        icon: wheat,
     },
     {
         id: 'ag5',
         name: "Artisan Goods",
-        icon: fruit,
+        icon: jam,
     },
     {
         id: 'e6',
         name: "Eggs",
-        icon: fruit,
+        icon: eggs,
     },
     {
         id: 'hb7',
         // name: "Herbs&Plants",
         name: "HerbsAndPlants",
-        icon: fruit,
+        icon: herbs,
     }
 ]
 
@@ -153,15 +147,8 @@ export const initalSignupUserData:SignUpFormInterface = {
     repeatPassword:'',
     userType: 'customer',
     phoneNumber: '',
-    // profilePicture: '',
-
     profileAvatarFile: '',
     backgroundImageFile: '',
-
-    // profileAvatar: {
-    //     url:'',
-    //     publicID:'',
-    // },
     // fullName: '', //FistName + LastName
     firstName: '',
     lastName: '',
@@ -189,13 +176,4 @@ export const SOCIAL = [
     { name: 'twitter', url:'' }, 
     { name: 'linkedin', url:'' }, 
     { name: 'tiktok', url:'' } 
-]
-
-export const farmerGalleryImages:GalleryImageInterface[] = [
-    { url: gallery1 , publicID: ''},
-    { url: gallery2 , publicID: ''},
-    { url: gallery3 , publicID: ''},
-    { url: gallery4 , publicID: ''},
-    { url: gallery5 , publicID: ''},
-    { url: gallery6 , publicID: ''}
 ]
