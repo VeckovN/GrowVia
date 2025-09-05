@@ -1,5 +1,5 @@
 // import {winstonLogger, uploadImage, CustomerDocumentInterface, FarmerDocumentInterface } from "@veckovn/growvia-shared";
-import {winstonLogger, uploadImage } from "@veckovn/growvia-shared";
+import {winstonLogger, uploadImage, deleteImage } from "@veckovn/growvia-shared";
 import { Logger } from "winston";
 import { config } from "@users/config";
 import { v4 as uuidv4 } from 'uuid';
@@ -67,4 +67,29 @@ export const updateImageInCloudinary = async (
         // profilePicture 
         imageUrl 
     } 
+}
+
+export const deleteImageFromCloudinary = async (
+    publicID: string
+): Promise<boolean> => {
+    if(!publicID) return false;
+
+    try{
+        const removeResult = await deleteImage(publicID, true)
+
+        console.log("RemoveResult: ", removeResult);
+
+        if(removeResult?.result === 'ok'){
+            log.info(`User service: Image with publicID:${publicID} deleted from cloudinary`);
+            return true;
+        }
+        else {
+            log.warn(`User service: Failed to delete image ${publicID} (status: ${removeResult?.result})`);
+            return false;
+        }
+
+    } catch (err) {
+        log.log("error", `User service: error deleting image ${publicID} from cloudinary`);   
+        return false;
+    }
 }
