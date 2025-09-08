@@ -7,8 +7,8 @@ const LocationSchema = new Schema<FarmLocation>(
         country: { type: String, required: true, trim: true, minlength: 2, maxlength: 50 },
         city: { type: String, required: true, trim: true, minlength: 2, maxlength: 50 },
         address: { type: String, required: true, trim: true, minlength: 5, maxlength: 100 },
-        latitude: { type: String },
-        longitude: { type: String }
+        latitude: { type: Number, default: null },
+        longitude: { type: Number, default: null }
     }
 )
 

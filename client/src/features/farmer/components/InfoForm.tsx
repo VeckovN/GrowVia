@@ -159,9 +159,13 @@ const InfoForm: React.FC<InfoFormProps> = ({
                     Description
                 </label>
                 <textarea
-                    className='w-full p-2 pl-4 border-2 border-greyB rounded-md shadow-sm focus:border-green2 focus:border-4'
+                    className=' 
+                        w-full p-2 pl-4 border-2 border-greyB rounded-md shadow-sm 
+                        focus:border-green2 focus:border-4 resize-none
+                    '
                     id="description"
                     name='description'
+                    rows={5}
                     value={userData.description}
                     placeholder="Enter a detailed description to be shown on the full profile"
                     onChange={onChange}
@@ -169,41 +173,6 @@ const InfoForm: React.FC<InfoFormProps> = ({
                 {validationErrors.description && (
                     <label className='text-red-600 text-sm'>{validationErrors.description}</label>
                 )}
-            </div>
-
-            <div className='w-full'>
-                <label htmlFor="description" className="text-sm font-medium text-gray-700">
-                    Map Location
-                </label>
-                <div className=''>
-                    <TextField
-                        className={``}
-                        id="location"
-                        name="location"
-                        value={userData.location?.address}
-                        type="radio"
-                        placeholder="Address"
-                        // onChange={handleChange}
-                    />
-                    <label> Use your location (enable it)</label>
-                </div>
-                <div className=''>
-                    <TextField
-                        className={``}
-                        id="location"
-                        name="location"
-                        value={userData.location?.address}
-                        type="radio"
-                        placeholder="Address"
-                        // onChange={handleChange}
-                    />
-                    <label> Select manually your location </label>
-                </div>
-
-
-                <div className='google map'>
-
-                </div>
             </div>
 
             <div className="w-full md:w-1/2">

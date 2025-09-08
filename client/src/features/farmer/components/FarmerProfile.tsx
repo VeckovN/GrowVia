@@ -12,6 +12,9 @@ import useProfileHeaderImages from '../../hooks/useProfileHeaderImages';
 import ProfileHeader from './ProfileHeader';
 import InfoForm from './InfoForm';
 import ProfileImages from './ProfileImages';
+import EditableLocationMap from '../components/LocationMap/EditableLocationMap';
+import useLocationMap from '../../hooks/useLocationMap';
+import { FarmerLocationInterface } from '../../auth/auth.interfaces';
 
 const FarmerProfile = () => {
     const authUser = useAppSelector((state: ReduxStateInterface) => state.authUser)
@@ -43,6 +46,17 @@ const FarmerProfile = () => {
         handleRemoveExistingProfileImage
     } = useProfileImages(authUser);
 
+    const {
+        position,
+        getCurrentLocation,
+        hasValidPosition,
+        locationMode,
+        setLocationMode,
+        reverseGeocode
+    } = useLocationMap({
+        latitude: (authUser?.location as FarmerLocationInterface)?.latitude || null,
+        longitude: (authUser?.location as FarmerLocationInterface)?.longitude || null
+    })
 
     const avatarSrc = selectedImages.avatar.preview || authUser.profileAvatar?.url || '';
     const backgroundSrc = selectedImages.background.preview || authUser.backgroundImage?.url || '';
@@ -50,12 +64,11 @@ const FarmerProfile = () => {
     const onSubmitHandler = async () => {
         const additionalData = { removedImages }
         try{
-            //passed aditional components (from other parts)
+            //passed aditional data (from other parts)
             await handleSubmit(additionalData);
-            // await handleSubmit({removedImages});
         }
         catch(error){
-            console.log("onSubmitHandler ERROR: ", error);
+            console.error("onSubmitHandler ERROR: ", error);
             toast.error(error); //caught from trown new Error in useFarmerProfile hook
         } 
     }
@@ -101,7 +114,7 @@ const FarmerProfile = () => {
             await handleProfileImagesChange(e, updateProfileImages);
         }
         catch(error){
-            console.log("Error handling profile images", error);
+            console.error("Error handling profile images", error);
         }   
     }
 
@@ -129,7 +142,47 @@ const FarmerProfile = () => {
             };
         });
     }
-    
+
+    const handleLocationUpdate = (latitude: number, longitude: number, geocodedAddress?: string) => {
+        setUserData(prev => ({
+            ...prev,
+            location: {
+                country: prev.location?.country ?? "",
+                city: prev.location?.city ?? "",
+                address: prev.location?.address ?? "",
+                latitude: latitude,
+                longitude: longitude
+            }
+        }));
+    };
+
+    const handleLocationModeChange = async (mode: 'auto' | 'manual') => {
+        setLocationMode(mode);
+        
+        if(mode === 'auto'){
+            try{
+                //this will automatically re-generate 'position' state
+                await getCurrentLocation();
+
+                // const address = authUser.location.address;
+                // const city = authUser.location.city;
+                // const locationAdd =  await geocodeAddress(address, city);  
+            }
+            catch(error){
+                console.error("Failed to get current location: ", error);
+            }
+        }
+    }
+
+    const handleMapClick = async (lat: number, lng: number) => {
+         try {
+            const address = await reverseGeocode(lat, lng);
+            handleLocationUpdate( lat, lng, address );
+        } catch (error) {
+            handleLocationUpdate( lat, lng);
+        }
+    }
+
     return (
     <div className="mt-0 space-y-6">
         <h3 className='text-xl ml-3 font-medium'>
@@ -157,7 +210,19 @@ const FarmerProfile = () => {
             onChange={handleChange}
             getBorderErrorStyle={getBorderErrorStyle}
             handleSocialChange={handleSocialChange}
-        />        
+        /> 
+
+        <div className='w-full max-w-[550px]'>
+            <EditableLocationMap
+                position={position}
+                farmName={authUser.farmName ?? ''}
+                hasValidPosition={hasValidPosition}
+                locationMode={locationMode}
+                onLocationModeChange={handleLocationModeChange}
+                onMapClick={handleMapClick}
+            />
+        </div>
+
 
         <ProfileImages
             existingImages={existingProfileImages}

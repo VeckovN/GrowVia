@@ -1,12 +1,15 @@
 import { FC, ReactElement, useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useGetFarmerByIDQuery } from '../farmer.service';
 import { useGetProductByFarmerIDQuery } from '../../product/product.service';
+import useLocationMap from '../../hooks/useLocationMap';
 import LoadingSpinner from '../../shared/page/LoadingSpinner';
 import ProductsSlideList from '../../shared/productsList/ProductsSlideList';
 import SocialLinks from '../../shared/user/SocialLinks';
-import FarmerGalleryGrid from './FarmerGalleryGrid';
+import GalleryGrid from './GalleryGrid';
 import { SOCIAL } from '../../shared/utils/data';
+
+import DisplayLocationMap from './LocationMap/DisplayLocationMap';
 
 const FarmerOverview: FC = (): ReactElement => {
     const { id } = useParams()
@@ -15,6 +18,14 @@ const FarmerOverview: FC = (): ReactElement => {
     const {data:productsData, isLoading:isProductLoading} = useGetProductByFarmerIDQuery({farmerID:id as string, from:0, size:8});
     const farmer = farmerData?.farmer;
     const [socialLinks, setSocialLinks] = useState<Array<{name:string, url:string}>>([]);
+
+    const {
+        position,
+        hasValidPosition,
+    } = useLocationMap({
+        latitude: farmer?.location?.latitude ?? null,
+        longitude: farmer?.location?.longitude ?? null
+    });
 
     useEffect(() =>{
         if(farmerData?.farmer){
@@ -109,8 +120,19 @@ const FarmerOverview: FC = (): ReactElement => {
 
                     <div className='w-full'>
                         <h2 className='font-semibold text-2xl'> Gallery</h2>
-                        <FarmerGalleryGrid images={farmer?.profileImages ?? [] }/>
+                        <GalleryGrid images={farmer?.profileImages ?? [] }/>
                     </div>
+
+                    {hasValidPosition ? (
+                        <div className='w-fullmax-w-[800px]'>
+                            <h2 className='font-semibold text-2xl mb-1'> Location</h2>
+                            <DisplayLocationMap
+                                position={position}
+                                farmName={farmer?.farmName ?? ''}
+                            />
+                        </div>
+                    ) : null
+                    } 
                 </div>
             </div>
         </div>
