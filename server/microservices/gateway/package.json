@@ -21,7 +21,7 @@
   "dependencies": {
     "@elastic/elasticsearch": "^8.17.0",
     "@socket.io/redis-adapter": "^8.3.0",
-    "@veckovn/growvia-shared": "^1.2.3",
+    "@veckovn/growvia-shared": "^1.2.5",
     "axios": "^1.7.9",
     "compression": "^1.7.5",
     "cookie-session": "^2.1.0",

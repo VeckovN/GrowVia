@@ -2,7 +2,6 @@ import { ObjectSchema } from "yup";
 import { ValidationErrorMap } from "../shared/hooks/useSchemaValidation";
 // import { ProductDocumentInterface } from "../product/product.interface";
 
-// import {} //from user feature
 export interface LocationInterface {
     country: string,
     city: string,
@@ -10,8 +9,8 @@ export interface LocationInterface {
 }
 
 export interface FarmerLocationInterface extends LocationInterface {
-    latitude: string
-    longitude: string
+    latitude: number | null ,
+    longitude: number | null
 }
 
 export interface AuthUserInterface {

@@ -1,7 +1,6 @@
 import { FarmerDocumentInterface, UserProductUpdatePropInterface } from "@veckovn/growvia-shared";
 import { FarmerModel } from "@users/models/farmer";
 import { uploadImageToCloudinary, updateImageInCloudinary, deleteImageFromCloudinary } from "@users/helper";
-// import { uploadImageToCloudinary } from "@users/helper";
 import { publishMessage } from "@users/rabbitmqQueues/producer";
 import { userChannel } from "@users/server";
 
@@ -62,12 +61,6 @@ const searchFarmers = async(
         FarmerModel.countDocuments(query)
     ])
 
-    // const farmers: FarmerDocumentInterface[] = await FarmerModel.find(query)
-    //     .skip(from || 0)
-    //     .limit(size || 12)
-    //     .sort({ createdAt: -1 })
-    //     .exec();
-
     return {farmers, total};
 }
 
@@ -100,12 +93,7 @@ const updateFarmerDataByID = async(farmerID: string, farmerData:FarmerDocumentIn
         socialLinks: farmerData.socialLinks
     }
 
-    console.log("FARER : : : :", farmerData);
-    console.log("\n Existing urS:", existingUser);
-
-    // if(farmerData.profileAvatar){
     if(farmerData.profileAvatarFile){
-        //update new Avatar
         const existingPublicID = existingUser.profileAvatar?.publicID ?? "";
         const { imageUrl } = await updateImageInCloudinary(farmerData.profileAvatarFile, existingPublicID)
         if(imageUrl) {
@@ -165,6 +153,14 @@ const updateFarmerDataByID = async(farmerID: string, farmerData:FarmerDocumentIn
     if (farmerData.location?.address) {
         updateFields["location.address"] = farmerData.location.address;
     }
+
+    if (farmerData.location?.latitude) {
+        updateFields["location.latitude"] = farmerData.location.latitude;
+    }
+
+    if (farmerData.location?.longitude) {
+        updateFields["location.longitude"] = farmerData.location.longitude;
+    }
     
     const updatedUser = FarmerModel.findOneAndUpdate(
         { userID: farmerID },
@@ -172,7 +168,6 @@ const updateFarmerDataByID = async(farmerID: string, farmerData:FarmerDocumentIn
         { new: true }
     );
     if (!updatedUser) return null; 
-    
 
     let userProductData:UserProductUpdatePropInterface = {}
     if(farmerData.farmName)
