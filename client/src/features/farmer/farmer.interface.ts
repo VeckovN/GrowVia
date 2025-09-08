@@ -60,13 +60,7 @@ export interface FarmerDocumentInterface {
     ]
     fullName?: string;
     farmName?: string;
-    location?: {
-        country?: string;
-        city?: string;
-        address?: string;
-        latitude?: string;
-        longitude?: string;
-    } | null;
+    location?: FarmerLocationInterface,
     description?: string;
     socialLinks?: string[];
     totalProducts?: number;
@@ -124,4 +118,32 @@ export interface ProfileImagesProps {
     onImagesChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
     onRemoveExisting: (index: number) => void;
     onRemovePreview: (index: number) => void;
+}
+
+
+export interface UseLocationMapResultProps {
+    position: [number, number] | null;
+    getCurrentLocation: () => void;
+    hasValidPosition: boolean;
+    locationMode: 'auto' | 'manual' | null;
+    setLocationMode: React.Dispatch<React.SetStateAction<'auto' | 'manual' | null>>;
+    isLoadingLocation: boolean;
+    geocodeAddress: (address: string, city: string, country?: string) => Promise<{ lat: number; lon: number } | null>;
+    reverseGeocode: (lat: number, lng: number) => Promise<string>;
+    parseCoordinate: (value: string | undefined | null) => number | null;
+}
+
+export interface EditableLocationMapProps {
+    position: [number, number] | null,
+    farmName: string,
+    locationMode: 'auto' | 'manual' | null;
+    hasValidPosition: boolean;
+    onLocationModeChange: (mode: 'auto' | 'manual') => void;
+    onMapClick: (lat: number, lng: number) => void;
+}
+
+export interface LocationMarkerProps{
+    farmName: string;
+    position: [number, number] | null;
+    onMapClick: (lat: number, lng: number) => void;
 }
