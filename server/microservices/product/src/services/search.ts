@@ -82,13 +82,7 @@ const productsSerachByCategory = async(category: string): Promise<SearchResultIn
 }
 
 //refactor: unified product serach with full filter support
-// const productSearch = async(options: ProductSerachOptionsInterface):Promise<{products: ProductDocumentInterface[], total:number}>
 const productsSearch = async(options: ProductSearchOptionsInterface):Promise<SearchResultInterface> => {
-
-    console.log("OPTTT : ", options);
-
-    //or more structured (typed )
-    // const queries: ElasticQueryInterface[] = []
     const query: any = {
         bool: {
             must: [] as any[]
@@ -99,7 +93,8 @@ const productsSearch = async(options: ProductSearchOptionsInterface):Promise<Sea
     if(options.query){
         query.bool.must.push({
             query_string: {
-                fields: ['name', 'description', 'shortDescription','category', 'subCategories', 'tags'], //all fields participating in the filter
+                // fields: ['name', 'description', 'shortDescription','category', 'subCategories', 'tags'], //all fields participating in the filter
+                fields: ['name'], /// search only for product name
                 query: `*${options.query}*`
             }
         })
