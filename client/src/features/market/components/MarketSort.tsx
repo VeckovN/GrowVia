@@ -73,7 +73,7 @@ const MarketSort:FC<SortPropInterface> = ({mode, onModeChange, onSortApply, onFa
                             <div>{productRelated.productsCount} <span>products available</span></div>
                         </div>
                     :
-                         <div className='lg:hidden flex max-w-[240px] border border-greyB rounded-md py-2 px-3 justify-center items-center'>
+                         <div className='my-2 md:my-0 lg:hidden flex max-w-[240px] border border-greyB rounded-md py-2 px-3 justify-center items-center'>
                             <input
                                 type='text'
                                 value={searchQuery}
@@ -94,7 +94,7 @@ const MarketSort:FC<SortPropInterface> = ({mode, onModeChange, onSortApply, onFa
                     }
                 </div>
 
-                <div className='w-full flex flex-col md:flex-row items-center justify-around lg:justify-between'>
+                <div className='w-full flex flex-col md:flex-row items-center justify-around lg:justify-between gap-y-4'>
 
                     <div className="flex gap-x-2 border border-greyB p-1 rounded-md">
                         <button 
