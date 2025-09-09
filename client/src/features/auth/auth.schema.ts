@@ -3,8 +3,6 @@ import { ObjectSchema, object, string, array, mixed, ref } from 'yup';
 import { SignUpCustomerFormInterface, SignUpFarmerFormInterface, SignInPayloadInterface, ResetPasswordFormInterface } from './auth.interfaces';
 import { LocationInterface, FarmerLocationInterface } from './auth.interfaces';
 
-// const signUpSchema: ObjectSchema<SignUpFormInterface> = object({
-// const signUpCustomerSchema: ObjectSchema<SignUpFormInterface> = object({
 const signUpCustomerSchema: ObjectSchema<SignUpCustomerFormInterface> = object({
 
     username: string()
@@ -43,8 +41,14 @@ const signUpCustomerSchema: ObjectSchema<SignUpCustomerFormInterface> = object({
             /^(?:\+3816\d{7,8}|06\d{7,8})$/,
             'Enter a valid Serbian phone number'
         ),
-
-    location: object().required('Location is required') as ObjectSchema<LocationInterface | FarmerLocationInterface>
+    location: object({
+        city: string()
+            .required('City is required')
+            .min(2, 'City must be at least 2 characters'),
+        address: string()
+            .required('Address is required')
+            .min(3, 'Address must be at least 3 characters')
+    }).required('Location is required')
 });
 
 const signUpFarmerSchema: ObjectSchema<SignUpFarmerFormInterface> = object({
@@ -88,9 +92,17 @@ const signUpFarmerSchema: ObjectSchema<SignUpFarmerFormInterface> = object({
             'Enter a valid Serbian phone number'
         ),
 
-    location: object().required('Location is required') as ObjectSchema<LocationInterface | FarmerLocationInterface>,
+     location: object({
+        city: string()
+            .required('City is required')
+            .min(2, 'City must be at least 2 characters'),
+        address: string()
+            .required('Address is required')
+            .min(3, 'Address must be at least 3 characters')
+    }).required('Location is required'),
+
     farmName: string().required('FarmName is required'),
-    description: string(),
+    description: string().min(30, 'Description must contain at least 30 characters').optional(),
     socialLlinks: array(string().required().url('Each social link must be a valid URL')).optional()
 })
 

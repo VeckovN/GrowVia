@@ -1,4 +1,4 @@
-import { FC, ChangeEvent } from 'react';
+import { FC, ChangeEvent, useState } from 'react';
 import TextField from '../../../shared/inputs/TextField';
 import SelectField from '../../../shared/inputs/SelectField';
 import { LocationInterface } from '../../auth.interfaces';
@@ -7,10 +7,7 @@ import { CITIES } from '../../../shared/utils/data';
 import { readAsBase64 } from '../../../shared/utils/utilsFunctions';
 
 const CustomerFormOption: FC<CustomerFormOptionPropsInterface> = ({ userInfo, setUserInfo, validationErrors, actionError }) => {
-    console.log("userInfo: ", userInfo);
-    console.log("\n validationErrors: ", validationErrors);    
-    console.log("\n Action error: ", actionError);
-
+    const [previewImage, setPreviewImage] = useState<string | null>(null);
     const getFieldError = (fieldName: string) => validationErrors[fieldName];
 
     const getBorderErrorStyle = (field: string): string =>{
@@ -48,6 +45,8 @@ const CustomerFormOption: FC<CustomerFormOptionPropsInterface> = ({ userInfo, se
         if(!file) return;
 
         try{
+            const preview = URL.createObjectURL(file);
+            setPreviewImage(preview);
             // const base64 = await readAsBase64New(file);
             const base64 = await readAsBase64(file);
 
@@ -102,8 +101,8 @@ const CustomerFormOption: FC<CustomerFormOptionPropsInterface> = ({ userInfo, se
                 placeholder="Enter Last Name"
                 onChange={handleChange}
             />
-            {validationErrors.lastName &&
-                <label className='text-red-600 text-sm'> {validationErrors.lastName}</label>
+            {getFieldError('lastName') &&
+                <label className='text-red-600 text-sm'> {getFieldError('lastName')}</label>
             }  
         </div>
       </div>
@@ -126,8 +125,8 @@ const CustomerFormOption: FC<CustomerFormOptionPropsInterface> = ({ userInfo, se
                 placeholder="Enter Username"
                 onChange={handleChange}
             />
-            {validationErrors.username &&
-                <label className='text-red-600 text-sm'> {validationErrors.username}</label>
+            {getFieldError('username')&&
+                <label className='text-red-600 text-sm'> {getFieldError('username')}</label>
             }  
         </div>
         <div className="w-full md:w-1/2">
@@ -146,8 +145,8 @@ const CustomerFormOption: FC<CustomerFormOptionPropsInterface> = ({ userInfo, se
                 placeholder="Enter Email"
                 onChange={handleChange}
             />
-            {validationErrors.email &&
-                <label className='text-red-600 text-sm'> {validationErrors.email}</label>
+            {getFieldError('email') &&
+                <label className='text-red-600 text-sm'> {getFieldError('email')}</label>
             }  
         </div>
       </div>
@@ -170,8 +169,8 @@ const CustomerFormOption: FC<CustomerFormOptionPropsInterface> = ({ userInfo, se
                 placeholder="Password"
                 onChange={handleChange}
             />
-            {validationErrors.password &&
-                <label className='text-red-600 text-sm'>{validationErrors.password}</label>
+            {getFieldError('password') &&
+                <label className='text-red-600 text-sm'>{getFieldError('password')}</label>
             }
         </div>
         <div className="w-full md:w-1/2">
@@ -190,8 +189,8 @@ const CustomerFormOption: FC<CustomerFormOptionPropsInterface> = ({ userInfo, se
                 placeholder="Repeat Password"
                 onChange={handleChange}
             />
-            {validationErrors.repeatPassword &&
-                <label className='text-red-600 text-sm'>{validationErrors.repeatPassword}</label>
+            {getFieldError('repeatPassword') &&
+                <label className='text-red-600 text-sm'>{getFieldError('repeatPassword')}</label>
             }
         </div>
       </div>
@@ -213,8 +212,8 @@ const CustomerFormOption: FC<CustomerFormOptionPropsInterface> = ({ userInfo, se
             placeholder="+381 or 06x"
             onChange={handleChange}
         />
-        {validationErrors.phoneNumber &&
-            <label className='text-red-600 text-sm'>{validationErrors.phoneNumber}</label>
+        {getFieldError('phoneNumber') &&
+            <label className='text-red-600 text-sm'>{getFieldError('phoneNumber')}</label>
         }
       </div>
 
@@ -235,6 +234,9 @@ const CustomerFormOption: FC<CustomerFormOptionPropsInterface> = ({ userInfo, se
                 options={CITIES}
                 onChange={handleChange}
             />
+            {getFieldError('location.city') &&
+                <label className='text-red-600 text-sm'>{getFieldError('location.city')}</label>
+            }
         </div>
         <div className="w-full md:w-1/2">
             <label htmlFor="address" className="text-sm font-medium text-gray-700">
@@ -243,7 +245,7 @@ const CustomerFormOption: FC<CustomerFormOptionPropsInterface> = ({ userInfo, se
             <TextField
                 className={`
                     w-full p-2 pl-4 border-2 border-greyB rounded-md shadow-sm focus:border-green2 focus:border-4
-                    ${getBorderErrorStyle('address')}
+                    ${getBorderErrorStyle('location.address')}
                 `}
                 id="address"
                 name="location.address"
@@ -252,16 +254,16 @@ const CustomerFormOption: FC<CustomerFormOptionPropsInterface> = ({ userInfo, se
                 placeholder="Address"
                 onChange={handleChange}
             />
-            {validationErrors.address &&
-                <label className='text-red-600 text-sm'>{validationErrors.address}</label>
+            {getFieldError('location.address') &&
+                <label className='text-red-600 text-sm'>{getFieldError('location.address')}</label>
             }
-      </div>
+        </div>
       </div>
 
       {/* Row 6 - Avatar Upload */}
-      <div className="w-1/2">
+      <div className="w-full md:w-1/2">
         <label htmlFor="avatar" className="text-sm font-medium text-gray-700">
-          Profile Avatar
+            Profile Avatar
         </label>
         <input
             type="file"
@@ -279,9 +281,19 @@ const CustomerFormOption: FC<CustomerFormOptionPropsInterface> = ({ userInfo, se
             `}
             
         />
-        {validationErrors.profileAvatarFile &&
-            <label className='text-red-600 text-sm'>{validationErrors.profileAvatarFile}</label>
+        {getFieldError('profileAvatarFile') &&
+            <label className='text-red-600 text-sm'>{getFieldError('profileAvatarFile')}</label>
         }
+
+        {previewImage && (
+            <div className="mt-2 inline-block border-2 rounded-sm p-1">
+                <img
+                    className="max-w-[400px] h-auto object-cover rounded-sm shadow-md"
+                    src={previewImage}
+                    alt="Avatar"
+                    />
+            </div>
+        )}
       </div>
     </div>
   );

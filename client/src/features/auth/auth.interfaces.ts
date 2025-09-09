@@ -1,15 +1,14 @@
 import { ObjectSchema } from "yup";
 import { ValidationErrorMap } from "../shared/hooks/useSchemaValidation";
-// import { ProductDocumentInterface } from "../product/product.interface";
 
 export interface LocationInterface {
-    country: string,
+    country?: string,
     city: string,
     address: string
 }
 
 export interface FarmerLocationInterface extends LocationInterface {
-    latitude: number | null ,
+    latitude: number | null,
     longitude: number | null
 }
 

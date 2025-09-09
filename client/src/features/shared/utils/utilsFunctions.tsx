@@ -1,6 +1,8 @@
 import { AppDispatch } from "../../../store/store";
+import { AuthUserInterface } from "../../auth/auth.interfaces";
 import { CartProductInterface } from "../../cart/cart.interface";
 import { addProduct, increaseProduct, decreaseProduct, removeProduct } from "../../cart/cart.reducers";
+import { FarmerDocumentInterface } from "../../farmer/farmer.interface";
 import { NotificationInterface } from "../../notifications/notifications.interface";
 
 export const saveDataToLocalStorage = (key: string, data: string): void =>{
@@ -77,6 +79,40 @@ export const handleRemoveCartItem = (
 ): void => {
     dispatch(removeProduct({farmerID, productID}));
 }
+
+//map for result from update farmer profile
+export const mapFarmerToAuthUser = (
+    farmer: FarmerDocumentInterface,
+    existingAuthUser: AuthUserInterface
+): Partial<AuthUserInterface> => {
+    return {
+        // id: farmer.userID ?? existingAuthUser.id,
+        username: farmer.username ?? existingAuthUser.username,
+        email: farmer.email ?? existingAuthUser.email,
+        phoneNumber: farmer.phoneNumber ?? existingAuthUser.phoneNumber,
+        // fullName: farmer.fullName ?? existingAuthUser.fullName,
+        farmName: farmer.farmName ?? existingAuthUser.farmName,
+        description: farmer.description ?? existingAuthUser.description,
+        socialLinks: farmer.socialLinks ?? existingAuthUser.socialLinks,
+        location: {
+            country: farmer.location?.country ?? existingAuthUser.location.country,
+            city: farmer.location?.city ?? existingAuthUser.location.city,
+            address: farmer.location?.address ?? existingAuthUser.location.address,
+            // latitude: farmer.location?.latitude ?? existingAuthUser.location?.latitude ,
+            latitude: farmer.location?.latitude ?? null,
+            longitude: farmer.location?.longitude ?? null
+        },
+        profileAvatar: farmer.profileAvatar ?? existingAuthUser.profileAvatar,
+        backgroundImage: farmer.backgroundImage ?? existingAuthUser.backgroundImage,
+        profileImages: farmer.profileImages ?? existingAuthUser.profileImages,
+        createdAt: farmer.createdAt
+            ? new Date(farmer.createdAt).toISOString()
+            : existingAuthUser.createdAt,
+        profileAvatarFile: "", // always reset files on FE after upload
+        backgroundImageFile: "",
+    };
+};
+
 
 //map backend order statuses to UI related labels
 export const mapOrderStatusToUILabel = (status: string): string => {
@@ -173,8 +209,6 @@ export const formatOrderDate = (createdAt: string | Date): string => {
     return `${day} ${month} ${year}`;
 }
 
-//DON't FORGET FOR PR: 
-// - install date-fns liobrary to calculate the time elapsed until the notifications was received
 export const mapNotificationsData = (n: any, userType: string): NotificationInterface => {
     return {
         id: n._id,
