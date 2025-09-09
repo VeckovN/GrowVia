@@ -1,12 +1,12 @@
 import {FC, ReactElement, lazy, Suspense, useState} from 'react';
+import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 import { useSignUpMutation } from '../auth.service';
 import { useSchemaValidation } from '../../shared/hooks/useSchemaValidation';
 import { signUpFarmerSchema, signUpCustomerSchema } from '../auth.schema';
 import { initalSignupUserData } from '../../shared/utils/data';
 import { SignUpCustomerFormInterface, SignUpFarmerFormInterface } from '../auth.interfaces';
-
-import toast from 'react-hot-toast';
+import LoadingSpinner from '../../shared/page/LoadingSpinner';
 
 import CustomerIcon from '../../../assets/signup/customerOption.svg';
 import FarmerIcon from '../../../assets/signup/farmerOption.svg';
@@ -29,15 +29,10 @@ const SignUp: FC = (): ReactElement => {
             : userInfo as SignUpFarmerFormInterface 
     });
     const [actionError, setActionError] = useState<string>('');
-    const [signUp ] = useSignUpMutation();
+    const [signUp] = useSignUpMutation();
 
     const onSignUpHandler = async(): Promise<void> => {
         try{    
-            // const isValid = await schemaValidation();
-            // if(!isValid){
-            //     toast.error("Validation Field:");
-            //     return;
-            // }
             //has try/catch but doesn't thrown error (it returns boolean instead) -> (error won't be trigger)
             //but this is called inside this try/catch so the error will be caught here in catch
             const isValid = await schemaValidation(); 
@@ -49,11 +44,8 @@ const SignUp: FC = (): ReactElement => {
                     ...userInfo,
                     fullName
                 }
-                console.log("userData -> signUpPayloadInterface: ", userData);
-    
                 //.unwrap(), catch any thrown error
                 const result = await signUp(userData).unwrap();
-                console.log("\n result signUp: ", result);
     
                 toast.success("Successfully signed up")
                 navigate('/signin');
@@ -121,7 +113,7 @@ const SignUp: FC = (): ReactElement => {
             */}
             <div className='w-[90%] mx-auto lg:w-full flex flex-col gap-2 font-lato'>
                 {/* lazy load this and display it based on selectedOption value */}
-                <Suspense fallback={<div>Loading form...</div>}>
+                <Suspense fallback={ <div className='my-10'><LoadingSpinner/></div> }>
                     {selectedOption === 'customer' && 
                         <CustomerFormOption 
                             userInfo={userInfo}
