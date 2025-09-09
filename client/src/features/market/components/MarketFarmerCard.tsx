@@ -6,12 +6,11 @@ const MarketFarmerCard:FC<MarketFarmerCardInterface> = ({farmer}):ReactElement =
     const navigate = useNavigate();
 
     return (
-        <div className='w-full flex border rounded-md'>
+        <div className='w-full flex min-w-[380px] border rounded-md'>
             <div 
                 className='min-w-[150px] h-28 relative rounded-md bg-cover bg-centera opacity-4'
                 style={{backgroundImage: `url(${farmer.backgroundImage?.url})`}}
             >
-                {/* Opacity on bg */}
                 <div className="absolute inset-0 bg-white/20" /> 
                 <img
                     src={farmer.profileAvatar?.url}
@@ -26,22 +25,13 @@ const MarketFarmerCard:FC<MarketFarmerCardInterface> = ({farmer}):ReactElement =
                     <p className='text-xs text-gray-500'>{farmer.location?.address}, {farmer.location?.city} </p>
                 </div>
 
-                {/* display max 4 images from 'profileImages' -> 
-                    TODO: Add images to farmers profile
-                */}
                 <div className='w-full flex gap-x-1 ml-3a'>
-                    {/* {farmer.profileImages?.slice(0,4).map(image => 
+                    {farmer.profileImages?.slice(0,4).map(image => 
                         <img 
-                            className='w-6 h-6'
+                            className='w-[50px] h-[40px] object-cover shadow-md rounded-md'
                             src={image.url}
                         />
-                    )} */}
-                    {[...Array(4)].map((_, i) => (
-                        <img
-                            className='w-[50px] h-[40px] object-cover shadow-md rounded-md'
-                            src={farmer.profileAvatar?.url}
-                        />
-                    ))}
+                    )}
                 </div>
 
                 <div className='w-full flex justify-center'>
