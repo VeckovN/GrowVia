@@ -1,4 +1,4 @@
-import { FarmerDocumentInterface, UserProductUpdatePropInterface } from "@veckovn/growvia-shared";
+import { FarmerDocumentInterface, publishCacheInvalidation, UserProductUpdatePropInterface } from "@veckovn/growvia-shared";
 import { FarmerModel } from "@users/models/farmer";
 import { uploadImageToCloudinary, updateImageInCloudinary, deleteImageFromCloudinary } from "@users/helper";
 import { publishMessage } from "@users/rabbitmqQueues/producer";
@@ -79,6 +79,7 @@ const updateFarmerDataByID = async(farmerID: string, farmerData:FarmerDocumentIn
 
     //existing profile images
     let updatedProfileImages: {url: string, publicID: string}[] = existingUser.profileImages || [];
+    let shouldInvalidateIndexCache = false;
 
     const updateFields: any = {
         username: farmerData.username, 
@@ -93,6 +94,10 @@ const updateFarmerDataByID = async(farmerID: string, farmerData:FarmerDocumentIn
         socialLinks: farmerData.socialLinks
     }
 
+    if (farmerData.farmName && farmerData.farmName !== existingUser.farmName) {
+        shouldInvalidateIndexCache = true;
+    }
+
     if(farmerData.profileAvatarFile){
         const existingPublicID = existingUser.profileAvatar?.publicID ?? "";
         const { imageUrl } = await updateImageInCloudinary(farmerData.profileAvatarFile, existingPublicID)
@@ -101,6 +106,7 @@ const updateFarmerDataByID = async(farmerID: string, farmerData:FarmerDocumentIn
                 url: imageUrl,
                 publicID: existingPublicID || undefined
             }
+            shouldInvalidateIndexCache = true;
         }
     }
 
@@ -112,6 +118,7 @@ const updateFarmerDataByID = async(farmerID: string, farmerData:FarmerDocumentIn
                 url: imageUrl,
                 publicID: existingPublicID || undefined
             }
+            shouldInvalidateIndexCache = true;
         }
     }
     
@@ -146,12 +153,15 @@ const updateFarmerDataByID = async(farmerID: string, farmerData:FarmerDocumentIn
 
     if (farmerData.location?.country) {
         updateFields["location.country"] = farmerData.location.country;
+        shouldInvalidateIndexCache = true;
     }
     if (farmerData.location?.city) {
         updateFields["location.city"] = farmerData.location.city;
+        shouldInvalidateIndexCache = true;
     }
     if (farmerData.location?.address) {
         updateFields["location.address"] = farmerData.location.address;
+        shouldInvalidateIndexCache = true;
     }
 
     if (farmerData.location?.latitude) {
@@ -190,6 +200,15 @@ const updateFarmerDataByID = async(farmerID: string, farmerData:FarmerDocumentIn
             'user-update-profile-product-key',
             'User update profile product data sent to the Product Service',
             JSON.stringify({data: userProductData})
+        );
+    }
+
+    if(shouldInvalidateIndexCache){
+        await publishCacheInvalidation(
+            ['newest:farmers'],
+            { 
+                farmerID: farmerID
+            }
         );
     }
 

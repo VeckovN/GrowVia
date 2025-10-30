@@ -8,12 +8,10 @@ import helmet from "helmet";
 import cors from 'cors';
 import compression from "compression";
 import http from 'http';
-// import { Server } from 'socket.io';
-// import { createAdapter } from "@socket.io/redis-adapter";
-// import { createClient } from "redis";
 import { initializeSocketIO, getSocketIO, configureSocketEvents } from '@gateway/sockets';
 import { checkConnection } from "@gateway/elastisearch";
 import { redisConnect } from "@gateway/redis";
+import { initializeCacheSubscriber, disconnectCacheSubscriber } from "@gateway/redisSubscriber";
 import { appRoutes } from "@gateway/routes";
 import { notificationAxiosInstance } from "@gateway/services/notification.service";
 import { authAxiosInstance } from "@gateway/services/auth.service";
@@ -36,7 +34,6 @@ function compressRequestMiddleware(app:Application):void {
     }))
 }
 
-
 function routesMiddleware(app:Application):void{
     appRoutes(app);
 }
@@ -45,8 +42,14 @@ function startElasticsearch():void{
     checkConnection();
 }
 
-function startRedis():void{
-    redisConnect();
+async function initializeRedis(): Promise<void> {
+    try {
+        await redisConnect();
+        await initializeCacheSubscriber();
+    } catch (error) {
+        log.error('Redis initialization failed:', error);
+        throw error;
+    }
 }
 
 function errorHandlerMiddleware(app: Application):void{
@@ -54,7 +57,6 @@ function errorHandlerMiddleware(app: Application):void{
     app.use('*', (req:Request, res:Response, next:NextFunction) =>{
         log.log('error', "That endpoint doesn't exist. ");
         const fullUrl = `${req.protocol}://${req.get('host')}${req.originalUrl}`;
-        console.log("FullUrl: ", fullUrl);
         res.status(404).json({message:`The endpoint required doesn't exist: ${fullUrl}`});
         next();
     })
@@ -96,6 +98,24 @@ async function startServers(app:Application):Promise<void> {
     }
 }
 
+function setupGracefulShutdown(): void {
+    const shutdown = async (signal: string) => {
+        console.log(`${signal} received, shutting down gracefully...`);
+        
+        try {
+            await disconnectCacheSubscriber();
+            log.info('Cache subscriber disconnected');
+            process.exit(0);
+        } catch (error) {
+            log.error('Error during shutdown:', error);
+            process.exit(1);
+        }
+    };
+
+    process.on('SIGTERM', () => shutdown('SIGTERM'));
+    process.on('SIGINT', () => shutdown('SIGINT'));
+}
+
 export function start(app:Application):void {
     
     //the gateway acts as a proxy by manually forwarding requests, 
@@ -132,7 +152,6 @@ export function start(app:Application):void {
     //When the request comes from the frontend and before the API_Gateway sends(redirect) request to the respective Service 
     //the token will be add to the headers (jwt token)
     app.use((req: Request, _res:Response, next:NextFunction) =>{
-        console.log("REQ>SESSION : ", req.session);
         if(req.session?.jwtToken){   //if session exist (The user is logged)
             //we want to append bearer token to the each AXIOS INSTANCE (Auth, Product, User, Order ...)
             notificationAxiosInstance.defaults.headers['Authorization']= `Bearer ${req.session?.jwtToken}`
@@ -144,10 +163,12 @@ export function start(app:Application):void {
         next();
     })
 
+    setupGracefulShutdown();
+
     compressRequestMiddleware(app);
     routesMiddleware(app);
-    startElasticsearch();
-    startRedis();
     errorHandlerMiddleware(app);
+    startElasticsearch();
+    initializeRedis();
     startServers(app);
 }

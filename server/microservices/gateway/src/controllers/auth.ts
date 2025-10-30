@@ -1,15 +1,8 @@
-//AFTER SENDING REQUEST TO AUTH SERVICE FROM API_GATEWAY
-
 import { Request, Response } from "express";
 import { SignUp, SignIn, verifyEmail, forgotPassword, resetPassword} from "@gateway/services/auth.service";
 import { getCustomerDetailsByUsername, getFarmerDetailsByUsername } from "@gateway/services/user.service";
-import { setLoggedUser } from "@gateway/redis";
 import { AxiosResponse } from "axios";
 
-// ApiGateway request for Signup (to Authentication Service)
-//Response is returnd to the Client (with req.session.jwtToken -> Logged user ass well after singup)
-
-//this res.body COMES FROM FRONTEND
 export async function register(req:Request, res:Response):Promise<void>{
     const response: AxiosResponse = await SignUp(req.body);
     req.session = { jwtToken: response.data.token };
@@ -22,10 +15,6 @@ export async function login(req:Request, res:Response):Promise<void>{
     const { token, user } = authResponse.data;
 
     req.session = { jwtToken: token };
-    
-    // FOR TESTING put here  the username to 'loggedUser' 
-    //make user online
-    await setLoggedUser('loggedUsers', req.body?.usernameOrEmail);
     
     //Fetch profie from Users service 
     //we can put it in try/catch (tohandle potential UserService request error)
@@ -49,6 +38,8 @@ export async function login(req:Request, res:Response):Promise<void>{
         console.log("User service profile request failed", error);
     }
 
+    // await setLoggedUser('loggedUser', user.username);
+
     const combinedData ={
         ...authResponse.data.user,
         ...userProfile
@@ -65,7 +56,6 @@ export async function logout(req:Request, res:Response):Promise<void>{
     //maybe call function from currentUser to remove user from online list
     res.status(200).json({ message:"Logout successful", user:{} });
 }
-
 
 export async function userEmailVerification(req:Request, res:Response):Promise<void>{
     const { userID, token } = req.body;

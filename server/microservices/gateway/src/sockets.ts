@@ -2,16 +2,13 @@ import { winstonLogger, BadRequestError} from "@veckovn/growvia-shared";
 import { Logger } from "winston";
 import { config } from '@gateway/config';
 import { Server, Socket } from 'socket.io';
-// import { io as ioSocketClient, Socket as clientSocket } from 'socket.io-client';
 import { io as ioSocketClient } from 'socket.io-client';
 import http from 'http';
 import { createAdapter } from "@socket.io/redis-adapter";
 import { createClient } from "redis";
-import { setSelectedProductCategory, setLoggedUser, removeLoggedUser, getLoggedUsers} from '@gateway/redis';
+import { setLoggedUser, removeLoggedUser, getLoggedUsers} from '@gateway/redis';
 
 const log: Logger = winstonLogger(`${config.ELASTICSEARCH_URL}`, 'gatewayService', 'debug');
-
-//other service Connections methods
 
 let socketIO: Server;
 
@@ -37,7 +34,6 @@ const initializeSocketIO = async (httpServer: http.Server): Promise<void> => {
     }
 }
 
-//singleton
 const getSocketIO = ():Server =>{
     if(!socketIO){
         throw BadRequestError("Socket hasn't been initialized yet", "socket getSocketIO function");
@@ -45,17 +41,10 @@ const getSocketIO = ():Server =>{
     return socketIO;
 };
 
-
-
 const configureSocketEvents = (io: Server):void =>{
     orderSocketServiceConnection(io);
-    
-    //client connections (origin -> CLIENT_URL)
-    io.on('connection', async(socket: Socket) => {
 
-        socket.on('category', async(category: string, username:string) => { 
-            await setSelectedProductCategory(`selectedCategory:${username}`, category)
-        })
+    io.on('connection', async(socket: Socket) => {
 
         socket.on('getLoggedUsers', async() =>{
             const res = await getLoggedUsers('loggedUsers');
@@ -67,7 +56,7 @@ const configureSocketEvents = (io: Server):void =>{
             io.emit('online', res);
         })
 
-        socket.on('removeLoggedUser', async(username: string) =>{
+        socket.on('removeLoggedUsers', async(username: string) =>{
             const res = await removeLoggedUser('loggedUsers', username);
             io.emit('online', res);
         })
@@ -77,8 +66,6 @@ const configureSocketEvents = (io: Server):void =>{
 }
 
 const orderSocketServiceConnection = (io:Server):void => {
-    //connection for order SErvice
-    // const orderSocketClient = io(`${config.ORDER_SERVICE_URL}`, {
     const orderSocketClient = ioSocketClient(`${config.ORDER_SERVICE_URL}`, {
         transports: ['websocket', 'polling'],
         secure: true

@@ -1,8 +1,8 @@
 import { Request, Response } from "express";
 import { getProductByID, getFarmerProductsByID, getProductsByCategory, createProduct, updateProduct, deleteProduct, searchProducts, searchSimilarProducts, searchNewestProducts } from "@gateway/services/product.service";
 import { AxiosResponse } from "axios";
-import { ProductSearchOptionsInterface } from "@veckovn/growvia-shared";
-
+import { ProductSearchOptionsInterface, ProductsCacheData } from "@veckovn/growvia-shared";
+import { cacheGet, cacheSet } from "@gateway/redis";
 
 export async function create(req:Request, res:Response):Promise<void> {
     const response: AxiosResponse = await createProduct(req.body);
@@ -71,8 +71,23 @@ export async function similarProducts(req:Request, res:Response):Promise<void> {
 }
 
 export async function newestProducts(req:Request, res:Response):Promise<void> {
+    const cacheKey = 'newest:products';
+    const cached = await cacheGet<ProductsCacheData>(cacheKey);
+
+    if(cached){
+        res.status(200).json({...cached, cached: true});
+        return;
+    }
+
     const response: AxiosResponse = await searchNewestProducts(req.params.limit);
-    res.status(200).json({ message:response.data.message, products:response.data.products});
+    const data = {
+        message: response.data.message,
+        products: response.data.products
+    }
+    
+    await cacheSet(cacheKey, data, 900);
+    
+    res.status(200).json({...data, cached: false});
 }
 
 export async function update(req:Request, res:Response):Promise<void> {

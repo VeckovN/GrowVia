@@ -1,4 +1,4 @@
-import { BadRequestError, UserLocation, ProductDocumentInterface, OrderItemDocumentInterface, ProductCreateInterface } from "@veckovn/growvia-shared";
+import { BadRequestError, UserLocation, ProductDocumentInterface, OrderItemDocumentInterface, ProductCreateInterface, publishCacheInvalidation } from "@veckovn/growvia-shared";
 import { getDataIndex, addDataToIndex, updateDataIndex, deleteDataIndex } from "@product/elasticsearch";
 import { ProductModel } from "@product/model/product";
 import { uploadProductImageToCloudinary } from "@product/helper";
@@ -75,6 +75,13 @@ const updateProduct = async(productID: string, product:ProductDocumentInterface)
     if(updatedDocument){
         const data = updatedDocument.toJSON?.() as ProductDocumentInterface; //get JSON forma
         await updateDataIndex('products', `${updatedDocument._id}`, data);
+    
+        await publishCacheInvalidation(
+            ['newest:farmers'],
+            { 
+                productID: updatedDocument._id as string,
+            }
+        );
     }
 
     return updatedDocument;
@@ -131,13 +138,23 @@ const decreaseProductStock = async(orderProductList: OrderItemDocumentInterface[
     //Atomicity: Reduces the risk of inconsistencies when multiple orders modify the stock.
     const bulkOperations = orderProductList.map((orderItem) => ({
         updateOne:{
-            filter: { _id: orderItem.product_id},
+            filter: { 
+                _id: orderItem.product_id,
+                stock: { $gte: orderItem.quantity } //only if the quanttiy is greater than stock 
+            },
             update: { $inc: { stock: -orderItem.quantity } }
         }
     }));
 
     if (bulkOperations.length > 0) {
-        await ProductModel.bulkWrite(bulkOperations);
+        const result = await ProductModel.bulkWrite(bulkOperations);
+
+        // Check if some updates failed due to insufficient stock
+        if(result.modifiedCount !== orderProductList.length) {
+            throw BadRequestError("Insufficient stock for one or more products.", "Product Service");
+            //TODO: 
+            //Send ACK to Order service
+        }
     }
 
     const updatedProducts = await ProductModel.find({

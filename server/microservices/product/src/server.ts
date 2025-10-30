@@ -1,5 +1,5 @@
 import { Application, NextFunction, Request ,Response, urlencoded, json } from "express";
-import { winstonLogger, AuthPayloadInterface, CustomErrorInterface } from "@veckovn/growvia-shared";
+import { winstonLogger, AuthPayloadInterface, CustomErrorInterface, initializeCachePublisher, disconnectCachePublisher } from "@veckovn/growvia-shared";
 import 'express-async-errors';
 import { Logger } from "winston";
 import { config } from '@product/config';
@@ -41,13 +41,20 @@ function startElasticsearch():void{
     createIndex('products');
 }
 
-
 function startRedis():void{
     redisConnect();
 }
 
 function startMongoDB():void{
     mongoDBconnection();
+}
+
+async function startCachePublisher():Promise<void> {
+    await initializeCachePublisher(
+        config.REDIS_HOST ?? 'redis://localhost:6379',
+        'product-service',
+        config.ELASTICSEARCH_URL
+    )
 }
 
 function configCloudinary():void {
@@ -94,9 +101,6 @@ async function startHttpAndSocketServer(app:Application):Promise<void> {
             console.log("Product Service started");
             log.info(`Product service is running on port: ${Server_port}`)
         })
-
-        //Start SocketIO server
-        // const socketServer = 
     }
     catch(error){
         log.log("error", "Product service startServer failed: ", error);
@@ -129,9 +133,14 @@ export function start(app:Application){
     startMongoDB();
     configCloudinary();
     startRabbitmqQueue();
+    startCachePublisher();
     errorHandlerMiddleware(app);
     startHttpAndSocketServer(app);
 }
 
+process.on('SIGTERM', async () => {
+    await disconnectCachePublisher();
+    process.exit(0);
+});
 
 export { productChannel }
