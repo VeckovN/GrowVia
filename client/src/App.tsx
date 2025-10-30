@@ -18,7 +18,10 @@ const App: FC =(): ReactElement => {
  
     registerNotificationEvents(socket, dispatch, authUser?.id, authUser?.userType);
 
+    socket.emit("setLoggedUsers", authUser.username);
+
     return () => { //clean up
+      socket.emit('removeLoggedUsers', authUser.username)
       disconnectSocket(); //on app close, disconnect it from socket intance
     }
   },[authUser?.id])

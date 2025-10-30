@@ -1,5 +1,5 @@
 import { Application, NextFunction, Request ,Response, urlencoded, json } from "express";
-import { winstonLogger, AuthPayloadInterface, CustomErrorInterface } from "@veckovn/growvia-shared";
+import { winstonLogger, AuthPayloadInterface, CustomErrorInterface, initializeCachePublisher, disconnectCachePublisher } from "@veckovn/growvia-shared";
 import 'express-async-errors';
 import { Logger } from "winston";
 import { config } from '@users/config';
@@ -42,6 +42,14 @@ function startMongoDB():void{
     mongoDBconnection();
 }
 
+async function startCachePublisher():Promise<void> {
+    await initializeCachePublisher(
+        config.REDIS_HOST ?? 'redis://localhost:6379',
+        'users-service',
+        config.ELASTICSEARCH_URL
+    )
+}
+
 function configCloudinary():void {
     cloudinary.v2.config({
         cloud_name: config.CLOUDINARY_NAME, 
@@ -57,8 +65,6 @@ async function startRabbitmqQueue():Promise<void>{
     userChannel = await createConnection() as Channel;
     await customerDirectConsumer(userChannel); //for consuming create data on Authentication service)
     await farmerDirectConsumer(userChannel);
-    //OrderService - on creating order and others.
-    //ProductService -
 } 
 
 function errorHandlerMiddleware(app: Application):void{
@@ -97,6 +103,7 @@ async function startHttpAndSocketServer(app:Application):Promise<void> {
     }
 }
 
+
 export function start(app:Application){
     app.set('trust proxy', 1); 
     app.use(helmet());
@@ -122,8 +129,14 @@ export function start(app:Application){
     startMongoDB();
     configCloudinary();
     startRabbitmqQueue();
+    startCachePublisher();
     errorHandlerMiddleware(app);
     startHttpAndSocketServer(app);
 }
+
+process.on('SIGTERM', async () => {
+    await disconnectCachePublisher();
+    process.exit(0);
+});
 
 export { userChannel };

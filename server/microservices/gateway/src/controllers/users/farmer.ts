@@ -7,7 +7,9 @@ import {
     getNewestFarmers,
     updateFarmerData
 } from "@gateway/services/user.service";
+import { cacheGet, cacheSet } from "@gateway/redis";
 import { AxiosResponse } from "axios";
+import { FarmersCacheData } from "@veckovn/growvia-shared";
 
 export async function getByID(req:Request, res:Response):Promise<void>{
     const response: AxiosResponse = await getFarmerDetailsByID(req.params.ID); 
@@ -40,8 +42,25 @@ export async function serachFarmers(req:Request, res:Response):Promise<void>{
 
 export async function newestFarmers(req:Request, res:Response):Promise<void>{
     const limit = parseInt(req.params.limit);
+    
+    const cacheKey = 'newest:farmers';
+    const cached = await cacheGet<FarmersCacheData>(cacheKey);
+
+    if(cached){
+        res.status(200).json({...cached, cached: true});
+        return;
+    }
+
     const response: AxiosResponse = await getNewestFarmers(limit); 
-    res.status(200).json({ message:response.data.message, farmers:response.data.farmers});
+    const data = {
+        message: response.data.message,
+        farmers: response.data.farmers
+    }
+    
+    await cacheSet(cacheKey, data, 900);
+    
+    res.status(200).json({...data, cached: false}); 
+    // res.status(200).json({ message:response.data.message, farmers:response.data.farmers});
 }
 
 export async function updateByID(req:Request, res:Response):Promise<void>{
