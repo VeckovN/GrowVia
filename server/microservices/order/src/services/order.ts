@@ -29,9 +29,7 @@ const getOrderByID = async(orderID: string):Promise<OrderDocumentInterface | nul
     }
 }
 
-
 const processOrderRows = async (orderRows: any): Promise<OrderDocumentInterface[]> => {
-
     const orders: OrderDocumentInterface[] = [];
 
     for(const orderRow of orderRows) {
@@ -151,10 +149,10 @@ const getCustomerOrders = async(
 const placePendingOrder = async(orderData: OrderCreateInterface):Promise<OrderDocumentInterface> => {
     try {
         //Transaction: Together as one (Both succeed - order is fully placed, Or both fail - no partial data left in the database). )
-        //1. Start Transaction
+        //Start Transaction
         await pool.query('BEGIN'); 
 
-        //2. Insert Order
+        //Insert Order
         const orderInsertQuery = `
         INSERT INTO public.orders (
             farmer_id,
@@ -217,7 +215,7 @@ const placePendingOrder = async(orderData: OrderCreateInterface):Promise<OrderDo
         const order_id = orderResult.rows[0].order_id; //used to make relations with orderItems
 
 
-        //3. Insert The Order Items  
+        //Insert The Order Items  
         const orderItemInsertQuery = `
             INSERT INTO order_items (
                 order_id,
@@ -248,7 +246,7 @@ const placePendingOrder = async(orderData: OrderCreateInterface):Promise<OrderDo
             await pool.query(orderItemInsertQuery, orderItemValues);
         }
 
-        //4. Commit transaction if everythinkg is successful
+        //Commit transaction if everythinkg is successful
         await pool.query('COMMIT');
         log.info("Order and items successfully created."); 
 
@@ -290,7 +288,6 @@ const placePendingOrder = async(orderData: OrderCreateInterface):Promise<OrderDo
             createdAt: new Date().toISOString(),
         };
 
-
         const logMessage = 'Send Order placed email Data to Notification service';
         //send email and socket event
         await postOrderNotificationWithEmail( 
@@ -302,31 +299,28 @@ const placePendingOrder = async(orderData: OrderCreateInterface):Promise<OrderDo
             notification
         );
         
-
         const resultOrder:OrderDocumentInterface = { ...orderData, order_id };
         return resultOrder; 
     }
     catch(error){   
-        //5. Rollback transaction on error
+        //Rollback transaction on error
         await pool.query('ROLLBACK');
         log.log("error", "Order service: order can't be placed");    
         throw BadRequestError(`Failed to place Order and items: ${error} `, "orderService inserOrder method error");
     }
     // finally{
-    //     pool.release(); // 6. Release the client back to the pool
+    //     pool.release(); //Release the client back to the pool
     // }
 }
 
-
 //place order (until the farmer approve it) -- panding state  
 const placeOrder = async(orderData: OrderCreateInterface):Promise<void> => {
-
     if(!["stripe", "cod"].includes(orderData.payment_type)){
         throw BadRequestError(`Failed to place Order, invalid payment method passed `, "orderService createOrder method error");
     }
 
     if(orderData.payment_type === "stripe"){
-        //this sent data to PaymentService, and wait for response in consumer function (rabbitMQ)
+        //sent data to PaymentService, and wait for response in consumer function (rabbitMQ)
         await publishMessage (
             orderChannel,
             'order-payment-customer',
@@ -335,16 +329,15 @@ const placeOrder = async(orderData: OrderCreateInterface):Promise<void> => {
             JSON.stringify({type: "orderPlaced", data: orderData}),
 
         );
-         // and waith feedback and place order -> as payment approved (with createOrderPaymentDirectConsumer Cosnumer)
+        // and waith feedback and place order -> as payment approved (with createOrderPaymentDirectConsumer Cosnumer)
     }
-    else if(orderData.payment_type === "cod"){ //cash on delivery
+    else if(orderData.payment_type === "cod"){ 
         await placePendingOrder(orderData);
     }
 
 }
 
 const cancelOrder = async(orderID: string):Promise<void> => {
-    
     const orderData:OrderDocumentInterface | null = await getOrderByID(orderID);
     if(!orderData)
         throw NotFoundError("Failed to find the order, orderID doesn't exist", "orderService farmerApproveOrder failed")
@@ -422,6 +415,7 @@ const cancelOrder = async(orderID: string):Promise<void> => {
     }
 }
  
+//Invalidating and Triggering Product onStock check
 const farmerApproveOrder = async(orderID: string): Promise<void> => {
     const orderData:OrderDocumentInterface | null = await getOrderByID(orderID);
     if(!orderData)
@@ -450,76 +444,19 @@ const farmerApproveOrder = async(orderID: string): Promise<void> => {
 
             throw BadRequestError(`Failed to approve order, payment authorization expired `, "orderService FarmerApproveOrder method error"); 
         }
-
-        //sent to Payment Service
-        await publishMessage(
-            orderChannel,
-            // 'accept-order-payment',
-            // 'accept-order-payment-key',
-            'accept-reject-order-payment',
-            'accept-reject-order-payment-key',
-            'Order approved data sent to the Payment service',
-            // JSON.stringify({type: "orderApproved", data: orderData}),
-            JSON.stringify({type: "orderApproved", data: orderData}),
-        );
-
     }
-    else if(orderData.payment_type === 'cod') //without payment integration just change order status
-    {
-        if(!orderData.order_id)
-            throw NotFoundError("Failed to find the order, orderID doesn't exist", "orderService farmerApproveOrder with cod paymentMethod failed")
+
+    //Trigger Stock check -> All logic happens in consumer after this 
+    // *wait on Product (stock check) result before the order is accepted 
+    await publishMessage(
+        orderChannel,
+        'check-reserve-product-stock',
+        'check-reserve-product-stock-key',
+        'Check and reserve product stock before approving order',
+        JSON.stringify({type: "checkAndReserve", data: orderData}),
+    );
         
-        await changeOrderStatus(orderData.order_id, 'accepted');
-        
-        const notificationMessage = `Your request order #${orderID.slice(0,8)}... has been approved`;
-
-        //REFACTOR: use receiver/sender isntead of customer/farmer
-        const emailMessage: OrderEmailMessageInterface = {
-            template: "orderApproved", //email template name 
-            type: "accepted", //panding status
-            orderUrl: `${config.CLIENT_URL}/order/track/${orderID}`,
-            orderID: orderID,
-            invoiceID: orderData.invoice_id,
-            receiverEmail: orderData.customer_email, //to the farmer (farmet got the notification)
-            farmerUsername: orderData.farmer_username,
-            farmerEmail: orderData.farmer_email,
-            customerUsername: orderData.customer_username,
-            totalPrice: orderData.total_price,
-            orderItems: orderData.orderItems
-        }
-
-        const notification: NotificationInterface = {
-            type: 'order', // must match enum in schema
-            sender: {
-                id: orderData.farmer_id,
-                name: orderData.farmer_username,
-                // farmerAvatarUrl isn't part of Order data
-                // avatarUrl: orderData?|| '', // fetch from user service / redux state
-            },
-            receiver: {
-                id: orderData.customer_id,
-                name: `${orderData.customer_first_name} ${orderData.customer_last_name}`.trim(),
-            },
-            message: notificationMessage,
-            isRead: false,
-            bothUsers: false, // or true if needed
-            order: {
-                orderId: orderID,
-                status: orderData.order_status || 'pending',
-            },
-            createdAt: new Date().toISOString()
-        };
-
-        const logMessage = 'Send Farmer approved - "cod" email Data to Notification service';
-        await postOrderNotificationWithEmail( 
-            orderChannel,
-            orderSocketIO,
-            emailMessage,
-            logMessage,
-            orderData,
-            notification
-        );
-    }
+    log.info(`Stock check triggered for order: ${orderID} - message published to Product Service`);
 }
 
 const farmerRejectOrder = async(orderData: OrderDocumentInterface): Promise<void> => {
