@@ -64,17 +64,17 @@ const placeCustomerOrder = async(req:Request, res:Response):Promise<void> => {
 
 const approveOrder = async(req:Request, res:Response):Promise<void> => {
     await farmerApproveOrder(req.params.orderID);
-    res.status(200).json({message:`Farmer approved order`});
+    res.status(200).json({message:`Order Approving started`});
 } 
 
 const cancelPlacedOrder = async(req:Request, res:Response):Promise<void> => {
     await cancelOrder(req.params.orderID);
-    res.status(200).json({message:`Farmer canceled order`});
+    res.status(200).json({message:`Order canceling started`});
 }
 
 const startOrderProccess = async(req:Request, res:Response):Promise<void> => {
     await farmerStartOrderProccess(req.params.orderID);
-    res.status(200).json({message:`Farmer started the order proccess - packing`});
+    res.status(200).json({message:`Order proccess - packing`});
 }
 
 const startOrderDelivery = async(req:Request, res:Response):Promise<void> => {

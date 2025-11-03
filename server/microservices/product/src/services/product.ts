@@ -45,7 +45,6 @@ const createProduct = async(product:ProductCreateInterface):Promise<ProductDocum
         const data =  createdDocument.toJSON?.() as ProductDocumentInterface; //Convert Mongoose Obj(_doc) to the JSON Object 
         const productID = createdDocument._id; 
         await addDataToIndex('products', `${productID}`, data);  
-        //Produce message to the User Service (for adding new product) if is implemented in USER SERVICE
     }
 
     return createdDocument;
@@ -152,8 +151,6 @@ const decreaseProductStock = async(orderProductList: OrderItemDocumentInterface[
         // Check if some updates failed due to insufficient stock
         if(result.modifiedCount !== orderProductList.length) {
             throw BadRequestError("Insufficient stock for one or more products.", "Product Service");
-            //TODO: 
-            //Send ACK to Order service
         }
     }
 
@@ -164,10 +161,23 @@ const decreaseProductStock = async(orderProductList: OrderItemDocumentInterface[
     return updatedProducts;
 }
 
+const revertProductStock = async(orderProductList: OrderItemDocumentInterface[]): Promise<void> => {
+    const bulkOperations = orderProductList.map((orderItem) => ({
+        updateOne: {
+            filter: { _id: orderItem.product_id },
+            update: { $inc: { stock: orderItem.quantity } } // Add back the quantity
+        }
+    }));
+
+    if (bulkOperations.length > 0) {
+        const result = await ProductModel.bulkWrite(bulkOperations);
+        console.log(`Stock reverted for ${result.modifiedCount} products`);
+    }
+}
+
 const updateUserProductData = async(data:UserProductUpdatePropInterface) =>{
     const {farmerID, ...updateData} = data;
 
-    //Take all products from mongodB
     const products = await ProductModel.find({farmerID}) 
 
     for(const product of products){
@@ -192,5 +202,6 @@ export {
     getFarmerProducts,
     getProductsByCategory,
     decreaseProductStock,
+    revertProductStock,
     updateUserProductData,
 }

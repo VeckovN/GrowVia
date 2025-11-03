@@ -14,8 +14,7 @@ import { appRoutes } from "@order/routes";
 import { createConnection } from "@order/rabbitmqQueues/rabbitmq";
 import { Channel } from "amqplib";
 import { Server } from 'socket.io';
-import { placeOrderPaymentDirectConsumer, farmerAcceptOrderPaymentDirectConsumer } from "@order/rabbitmqQueues/consumer";
-// import { placeOrderPaymentDirectConsumer } from "@order/rabbitmqQueues/consumer";
+import { placeOrderPaymentDirectConsumer, farmerAcceptOrderPaymentDirectConsumer, stockReservationResultConsumer } from "@order/rabbitmqQueues/consumer";
 const Server_port = 4005;
 const log: Logger = winstonLogger(`${config.ELASTICSEARCH_URL}`, 'OrderService', 'debug');
 
@@ -52,6 +51,7 @@ async function startRabbitmqQueue():Promise<void>{
     orderChannel = await createConnection() as Channel;
     await placeOrderPaymentDirectConsumer(orderChannel);
     await farmerAcceptOrderPaymentDirectConsumer(orderChannel);
+    await stockReservationResultConsumer(orderChannel);
 } 
 
 function errorHandlerMiddleware(app: Application):void{
