@@ -2,7 +2,7 @@ import { FC, ReactElement } from 'react';
 import { DeliveryOrderSummaryPropsInterface } from '../../order.interface'; 
 
 const DeliveryOrderSummary:FC<DeliveryOrderSummaryPropsInterface> = ({priceDetails, handleNextStep}):ReactElement => {
-    
+
     return (
         <div className='w-full max-w-[412px] pt-2 pb-2 px-4  border-2 border-greyB bg-greyOrder rounded'>
             <h3 className="text-lg font-semibold font-lato"> Order Summary</h3>
@@ -10,7 +10,7 @@ const DeliveryOrderSummary:FC<DeliveryOrderSummaryPropsInterface> = ({priceDetai
             <div className='px-2 py-4 w-full flex flex-col  font-lato'>
                 <div className='flex justify-between'>
                     <label>Sub Total</label>
-                    <label className='text-lg'>${priceDetails.subTotal}</label>
+                    <label className='text-lg'>${priceDetails.subTotal.toFixed(2)}</label>
                 </div>
 
                 <div className='flex justify-between'>

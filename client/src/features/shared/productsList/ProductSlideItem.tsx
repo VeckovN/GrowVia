@@ -14,6 +14,7 @@ const ProductSlideItem: FC<ProductItemInterface> = ({
     name, 
     category,
     unit,
+    description,
     farmerID,
     farmName,
     farmerLocation,
@@ -34,6 +35,7 @@ const ProductSlideItem: FC<ProductItemInterface> = ({
           price: price,
           unit: unit,
           quantity: 1,
+          description,
           totalPrice: price.toFixed(2),
           favorite: isFavorite
         }

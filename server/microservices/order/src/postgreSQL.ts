@@ -65,6 +65,7 @@ const orderTable = `
         product_name TEXT NOT NULL, --Save for snapshot (at the time of order creation)
         product_image_url TEXT NOT NULL, -- Save for snapshot (at the time of order creation)
         product_unit TEXT NOT NULL, -- Save for snapshot
+        product_description TEXT, -- Save for snapshot
         quantity INT NOT NULL,  -- Number of products in the order
         unit_price DECIMAL(10, 2) NOT NULL,  -- Price of the product at the time of purchase
         total_price DECIMAL(10, 2) NOT NULL,  -- total price for this item (quantity * unit_price)

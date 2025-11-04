@@ -31,6 +31,7 @@ const OrderOverview:FC = ():ReactElement => {
             price: item.unit_price,
             unit: item.product_unit,
             quantity: item.quantity,
+            description: item.product_description,
             totalPrice: String(item.total_price),
             favorite: undefined
         }

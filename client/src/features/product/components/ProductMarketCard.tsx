@@ -15,11 +15,12 @@ const ProductMarketCard:FC<ProductMarketCardPropsInterface> = ({product, isFavor
             price: product.price,
             unit: product.unit,
             quantity: 1,
+            description: product.shortDescription!,
             totalPrice: product.price.toFixed(2),
-            //if authUser.wishlist.contains(product.id) ? true : false
             favorite:isFavorite
         }
 
+        console.log("productDATATAAT: ", productData);
         addToCart(product.farmerID!, product.farmName! ,productData);
     }
 
