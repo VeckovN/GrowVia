@@ -39,7 +39,8 @@
     "typescript-transform-paths": "^3.5.3",
     "unique-names-generator": "^4.7.1",
     "uuid": "^11.0.5",
-    "winston": "^3.17.0"
+    "winston": "^3.17.0",
+    "zod": "^3.24.2"
   },
   "devDependencies": {
     "@jest/types": "^29.6.3",
