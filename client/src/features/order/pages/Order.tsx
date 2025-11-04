@@ -171,10 +171,13 @@ const Order: FC = (): ReactElement => {
                 product_name: el.name,
                 product_image_url: el.imageUrl,
                 product_unit: el.unit,
+                product_description:el.description,
                 quantity: el.quantity,
                 unit_price: el.price,
                 total_price: Number(el.totalPrice),
             }));
+
+            console.log("ORDER ITEMS FROM Order.tsx");
 
             if (isFarmerLoading) {
                 toast.error("Farmer's data is still loading, please wait a moment and try again.");

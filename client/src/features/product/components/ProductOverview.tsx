@@ -71,6 +71,7 @@ const ProductOverview: FC = (): ReactElement => {
       imageUrl: product.images?.[0]?.url ?? '',
       price: product.price,
       unit: product.unit,
+      description: product.shortDescription!,
       quantity: amount,
       totalPrice: totalPriceNumber,
       favorite: isInWishlist(product.id!)

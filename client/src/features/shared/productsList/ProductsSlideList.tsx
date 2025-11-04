@@ -28,8 +28,6 @@ const ProductsSlideList: FC<SlideListInterface> = ({title, data:productsData, is
     const handlePrev = () => swiperInstance?.slidePrev();
     const handleNext = () => swiperInstance?.slideNext();
 
-
- 
     const chunkArray = <T,>(arr: T[], size: number): T[][] => {
         const chunks: T[][] = []; 
         for (let i = 0; i < arr.length; i += size) {
@@ -103,6 +101,7 @@ const ProductsSlideList: FC<SlideListInterface> = ({title, data:productsData, is
                                                 name={product.name}
                                                 category={product.category}
                                                 unit={product.unit}
+                                                description={product.shortDescription!}
                                                 farmerID={product.farmerID ?? '0'}
                                                 farmName={product.farmName ?? 'Unknown Farm'}
                                                 farmerLocation={product.farmerLocation ?? {}}

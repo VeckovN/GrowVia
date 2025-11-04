@@ -223,11 +223,12 @@ const placePendingOrder = async(orderData: OrderCreateInterface):Promise<OrderDo
                 product_name,
                 product_image_url,
                 product_unit,
+                product_description,
                 quantity, 
                 unit_price, 
                 total_price
             )
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8);
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9);
         `
 
         //loop through orderItems that passed as props of orderData
@@ -238,6 +239,7 @@ const placePendingOrder = async(orderData: OrderCreateInterface):Promise<OrderDo
                 item.product_name,
                 item.product_image_url,
                 item.product_unit,
+                item.product_description,
                 item.quantity,
                 item.unit_price,
                 item.total_price

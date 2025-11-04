@@ -101,6 +101,7 @@ export interface OrderItemRequestInterface {
     product_name: string;    
     product_image_url: string;  
     product_unit: string;
+    product_description:string;
     quantity: number;
     unit_price: number;
     total_price: number;

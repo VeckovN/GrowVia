@@ -114,6 +114,7 @@ export interface ProductItemInterface {
     name:string,
     category:string,
     unit: UnitType;
+    description: string;
     farmerID: string,
     farmName:string,
     farmerLocation:{

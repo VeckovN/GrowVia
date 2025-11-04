@@ -18,7 +18,7 @@ const OrderProductsList:FC<OrderProductsListPropsInterface> = ({cartData, isChec
                 >   
                     <div className='flex sm:gap-x-2 md:gap-x-4'>
                         <img 
-                            className='w-full max-w-[160px] h-[90px] max-h-[100px] rounded-md object-cover'
+                            className='w-full max-w-[160px] h-[90px] min-w-[130px] max-h-[100px] rounded-md object-cover'
                             src={prod.imageUrl}
                         />
 
@@ -26,8 +26,7 @@ const OrderProductsList:FC<OrderProductsListPropsInterface> = ({cartData, isChec
                             <div className='flex flex-col items-center sm:items-start font-medium'>
                                 <label className='pt-4 sm:pt-0 text-lg sm:text-base'>{prod.name}</label>
                                 <p className='hidden sm:block text-gray-600'>
-                                    Lorem ipsum dolor sit amet consectetur adipisicing elit. Non, totam veniam? 
-                                    Mollitia ipsa numquam quisquam sapiente natus op
+                                   {prod.description ? prod.description : "No descriptions"}
                                 </p>
                             </div>
 
@@ -39,7 +38,7 @@ const OrderProductsList:FC<OrderProductsListPropsInterface> = ({cartData, isChec
                     </div>
 
                     <div className='sm:hidden mt-2 text-gray-600'>
-                        Lorem ipsum dolor sit amet consectetur adipisicing elit. Non, totam veniam? Mollitia ipsa numquam quisquam sapiente natus op
+                        {prod.description ? prod.description : "No descriptions"}
                     </div>
                 </div>  
             ))}
