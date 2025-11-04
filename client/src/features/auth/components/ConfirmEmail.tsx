@@ -18,30 +18,31 @@ const ConfirmEmail: FC = (): ReactElement => {
     const [searchParams] = useSearchParams();
     const [verifyEmail] = useVerifyEmailMutation();
 
-    const onVerifyEmail = async():Promise<void> => {
-        try{
-            const token = searchParams.get('token');
-            if(!token){
-                setResponseMessage({error: 'Missing verification token'})
-                setIsVerifying(false);
-                return
-            }
-            const result = await verifyEmail({userID: authUser.id!, token}).unwrap();
-            dispatch(verifyUserEmail());
-            setResponseMessage({message: result.message});
-        }
-        catch (error) {
-            console.log("errorDataM", error?.data.message);
-            if(error.originalStatus === 404){
-                const errorMessage = error?.message || 'An unknown error occurred'
-                setResponseMessage({error: errorMessage});
-            }
-        }
-        setIsVerifying(false);
-    }
-
     useEffect(() =>{
-        onVerifyEmail
+        const onVerifyEmail = async():Promise<void> => {
+            try{
+                const token = searchParams.get('token');
+                console.log("TOKEN: ", token);
+                if(!token){
+                    setResponseMessage({error: 'Missing verification token'})
+                    setIsVerifying(false);
+                    return
+                }
+                const result = await verifyEmail({userID: authUser.id!, token}).unwrap();
+                dispatch(verifyUserEmail());
+                setResponseMessage({message: result.message});
+            }
+            catch (error) {
+                console.log("errorDataM", error?.data?.message);
+                if(error.originalStatus === 404){
+                    const errorMessage = error?.message || 'An unknown error occurred'
+                    setResponseMessage({error: errorMessage});
+                }
+            }
+            setIsVerifying(false);
+        }
+        
+        onVerifyEmail();
     },[])
    
     return (
@@ -68,7 +69,6 @@ const ConfirmEmail: FC = (): ReactElement => {
                     {isVerifying 
                     ?
                     <div className='py-4 px-4 bg-gray-400 flex items-center flex-cols'>
-                        {/* HERE I WANT LAADING CIRCLE ICON WITH ANIMATIONS */}
                         <FaSpinner className='h-8 w-8 text-green9 animate-spin'/> 
                         <div className='ml-2 bg-gray-400 font-meidum'> Verifying your email... </div> 
                         
