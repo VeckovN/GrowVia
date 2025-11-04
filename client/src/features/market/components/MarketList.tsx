@@ -5,6 +5,7 @@ import MarketFarmerCard from "./MarketFarmerCard";
 import { MarketListInterface } from "../market.interface";
 import { CartProductInterface } from "../../cart/cart.interface";
 import { handleAddToCart } from "../../shared/utils/utilsFunctions";
+import { useWishlist } from "../../shared/hooks/useWishlist";
 
 const MarketList:FC<MarketListInterface> = ({mode, items=[]}):ReactElement => {
     const dispatch = useAppDispatch();
@@ -12,6 +13,8 @@ const MarketList:FC<MarketListInterface> = ({mode, items=[]}):ReactElement => {
     const onAddToCart = (farmerID: string, farmName: string, product:CartProductInterface ):void =>{
         handleAddToCart(dispatch, farmerID, farmName, product);
     }
+    
+    const { toggleWishlist, isInWishlist} = useWishlist();
 
     return (
         <div className="bg-red-300a">
@@ -22,7 +25,8 @@ const MarketList:FC<MarketListInterface> = ({mode, items=[]}):ReactElement => {
                             key={product.id}
                             product={product}
                             addToCart={onAddToCart}
-                            addToFavorite={() => alert("Add to Favorite")}
+                            addToFavorite={() => toggleWishlist(product.id)}
+                            isFavorite={isInWishlist(product.id)}
                         />
                     ))}
                 </div>

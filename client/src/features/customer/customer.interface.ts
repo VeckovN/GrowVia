@@ -7,3 +7,13 @@ export interface CustomerProfileInterface {
     location?: LocationInterface,
     profileAvatarFile?: string,
 }
+
+export interface CustomerUpdateProfilePropInterface {
+    customerID: string,
+    updateData: CustomerProfileInterface
+}
+
+export interface CustomerWishlistInterface {
+    customerID: string,
+    productID: string
+}

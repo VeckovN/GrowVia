@@ -6,7 +6,7 @@ const MarketFarmerCard:FC<MarketFarmerCardInterface> = ({farmer}):ReactElement =
     const navigate = useNavigate();
 
     return (
-        <div className='w-full flex min-w-[380px] border rounded-md'>
+        <div className='w-full flex min-w-[380px] border rounded-md bg-gray-50'>
             <div 
                 className='min-w-[150px] h-28 relative rounded-md bg-cover bg-centera opacity-4'
                 style={{backgroundImage: `url(${farmer.backgroundImage?.url})`}}

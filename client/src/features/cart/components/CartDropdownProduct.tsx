@@ -1,17 +1,14 @@
 import { FC } from 'react';
 import { CartDropdownProductInterface } from '../cart.interface';
-
 import { VscHeart } from "react-icons/vsc";
 import { VscHeartFilled } from "react-icons/vsc";
 
-//COMMIT: refactor: fix total amount for selected product on cart based on amount and price
-const CartDropdownProduct:FC<CartDropdownProductInterface> = ({product, farmerID, onIncreaseProduct, onDecreseProduct, onRemoveProduct}) => {
+const CartDropdownProduct:FC<CartDropdownProductInterface> = ({product, farmerID, isFavorite, onIncreaseProduct, onDecreseProduct, onRemoveProduct, onToggleWishlist}) => {
 
     return (
         <div className='px-2 py-2 flex justify-between items-center  border-b border-greyB/50'>
             <div className='w-1/3'>
                 <img 
-                    // className='w-full max-w-[100px]a sm:max-w-[150px] max-h-[100px] w-[140px]a rounded-md object-cover'
                     className='w-full max-w-[160px] h-[90px] max-h-[100px] rounded-md object-cover'
                     src={product.imageUrl}
                 />
@@ -45,12 +42,12 @@ const CartDropdownProduct:FC<CartDropdownProductInterface> = ({product, farmerID
                             w-6 ml-1  flex justify-center items-center text-md font-semibold font-lato rounded 
                             sm:text-lg rounded cursor-pointer z-20 group
                         '
-                        onClick={(e) => {
+                        onClick={async(e) => {
                             e.stopPropagation(); //prevent outer onClick ->navigation to product
-                            // addToFavorite()
+                            await onToggleWishlist(product.productID);
                         }}
                     >
-                        {product.favorite 
+                        {isFavorite(product.productID)
                         ? <VscHeartFilled className=' text-3xl text-red-500'/>
                         : <VscHeart className='group-hover:text-red-300 text-3xl text-red-500'/>
                         }
@@ -63,8 +60,6 @@ const CartDropdownProduct:FC<CartDropdownProductInterface> = ({product, farmerID
                 <div className='flex gap-x-1 rounded-xl'>
                         <button
                         className='border border-greyB w-8 h-8 rounded-md'
-                        // onClick={() => setAmount(prev => (prev > 1 ? prev-1 : prev))}
-                        // onClick={() => onDecreseProduct(data.farmerID!, product.productID)}
                         onClick={() => onDecreseProduct(farmerID, product.productID)}
                     >
                         -
@@ -74,8 +69,6 @@ const CartDropdownProduct:FC<CartDropdownProductInterface> = ({product, farmerID
                     </div>
                     <button 
                         className='border border-greyB w-8 h-8 rounded-md'
-                        // onClick={() => setAmount(prev => prev +1)}
-                        // onClick={() => onIncreaseProduct(data.farmerID!, product.productID)}
                         onClick={() => onIncreaseProduct(farmerID, product.productID)}
                     > 
                         +

@@ -13,12 +13,15 @@ import Breadcrumbs from '../../shared/page/Breadcrumbs';
 import TestImg from '../../../assets/farmers/avatar1.jpg';
 import { CartProductInterface } from '../../cart/cart.interface';
 import { ProductDocumentInterface } from '../product.interface';
+import { useWishlist } from '../../shared/hooks/useWishlist';
 
 const ProductOverview: FC = (): ReactElement => {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const { id } = useParams(); //get id from 'page url'
   const [amount, setAmount] = useState(1);
+
+  const { toggleWishlist, isInWishlist} = useWishlist();
 
   const { data, isLoading } = useGetProductByIDQuery(id!, {
     skip: !id // skip the query if ID is not present
@@ -70,7 +73,7 @@ const ProductOverview: FC = (): ReactElement => {
       unit: product.unit,
       quantity: amount,
       totalPrice: totalPriceNumber,
-      // favorite?:;
+      favorite: isInWishlist(product.id!)
     }
     
     handleAddToCart(dispatch, farmerID, farmName, cartProduct)
@@ -128,9 +131,12 @@ const ProductOverview: FC = (): ReactElement => {
                   rounded flex justify-center items-center 
                   group-hover:flex cursor-pointer hover:bg-grey hover:border-r-2 hover:border-b-2 hover:border-greyB 
                   '
-                  onClick={() => alert(`add to Favorite ${product?.id}`)}
+                  onClick={(e) => {
+                      e.stopPropagation();
+                      product?.id && toggleWishlist(product.id);
+                  }}
                 >
-                  {product?.favorite
+                  {isInWishlist(product?.id!)
                     ? <VscHeartFilled className='text-2xl text-red-500' />
                     : <VscHeart className='text-2xl text-red-500' />
                   }

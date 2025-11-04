@@ -5,6 +5,7 @@ import { CartFarmerGroupInterface } from '../cart.interface';
 import CartDropdownProduct from './CartDropdownProduct';
 import { handleCartItemIncrease, handleCartItemDecrease, handleRemoveCartItem } from '../../shared/utils/utilsFunctions';
 import toast from 'react-hot-toast';
+import { useWishlist } from '../../shared/hooks/useWishlist';
 
 interface CartDropdownProps {
     isCustomer: boolean;
@@ -16,6 +17,8 @@ const CartDropdown: FC<CartDropdownProps> = ({isCustomer, cart, closeCartDropdow
     const navigate = useNavigate();
     const dispatch = useAppDispatch();
 
+    const { toggleWishlist, isInWishlist} = useWishlist();
+
     const onIncreaseProduct = (farmerID: string, productID: string):void => {
         handleCartItemIncrease(dispatch, farmerID, productID);
     }
@@ -26,6 +29,10 @@ const CartDropdown: FC<CartDropdownProps> = ({isCustomer, cart, closeCartDropdow
 
     const onRemoveProduct = (farmerID: string, productID: string):void => {
         handleRemoveCartItem(dispatch, farmerID, productID);
+    }
+
+    const onToggleWishlist = async(productID: string):Promise<void> =>{
+        await toggleWishlist(productID);
     }
 
     const getTotalAmount = (farmerID: string):number => {
@@ -69,9 +76,11 @@ const CartDropdown: FC<CartDropdownProps> = ({isCustomer, cart, closeCartDropdow
                                     <CartDropdownProduct 
                                         product={product}
                                         farmerID={data.farmerID!}
+                                        isFavorite={isInWishlist}
                                         onIncreaseProduct={onIncreaseProduct}
                                         onDecreseProduct={onDecreseProduct}
                                         onRemoveProduct={onRemoveProduct}
+                                        onToggleWishlist={onToggleWishlist}
                                     />
                                 ))}
                             </div>
