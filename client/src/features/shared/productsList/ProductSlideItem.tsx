@@ -3,11 +3,11 @@ import { useAppDispatch } from '../../../store/store';
 import { ProductItemInterface } from '../interfaces';
 import { useNavigate } from 'react-router-dom';
 import { handleAddToCart } from '../utils/utilsFunctions';
+import { useWishlist } from '../hooks/useWishlist';
 
 import { VscHeart } from "react-icons/vsc";
 import { VscHeartFilled } from "react-icons/vsc";
 import { CartProductInterface } from '../../cart/cart.interface';
-// import { handleAddToCart } from '../utils/utilsFunctions';
 
 const ProductSlideItem: FC<ProductItemInterface> = ({
     id, 
@@ -18,15 +18,15 @@ const ProductSlideItem: FC<ProductItemInterface> = ({
     farmName,
     farmerLocation,
     price,
-    favorite,
     image,
-    addFavorite
 }): ReactElement => {
     const navigate = useNavigate();
     const dispatch = useAppDispatch();
 
+    const { toggleWishlist, isInWishlist} = useWishlist();
+    const isFavorite = isInWishlist(id);
+
     const onAddToCartHandler = ():void =>{
-    
         const cartProduct: CartProductInterface = {
           productID: id,
           name: name,
@@ -35,7 +35,7 @@ const ProductSlideItem: FC<ProductItemInterface> = ({
           unit: unit,
           quantity: 1,
           totalPrice: price.toFixed(2),
-          // favorite?:;
+          favorite: isFavorite
         }
         
         handleAddToCart(dispatch, farmerID, farmName, cartProduct)
@@ -58,9 +58,12 @@ const ProductSlideItem: FC<ProductItemInterface> = ({
                     text-lg font-semibold font-lato rounded flex justify-center items-center 
                     group-hover:flex cursor-pointer hover:bg-grey hover:border-r-2 hover:border-b-2 hover:border-greyB 
                 '
-                    onClick={() => addFavorite(id)}
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        toggleWishlist(id)
+                    }}
                 >
-                    {favorite 
+                    {isFavorite 
                     ? <VscHeartFilled className='text-3xl text-red-500'/>
                     : <VscHeart className='text-3xl text-red-500'/>
                     }

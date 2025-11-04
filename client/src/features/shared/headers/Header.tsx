@@ -134,6 +134,8 @@ const Header: FC = (): ReactElement => {
                                 <HeaderIconBadge
                                     icon={Heart}
                                     alt="heart"
+                                    content={authUser.wishlist?.length ?? 0}
+                                    // onClick={toggleWishlistDropdown}
                                     onClick={() => alert("User Favorite")}
                                 />
                                 <HeaderIconBadge

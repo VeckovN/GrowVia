@@ -122,13 +122,11 @@ export interface ProductItemInterface {
         address?:string
     },
     price:number,
-    favorite:boolean, 
+    favorite?:boolean, 
     image:{
         url:string,
         publicID: string
     },
-    addFavorite(productID: string):void
-    addFavorite(productID: string):void
 }
 
 export interface FarmerItemInterface {

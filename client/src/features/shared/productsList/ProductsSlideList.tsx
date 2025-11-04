@@ -1,21 +1,22 @@
-import { FC, ReactElement, useState, useCallback } from 'react';
+import { FC, ReactElement, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAppSelector } from '../../../store/store';
 import useVisibleCount from '../../hooks/useVisibleCount';
 import { SlideListInterface } from '../interfaces';
 import ProductSlideItem from './ProductSlideItem';
+import { GoChevronLeft, GoChevronRight,  GoChevronUp, GoChevronDown } from "react-icons/go";
 import CircleArrowIconButton from '../../shared/CircleArrowIconButton';
-import { GoChevronLeft } from "react-icons/go";
-import { GoChevronRight } from "react-icons/go";
-import { GoChevronUp } from "react-icons/go";
-import { GoChevronDown } from "react-icons/go";
 import { DEFAULT_IMAGE } from '../utils/data';
 import LoadingSpinner from '../page/LoadingSpinner';
+import { ReduxStateInterface } from '../../../store/store.interface';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import 'swiper/css';
 import 'swiper/css/navigation';
 
 const ProductsSlideList: FC<SlideListInterface> = ({title, data:productsData, isLoading:isProductLoading}): ReactElement => {
     const navigate = useNavigate();
+    const wishlist = useAppSelector((state: ReduxStateInterface) => state.authUser.wishlist)
+    
     const visibleCount = useVisibleCount({
         mobile:2,
         tablet:4,
@@ -27,12 +28,8 @@ const ProductsSlideList: FC<SlideListInterface> = ({title, data:productsData, is
     const handlePrev = () => swiperInstance?.slidePrev();
     const handleNext = () => swiperInstance?.slideNext();
 
-    //Prevent func recreating on every render 
-    const addFavoriteHandler = useCallback((productID: string): void =>{
-        alert(`Add Favorite Product: ${productID}`);
-    }, []);
-    // }, [isCustomer]); //on auth implementation -> re-create function on user auth action
 
+ 
     const chunkArray = <T,>(arr: T[], size: number): T[][] => {
         const chunks: T[][] = []; 
         for (let i = 0; i < arr.length; i += size) {
@@ -110,9 +107,8 @@ const ProductsSlideList: FC<SlideListInterface> = ({title, data:productsData, is
                                                 farmName={product.farmName ?? 'Unknown Farm'}
                                                 farmerLocation={product.farmerLocation ?? {}}
                                                 price={product.price}
-                                                favorite={product.favorite ?? false}
+                                                // favorite={wishlist?.includes(product.id!) ?? false}
                                                 image={product.images?.[0] ?? DEFAULT_IMAGE}
-                                                addFavorite={() => product.id && addFavoriteHandler(product.id)}
                                             />
                                         ))}
                                     </div>

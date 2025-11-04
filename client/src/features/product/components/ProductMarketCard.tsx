@@ -1,11 +1,10 @@
 import {FC, ReactElement } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { ProductDocumentInterface, ProductMarketCardPropsInterface } from '../product.interface';
 import { CartProductInterface } from '../../cart/cart.interface';
-import { useNavigate } from 'react-router-dom';
+import { VscHeart, VscHeartFilled } from "react-icons/vsc";
 
-import { VscHeart } from "react-icons/vsc";
-
-const ProductMarketCard:FC<ProductMarketCardPropsInterface> = ({product, addToCart, addToFavorite}):ReactElement =>{
+const ProductMarketCard:FC<ProductMarketCardPropsInterface> = ({product, isFavorite, addToCart, addToFavorite}):ReactElement =>{
     const navigate = useNavigate();
 
     const handleAddToCart = (product:ProductDocumentInterface):void =>{
@@ -18,7 +17,7 @@ const ProductMarketCard:FC<ProductMarketCardPropsInterface> = ({product, addToCa
             quantity: 1,
             totalPrice: product.price.toFixed(2),
             //if authUser.wishlist.contains(product.id) ? true : false
-            // favorite: product.favorite ? "true" : "false",
+            favorite:isFavorite
         }
 
         addToCart(product.farmerID!, product.farmName! ,productData);
@@ -73,12 +72,12 @@ const ProductMarketCard:FC<ProductMarketCardPropsInterface> = ({product, addToCa
                         addToFavorite()
                     }}
                 >
-                    <VscHeart className='text-xl text-red-500'/>
+                    {/* <VscHeart className='text-xl text-red-500'/> */}
                     {/* for logged user */}
-                    {/* {favorite 
+                    {isFavorite 
                     ? <VscHeartFilled className='text-3xl text-red-500'/>
                     : <VscHeart className='text-3xl text-red-500'/>
-                    } */}
+                    }
                 </button>
             </div>
 

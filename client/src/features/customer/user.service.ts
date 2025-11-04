@@ -1,17 +1,13 @@
 //Service to '/users' Service
 import { ResponseInterface } from "../shared/interfaces";
 import { api } from "../../store/api";
-import { CustomerProfileInterface } from "./customer.interface";
+import { CustomerUpdateProfilePropInterface, CustomerWishlistInterface } from "./customer.interface";
 
-interface CustomerUpdateProfilePropInterface {
-    customerID: string;
-    updateData: CustomerProfileInterface
-}
 
 export const customerApi = api.injectEndpoints({
     endpoints: (build) => ({
         updateCustomer: build.mutation<ResponseInterface, CustomerUpdateProfilePropInterface>({
-            query({customerID, updateData}) {
+            query({ customerID, updateData }) {
                 return {
                     url:`/users/customer/id/${customerID}`,
                     method: 'PATCH',
@@ -20,9 +16,30 @@ export const customerApi = api.injectEndpoints({
             },
             invalidatesTags: ['Farmer']
         }),
+        addItemToWishlist: build.mutation<ResponseInterface, CustomerWishlistInterface>({
+            query({ customerID, productID }) {
+                return {
+                    url:`/users/customer/wishlist`,
+                    method: 'post',
+                    body: {customerID, productID}
+                };
+            },
+            invalidatesTags: ['Farmer']
+        }),
+        removetItemFromWishlist: build.mutation<ResponseInterface, CustomerWishlistInterface>({
+            query({ customerID, productID }) {
+                return {
+                    url:`/users/customer/${customerID}/wishlist/${productID}`,
+                    method: 'delete',
+                };
+            },
+            invalidatesTags: ['Farmer']
+        })
     })
 })
 
 export const {
-    useUpdateCustomerMutation
+    useUpdateCustomerMutation,
+    useAddItemToWishlistMutation,
+    useRemovetItemFromWishlistMutation
 } = customerApi;

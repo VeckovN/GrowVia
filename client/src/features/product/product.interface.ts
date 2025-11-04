@@ -108,7 +108,7 @@ export interface ProductSearchParamsInterface {
 
 export interface ProductMarketCardPropsInterface {
     product: ProductDocumentInterface,
-    // addToCart: () => void;
     addToCart: (farmerID: string, farmName: string, product: CartProductInterface) => void;
-    addToFavorite: () => void;
+    addToFavorite: () => Promise<void>;
+    isFavorite: boolean;
 }
