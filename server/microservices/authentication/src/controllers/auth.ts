@@ -7,6 +7,7 @@ import { publishMessage } from "@authentication/rabbitmqQueues/producer";
 import { authChannel } from "@authentication/server";
 import { sign } from 'jsonwebtoken';
 import { compare, hash } from 'bcryptjs';
+import { EmailVerificationZodSchema, LoginZodSchema, UserRegistrationZodSchema } from '@authentication/schema/auth.schema';
 
 //factory function (generate user-specific data based on the type)
 const factoryCreateUserData = (
@@ -64,6 +65,8 @@ export async function create(req:Request, res:Response):Promise<void>{
     //!watch on parameter order
     const userTypeData = factoryCreateUserData(userType, username, email, othersUsersData);
 
+    UserRegistrationZodSchema.parse(userAuthData);
+
     const userID = await createUser(userAuthData, userTypeData);
     //publishMessage
     //send verificationLink with email to the user (with Notification email feature) -> MessageQueue
@@ -82,7 +85,7 @@ export async function create(req:Request, res:Response):Promise<void>{
         JSON.stringify(messageVerificationEmail)
     );
 
-    //AFTHER THE USER IS CREATEAD HE IS AUTOMATICALLY LOGGED IN (send back creadentials through the token)
+    // after the user is created he is automatically logged in (send back creadentials through the token)
     const userToken = sign({userID, email, username}, `${config.JWT_TOKEN}`);
 
     //sing in token and return as part of res.json
@@ -93,7 +96,8 @@ export async function create(req:Request, res:Response):Promise<void>{
 export async function login(req:Request, res:Response):Promise<void>{
     const {usernameOrEmail, password} = req.body;     
 
-    //first check does email passed as argument (because can be both "email or username")
+    LoginZodSchema.parse(req.body);
+
     const validEmail = isEmailValid(usernameOrEmail);
     let user:AuthUserInterface | undefined;
 
@@ -107,7 +111,6 @@ export async function login(req:Request, res:Response):Promise<void>{
         throw BadRequestError("User not found.", "Login function error");
     }
 
-    //get password from found user
     const isPasswordValid = await compare(password, user.password!); 
 
     if(!isPasswordValid)
@@ -123,6 +126,8 @@ export async function login(req:Request, res:Response):Promise<void>{
 export async function verifyEmail(req:Request, res:Response):Promise<void>{
     const {userID, token } = req.body;
     console.log("token: ", token);
+    EmailVerificationZodSchema.parse(req.body);
+
     const authUser = await getUserByID(userID);
     if(!authUser)
         throw BadRequestError("User invalid, you can't verify email", "verifyEmail function error");
@@ -132,20 +137,10 @@ export async function verifyEmail(req:Request, res:Response):Promise<void>{
         throw BadRequestError("User is already verified!", "verifyEmail function error");
     
 
-    //this will be last check if user token is valid (same sa given)
-    // if(!crypto.timingSafeEqual(
-    //     Buffer.from(authUser.verificationEmailToken),
-    //     Buffer.from(token)
-    // )){
-    //     throw BadRequestError("Invalid verification token", "verifyEmail function error")
-    // }
-
     await updateEmailVerification(userID, null);
-    const updatedUser:AuthUserInterface = await getUserByID(userID) as AuthUserInterface;
-    console.log("User after email verification: ", updatedUser);  
+    const updatedUser:AuthUserInterface = await getUserByID(userID) as AuthUserInterface; 
     res.status(200).json({message:"Email has successfully verified", user:updatedUser})
     //or just return message (and change verification status on the frontend)
-    // res.status(200).json({message:"User has successfully verified the email"})
 }
 
 //send the email for restarting password 
@@ -162,10 +157,7 @@ export async function forgotPassword(req:Request, res:Response):Promise<void>{
     const date:Date = new Date();
     date.setHours(date.getHours() + 1); //get 1 hour as expires time 
     await updatePasswordTokenExpiration(user.id!, resetToken, date);
-    // const isUpdated = await updatePasswordTokenExpiration(user.id!, resetToken, date);
-    // if(!isUpdated)
-    //     throw new Error("Went wrong with updating password token expiration ");
-    
+
     const messageForgotPasswordEmail: EmailLocalsInterface = {
         receiverEmail: email,
         username: user.username,
@@ -185,9 +177,8 @@ export async function forgotPassword(req:Request, res:Response):Promise<void>{
 }
 
 export async function resetPassword(req:Request, res:Response):Promise<void>{
-    //on forgotPassword email the user passing new password (as password and repeatedPassword -> both must match)
     const { password, repeatedPassword } = req.body;
-    // //token from URL: config.CLIENT_URL}/reset_password?token=${resetToken}
+    //token from URL: config.CLIENT_URL}/reset_password?token=${resetToken}
     const token = req.params.token;
 
     if(password !== repeatedPassword)
@@ -195,21 +186,19 @@ export async function resetPassword(req:Request, res:Response):Promise<void>{
 
     //When the token expired it becomes null 
     const user = await getUserByPasswordToken(token);
-    if(!user) //that means token has expired
+    if(!user)
         throw BadRequestError("Reset Token has expired", "resetPassword function error");
 
     const SALT_ROUND = 10;
     const hashedPassoword = await hash(password as string, SALT_ROUND);
     await updatePassword(user.id!, hashedPassoword);
 
-    //message
     const messageResetPasswordSuccessEmail: EmailLocalsInterface = {
         receiverEmail: user.email,
         username: user.username,
         template: 'resetPasswordSucceed'
     }
-
-    //Now publish message to Notification Service (Produce message on signup action for verify Email)
+    
     await publishMessage(
         authChannel,
         'auth-email-notification',
