@@ -175,3 +175,8 @@ export interface CustomerFormOptionPropsInterface {
     validationErrors: ValidationErrorMap; //-> Record<string,string> -> the useAuthValidation validation hook return value
     actionError: string;
 }
+
+export interface AuthUserWishlistItemInteface {
+    productID: string;
+    actionType: 'add' | 'remove';
+}

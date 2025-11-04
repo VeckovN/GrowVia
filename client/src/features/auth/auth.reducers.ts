@@ -1,11 +1,6 @@
 import { createSlice, Slice, PayloadAction} from "@reduxjs/toolkit";
-
-import { AuthUserInterface, FarmerLocationInterface } from "./auth.interfaces";
+import { AuthUserInterface, AuthUserWishlistItemInteface, FarmerLocationInterface } from "./auth.interfaces";
 import { LocationInterface } from "./auth.interfaces";
-
-//Consider useing "Async Trunks " used for
-// -Tracking {IsLoading, isSuccess and error states during }
-// -side Effects (to dispatch multiple actions (eg. setAuthUser + resetCart on logout)
 
 export const initialAuthUser: AuthUserInterface = {
     id: '',
@@ -16,7 +11,6 @@ export const initialAuthUser: AuthUserInterface = {
     verificationEmailToken: null,
     resetPasswordToken: null,
     expireResetPassword: null,
-    //   createdAt: new Date(), not serializable data allowed in redux-toolkit
     createdAt: new Date().toISOString(),
     fullName: '',
     location: {} as LocationInterface | FarmerLocationInterface,
@@ -39,6 +33,23 @@ const authSlice: Slice = createSlice({
         updateAuthUser: (state, action: PayloadAction<Partial<AuthUserInterface>>) => {
             return state = { ...state, ...action.payload }
         },
+        updateAuthUserWishlist: (state, action: PayloadAction<AuthUserWishlistItemInteface>) => {
+            const { productID, actionType } = action.payload;
+
+            if (!state.wishlist) {
+                state.wishlist = [];
+            }
+
+            if(actionType === 'add'){
+                if(!state.wishlist?.includes(productID)){
+                    state.wishlist?.push(productID); 
+                }
+            }
+            
+            if(actionType === 'remove'){
+                state.wishlist = state.wishlist?.filter(id => id !== productID)
+            }
+        },
         clearAuth: ()=> {
             return initialAuthUser 
         },
@@ -48,9 +59,9 @@ const authSlice: Slice = createSlice({
     }
 });
 
-export const { setAuthUser, updateAuthUser } = authSlice.actions;
+export const { setAuthUser, updateAuthUser, updateAuthUserWishlist } = authSlice.actions;
 
-//thus export type fix type probelm with missing 1 argument
+//this export type fix type probelm with missing 1 argument
 export const clearAuth = authSlice.actions.clearAuth as () => PayloadAction<undefined>;
 export const verifyUserEmail = authSlice.actions.verifyUserEmail as () => PayloadAction<undefined>;
 
