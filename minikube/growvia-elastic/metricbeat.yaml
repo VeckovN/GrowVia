@@ -283,7 +283,8 @@ spec:
       dnsPolicy: ClusterFirstWithHostNet
       containers:
       - name: metricbeat
-        image: docker.elastic.co/beats/metricbeat:8.18.0
+        # image: docker.elastic.co/beats/metricbeat:8.18.0
+        image: docker.elastic.co/beats/metricbeat:8.15.3
         # system.hostfs must start with double dash -- (Was error with single dash)
         args: [
           "-c", "/etc/metricbeat.yml",

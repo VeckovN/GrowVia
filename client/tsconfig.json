@@ -4,7 +4,8 @@
     "composite": true,
     "skipLibCheck": true,
     "module": "ESNext",
-    "outDir": "dist",
+    // "outDir": "dist", 
+    "outDir": "./build",
     "moduleResolution": "bundler",
     "allowSyntheticDefaultImports": true,
     "paths": {

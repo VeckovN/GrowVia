@@ -1,6 +1,7 @@
 import { BaseQueryFn, createApi, FetchArgs, fetchBaseQuery, FetchBaseQueryError } from "@reduxjs/toolkit/query/react";
 
-const BASE_ENDPOINT = 'http://localhost:4000';
+const BASE_ENDPOINT = import.meta.env.VITE_BASE_ENDPOINT;
+console.log("BASE EDNPOTIN: ", BASE_ENDPOINT);
 
 const baseQuery = fetchBaseQuery({
     //every request is sent to the API Gateway service 

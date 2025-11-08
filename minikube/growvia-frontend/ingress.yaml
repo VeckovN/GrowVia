@@ -1,0 +1,34 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: growvia-frontend-ingress
+  namespace: production
+spec:
+  #for minkube (localy) we’ll use nginx-ingress 
+  #in production could (AWS) be used the  loadBalancer will be used 
+  ingressClassName: nginx
+  defaultBackend:
+    service:
+      name: growvia-frontend
+      port: 
+        number: 80 #inside the service and NGINX config
+  tls:  #point certificates to the ingress
+    - hosts:
+      # - growvia.com 
+      - growvia.client  
+      secretName: frontend-growvia-tls #secret that is created
+  rules:
+  #Host domain - for local testing: http://growvia.client -> frontend 'browser' url
+  #this 'local/fake domen' has to be maped to Minikube IP address.
+  #more in documentations about mapping
+  # - host: growvia.com
+  - host: growvia.client
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: growvia-frontend
+            port: 
+              number: 80
