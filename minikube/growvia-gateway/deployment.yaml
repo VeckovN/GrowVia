@@ -39,7 +39,8 @@ spec:
           - name: RUNNING_IN_DOCKER
             value: '0'
           - name: CLIENT_URL
-            value: "http://localhost:3000"
+            # value: "http://localhost:3000"
+            value: "https://growvia.client"
           - name: ELASTICSEARCH_URL
             valueFrom:
               secretKeyRef:
