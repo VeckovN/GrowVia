@@ -125,7 +125,7 @@
 
 ### Technical Capabilities
 
-#### 📱 Responsive Design
+#### Responsive Design
 - **Mobile-first approach** - Optimized for all screen sizes
 - **Cross-device compatibility** - Seamless experience on desktop, tablet, and mobile
 - **Tailwind CSS** - Utility-first responsive design system
