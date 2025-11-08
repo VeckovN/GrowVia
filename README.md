@@ -25,7 +25,8 @@
 - **Real-Time Updates** - Instant notifications and live order tracking  
 - **Secure Payments** - PCI-compliant payment processing with Stripe  
 - **Smart Search** - Elasticsearch-powered advanced filtering  
-- **Order Management** - Complete order lifecycle with farmer approval workflow  
+- **Order Management** - Complete order lifecycle with farmer approval workflow
+- **Fully Responsive UI** - Seamless experience across desktop, tablet, and mobile devices  
 - **Production Ready** - Containerized with Docker and orchestrated with Kubernetes
 
 ## Tech Stack
@@ -94,7 +95,6 @@
 
 ---
 
-
 ## Features & Capabilities
 
 ### User Experience
@@ -124,6 +124,12 @@
 >  **Note:** Account creation is required to make purchases
 
 ### Technical Capabilities
+
+#### 📱 Responsive Design
+- **Mobile-first approach** - Optimized for all screen sizes
+- **Cross-device compatibility** - Seamless experience on desktop, tablet, and mobile
+- **Tailwind CSS** - Utility-first responsive design system
+- **Progressive enhancement** - Core functionality works on all devices
 
 #### Security & Authentication
 - **JWT-based authentication** with secure token management
