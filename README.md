@@ -12,7 +12,7 @@
 
 > **Built with Microservices Architecture & Event-Driven Design**
 
-[Overview](#-overview) • [Tech Stack](#-tech-stack) • [Features & Capabilities](#-features--capabilities) • [Architecture](#-architecture) • [Services](#-services-deep-dive) • [Getting Started](#-getting-started) • [CI/CD](#-cicd-pipeline) • [Monitoring](#-monitoring--observability) • [Roadmap](#-future-roadmap) • [Screenshots](#-screenshots) 
+[Overview](#project-overview) • [Tech Stack](#tech-stack) • [Features & Capabilities](#features--capabilities) • [Architecture](#architecture) • [CI/CD](#cicd-pipeline) • [Monitoring](#monitoring--observability) • [Roadmap](#future-roadmap) • [Screenshots](#screenshots) 
 
 ---
 
@@ -98,7 +98,6 @@
 ## Features & Capabilities
 
 ### User Experience
-
 
 #### For Farmers
 - **Profile Management** - Create and customize your farm profile with images and descriptions
