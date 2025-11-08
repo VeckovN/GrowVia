@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: growvia-frontend
+  namespace: production
+spec:
+  replicas: 1 
+  selector:
+    matchLabels:
+      app: growvia-frontend
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+  template:
+    metadata:
+      labels:
+        app: growvia-frontend
+    spec:
+      containers:
+      - name: growvia-frontend
+        image: veckovn/growvia-frontend:stable 
+        imagePullPolicy: Always
+        resources:
+          limits:
+            memory: "1Gi"
+            cpu: "500m"
+          requests:
+            cpu: 100m
+            # cpu: 250m
+            memory: 150Mi
+        ports:
+        - name: frontend ##specified as trargetPort in 'service.yaml'
+          containerPort: 80
