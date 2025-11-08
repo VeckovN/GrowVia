@@ -1,13 +1,11 @@
 import {io, Socket} from 'socket.io-client';
 
+const VITE_BASE_ENDPOINT = import.meta.env.VITE_BASE_ENDPOINT; //Backend endpoint -> Gateway Service
 let socket: Socket | null = null;
-
-const VITE_BASE_ENDPOINT='http://localhost:4000'; //Backend endpoint -> Gateway Service
 
 export const connectSocket = () => {
     if(socket) return socket; //only one instance ->
 
-    // socket = io(import.meta.env.VITE_BASE_ENDPOINT , { //importing from .env
     socket = io(VITE_BASE_ENDPOINT , {
         transports: ['websocket'],
         // secure:true, //only for 'https or wss
@@ -20,7 +18,6 @@ export const connectSocket = () => {
     registerSocketEvents(socket);
     
     return socket;
-
 }
 
 const registerSocketEvents = (sock: Socket) => {
@@ -35,12 +32,10 @@ const registerSocketEvents = (sock: Socket) => {
             // Server disconnected us, so reconnect manually
             sock.connect();
         }
-        // Otherwise, auto-reconnect will kick in
     });
 
     sock.on('connect_error', (error: Error) => {
         console.error(`Connection error: ${error.message}`);
-        // Auto-reconnect handles most cases
     });
 
     sock.on('error', (error) => {
