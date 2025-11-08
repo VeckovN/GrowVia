@@ -29,12 +29,12 @@ spec:
           mountPath: /usr/share/elasticsearch/data
       containers:
         - name: growvia-elastic
-          image: docker.elastic.co/elasticsearch/elasticsearch:8.18.0 #Image that is used in local Docker
+          image: docker.elastic.co/elasticsearch/elasticsearch:8.15.3 
           imagePullPolicy: Always
           lifecycle:
             preStop:
               exec:
-                command: ["/bin/sh", "-c", "sleep 30"]  # Graceful shutdown period
+                command: ["/bin/sh", "-c", "sleep 30"] #Graceful shutdown period
           resources:
             limits:
               cpu: 1500m
