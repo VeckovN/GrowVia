@@ -423,3 +423,53 @@ Transform Growvia into a hybrid platform with **subscription-based IoT features*
 
 
 ## Screenshots
+
+### Landing Page
+
+**Guest View**
+<img width="992" height="930" alt="1" src="https://github.com/user-attachments/assets/f6d66e57-d0a1-4e6d-8ab4-d57a314309ee" />
+<img width="990" height="842" alt="4" src="https://github.com/user-attachments/assets/452e27f9-280b-4be4-8781-d6e99e5103de" />
+<img width="993" height="746" alt="8" src="https://github.com/user-attachments/assets/52a126c3-89a9-4ce1-ac21-5c0ca8fa53bd" />
+
+**Customer(SignedIn) View**
+<img width="993" height="569" alt="9" src="https://github.com/user-attachments/assets/2ee0351b-ee41-478d-a610-3b302115385f" />
+<img width="993" height="569" alt="10" src="https://github.com/user-attachments/assets/8115dc83-1d8f-4150-8e11-af16c5afc1ec" />
+<img width="899" height="545" alt="9" src="https://github.com/user-attachments/assets/56d3f3e8-1197-48e1-b38e-84874a4d9c2b" />
+
+
+### Authentication
+
+**SignIn** 
+
+<img width="993" height="964" alt="1" src="https://github.com/user-attachments/assets/164c0762-dece-42af-8201-a2ed17aed926" />
+
+
+**SignUp Customer**
+
+<img width="993" height="964" alt="2" src="https://github.com/user-attachments/assets/86108913-1de0-4901-94c5-bf9575a87838" />
+
+
+**SignUp Farmer**
+
+<img width="993" height="964" alt="3" src="https://github.com/user-attachments/assets/1dfe9af7-54fe-4e21-b096-a3b98aee0c76" />
+<img width="993" height="964" alt="4" src="https://github.com/user-attachments/assets/c3f385c0-08a6-42a9-8bc7-006dfe7c5346" />
+
+
+### Marketplace
+
+**Product View**
+
+<img width="993" height="903" alt="1" src="https://github.com/user-attachments/assets/642c88a8-5f21-48df-a6ed-7b76f3bcc820" />
+
+
+**Farmer View**
+
+<img width="991" height="776" alt="6" src="https://github.com/user-attachments/assets/85979906-5ee1-4d88-b93c-d42862e01a1c" />
+
+**Customer Cart**
+
+<img width="986" height="876" alt="10" src="https://github.com/user-attachments/assets/499c1b63-e78e-448f-a202-9c5b24c35861" />
+
+--- 
+
+> 📝 **Note:** Additional screenshots will be uploaded soon.
