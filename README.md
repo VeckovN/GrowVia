@@ -436,6 +436,7 @@ Transform Growvia into a hybrid platform with **subscription-based IoT features*
 <img width="993" height="569" alt="10" src="https://github.com/user-attachments/assets/8115dc83-1d8f-4150-8e11-af16c5afc1ec" />
 <img width="899" height="545" alt="9" src="https://github.com/user-attachments/assets/56d3f3e8-1197-48e1-b38e-84874a4d9c2b" />
 
+---
 
 ### Authentication
 
@@ -454,6 +455,7 @@ Transform Growvia into a hybrid platform with **subscription-based IoT features*
 <img width="993" height="964" alt="3" src="https://github.com/user-attachments/assets/1dfe9af7-54fe-4e21-b096-a3b98aee0c76" />
 <img width="993" height="964" alt="4" src="https://github.com/user-attachments/assets/c3f385c0-08a6-42a9-8bc7-006dfe7c5346" />
 
+---
 
 ### Marketplace
 
@@ -472,4 +474,127 @@ Transform Growvia into a hybrid platform with **subscription-based IoT features*
 
 --- 
 
-> 📝 **Note:** Additional screenshots will be uploaded soon.
+
+### Product Page 
+
+#### Producut Overview 
+
+<img width="992" height="950" alt="1" src="https://github.com/user-attachments/assets/b6e91fd0-86de-4263-8c8c-d7671b56a7e3" />
+
+<img width="992" height="793" alt="2" src="https://github.com/user-attachments/assets/c470d130-9a23-449f-825e-be80ebb0ccb7" />
+
+--- 
+
+### Customer Dashboard
+
+#### Customer Profile
+
+<img width="992" height="943" alt="1" src="https://github.com/user-attachments/assets/842e8ccd-70c6-4eed-bf8c-7088ae7ed2ef" />
+
+#### Customer Orders
+
+<img width="992" height="943" alt="2" src="https://github.com/user-attachments/assets/38a4bf6a-2c60-4f4f-abfb-40bf33670386" />
+
+
+#### Customer Order Track
+
+<img width="989" height="772" alt="4" src="https://github.com/user-attachments/assets/42a4606f-0766-4be3-a409-7d7ed9b6bf5f" />
+
+
+#### Customer Order Details
+
+<img width="990" height="782" alt="3" src="https://github.com/user-attachments/assets/94d18567-ca86-4313-87d9-cab6a7118cad" />
+
+
+#### Customer Settings
+
+<img width="991" height="943" alt="4" src="https://github.com/user-attachments/assets/3c3e9e25-3cbb-4411-98c4-33dbe4d0b2cb" />
+
+---
+
+#### Customer Order Process
+
+##### Checkout
+
+<img width="990" height="852" alt="2" src="https://github.com/user-attachments/assets/a8764133-1788-4c8b-b1c0-5b08ff99d70d" />
+
+
+##### Summary (COD)
+
+<img width="990" height="751" alt="4" src="https://github.com/user-attachments/assets/3f13d5d4-1389-472d-90be-f30c5a6c0ff1" />
+
+#### Summary (Stripe - Credit Card)
+
+<img width="990" height="751" alt="5" src="https://github.com/user-attachments/assets/898250c9-cd1c-4b98-b768-7d25a504d620" />
+
+##### Payment (Stripe - Credit Card
+
+<img width="990" height="592" alt="7" src="https://github.com/user-attachments/assets/5c3c9f9f-9b23-4671-8489-95d752e1a7f2" />
+
+
+
+---
+
+### Farmer Dashboard
+
+
+#### Farmer Profile
+
+<img width="993" height="964" alt="1" src="https://github.com/user-attachments/assets/e9f78919-359f-4a41-8e3b-de1db106a787" />
+
+<img width="993" height="964" alt="2" src="https://github.com/user-attachments/assets/275b7d69-e498-4650-91d1-e93bc5781838" />
+
+
+#### Farmer Products
+
+<img width="989" height="933" alt="1" src="https://github.com/user-attachments/assets/93ec620d-d923-4fe4-9c39-795dc2dc091e" />
+
+##### Product Options
+
+<img width="989" height="445" alt="3" src="https://github.com/user-attachments/assets/48a56c60-6630-4468-b8a3-269a63964783" />
+
+##### Add Product (Modal)
+
+<img width="989" height="933" alt="2" src="https://github.com/user-attachments/assets/1097c715-f6ca-4583-8d83-178b654407e2" />
+
+##### Edit Product (Modal)
+
+<img width="989" height="954" alt="5" src="https://github.com/user-attachments/assets/959bc144-c204-4a92-9a8b-994dc5c0e1a8" />
+
+##### Delete Product (Modal)
+
+<img width="989" height="661" alt="4" src="https://github.com/user-attachments/assets/29373635-db9d-43e3-b85b-95d28aa27083" />
+
+<img width="1073" height="562" alt="6" src="https://github.com/user-attachments/assets/6a9fff73-a1f9-4b62-a52b-391ffbd8809f" />
+
+
+
+#### Farmer Orders
+
+<img width="990" height="958" alt="1" src="https://github.com/user-attachments/assets/b5bcb1ff-3fed-4bca-b651-b36d4c27c924" />
+
+<img width="990" height="958" alt="2" src="https://github.com/user-attachments/assets/cb95bb1a-9def-4679-8e2f-39d2c2368575" />
+
+
+##### Farmer Order Change Status
+
+<img width="990" height="450" alt="3" src="https://github.com/user-attachments/assets/6eeea91b-2b7d-421c-95a7-6f76e4c0ace5" />
+
+
+##### Farmer Order View
+
+<img width="993" height="821" alt="4" src="https://github.com/user-attachments/assets/167f6b64-9621-47de-babe-821dc6968e28" />
+
+
+#### Email Notifications
+
+#### Email Verification
+
+<img width="914" height="633" alt="1" src="https://github.com/user-attachments/assets/1f09270e-2973-431a-a650-84f50ac4a007" />
+
+#### Restart Password Request
+
+<img width="599" height="633" alt="3" src="https://github.com/user-attachments/assets/73e6e198-a4e2-4c0c-9788-40dcf45e0820" />
+
+
+> 📝 **Note:** Additional email notification screenshots will be uploaded soon.
