@@ -1,3 +1,10 @@
+## 📌 Branching
+
+Active development is maintained in the `dev` branch.
+
+The `main` branch may not reflect the latest state of the project.
+
+👉 Please refer to the `dev` branch for the most up-to-date version.
 
 # 🌾 Growvia 
 
